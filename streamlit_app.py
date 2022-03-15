@@ -13,7 +13,8 @@ class calculation:
         sessions_limit = 10
         impression_limit = 100
         df = pd.read_csv(uploaded_file)
-        df['Sessions'] = df['Sessions'].replace(',','')
+        df['Sessions'] = pd.to_numeric(df['Sessions'], errors='coerce')
+        #df['Sessions'] = df['Sessions'].replace(',','')
         return df['Sessions']
 
 st.text('asagidaki ASIN''ler bayagi problemli, gorunuyorlar ama satilmiyorlar')
