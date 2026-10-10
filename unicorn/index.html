@@ -115,6 +115,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 @keyframes grow{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media (max-width:420px){.brand{font-size:23px}.ch{min-height:100px}.cloud{min-height:120px}}
+.seg{display:inline-flex;align-items:stretch;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card)}.seg span{font:800 13px var(--body);padding:6px 4px 6px 12px;align-self:center}.seg button{font:800 13px var(--body);border:0;background:none;color:var(--ink);padding:6px 11px;cursor:pointer}.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
 </style>
 </head>
 <body>
@@ -143,6 +144,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
     <div class="btns">
       <button class="pill" id="wardBtn"></button>
       <button class="pill small" id="soundBtn"></button>
+      <div class="seg" id="voiceSel" role="group" hidden><span id="voiceSelLabel"></span><button data-voice="kadin"></button></div>
       <button class="pill small" id="parentBtn"></button>
     </div>
   </section>
@@ -236,7 +238,7 @@ const T={
     voiceUsed:v=>`Okuyan ses: ${v}`,voiceNone:'Bu cihazda Türkçe ses yok',voiceTest:'Sesi dene',voiceTestSay:'Merhaba! Ben Pırıl. Haydi gökkuşağı yapalım!',
     noVoiceTitle:'Bu cihazda Türkçe okuma sesi bulunamadı',
     noVoiceBody:'Yanlış aksanla okumaması için sesli okuma şimdilik kapalı; sorular ekranda yazılı. Türkçe sesi bir kez yükleyip sayfayı yenilediğinizde oyun Türkçe konuşur:',
-    retry:'Yeniden kontrol et'
+    retry:'Yeniden kontrol et',voiceBuiltIn:'oyunun kendi Türkçe sesi',voiceLabel:'Ses:',voiceNames:{kadin:'Kadın'}
   },
   en:{
     name:"Sparkle's Rainbow",uni:'Sparkle',
@@ -270,7 +272,7 @@ const T={
     voiceUsed:v=>`Voice: ${v}`,voiceNone:'No English voice on this device',voiceTest:'Test voice',voiceTestSay:"Hi! I'm Sparkle. Let's build a rainbow!",
     noVoiceTitle:'No English voice found on this device',
     noVoiceBody:'Reading aloud is off so it never uses the wrong accent; questions are shown on screen. Install an English voice once, then reload the page:',
-    retry:'Check again'
+    retry:'Check again',voiceBuiltIn:'built-in Turkish voice',voiceLabel:'Voice:',voiceNames:{kadin:'Female'}
   }
 };
 const GUIDE={
@@ -357,7 +359,7 @@ const ICON={
 
 /* ---------- durum ---------- */
 const KEY='piril-rainbow-v1';
-const fresh=()=>({total:0,bands:0,rainbows:0,best:0,streak:0,stats:{pattern:[0,0],more:[0,0],shadow:[0,0]},sound:true,lang:null,worn:{}});
+const fresh=()=>({total:0,bands:0,rainbows:0,best:0,streak:0,stats:{pattern:[0,0],more:[0,0],shadow:[0,0]},sound:true,lang:null,worn:{},voice:'kadin'});
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
 if(!S.lang){const nl=(navigator.language||'').toLowerCase();S.lang=nl.startsWith('en')?'en':'tr'}
@@ -395,13 +397,8 @@ function watchVoices(){
   const iv=setInterval(()=>{tries++;if(loadVoices()||tries>24){clearInterval(iv);if(!voicesChecked){voicesChecked=true;renderVoiceNote()}}},250);
 }
 if(hasTTS){try{speechSynthesis.addEventListener('voiceschanged',loadVoices)}catch(e){try{speechSynthesis.onvoiceschanged=loadVoices}catch(_){}}}
-function say(t,queue){
-  if(!S.sound||!hasTTS)return;
-  const v=VOICE[S.lang];if(!v)return;
-  try{if(!queue)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.15;speechSynthesis.speak(u)}catch(e){}
-}
 function renderVoiceNote(){
-  const box=$('voiceNote');const missing=voicesChecked&&!VOICE[S.lang]&&S.sound;
+  const box=$('voiceNote');const missing=voicesChecked&&!VOICE[S.lang]&&S.sound&&!ownVoice();
   box.hidden=!missing;if(!missing)return;
   const steps=GUIDE[S.lang][platform()];
   box.innerHTML=`<b>${L().noVoiceTitle}</b><p>${L().noVoiceBody}</p><ol>${steps.map(s=>`<li>${s}</li>`).join('')}</ol><div><button class="pill small" id="retryVoice">${L().retry}</button></div>`;
@@ -410,6 +407,43 @@ function renderVoiceNote(){
 
 /* ---------- efektler ---------- */
 let AC=null;
+/* ---------- kayıtlı Türkçe ses: cihazın sesine bağlı kalmadan doğal Türkçe (kadın) ---------- */
+const CLIPS={base:'audio/',map:null};
+try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips&&m.voices&&m.voices.length){CLIPS.map=m;renderVoiceNote();renderVoiceSel()}}).catch(()=>{})}catch(e){}
+function curVoice(){const vs=CLIPS.map?CLIPS.map.voices:[];return vs.includes(S.voice)?S.voice:vs[0]}
+function ownVoice(){return S.lang==='tr'&&!!CLIPS.map}
+function audioCtx(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC}catch(e){return null}}
+document.addEventListener('pointerdown',()=>{const a=audioCtx();if(a&&a.state==='suspended')a.resume().catch(()=>{})},{capture:true});
+const clipBufs={};
+function clipBuf(id){
+  const a=audioCtx(),key=curVoice()+'/'+id;if(!a)return Promise.reject(new Error('no audio'));
+  if(!clipBufs[key]){clipBufs[key]=fetch(CLIPS.base+key+'.mp3').then(r=>{if(!r.ok)throw new Error('missing');return r.arrayBuffer()}).then(b=>new Promise((res,rej)=>a.decodeAudioData(b,res,rej)));clipBufs[key].catch(()=>{delete clipBufs[key]})}
+  return clipBufs[key];
+}
+let clipGen=0,clipSrc=null,clipChain=Promise.resolve();
+function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
+function hush(){stopClips();try{speechSynthesis.cancel()}catch(e){}}
+function playBuf(buf,gen){return new Promise(res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null;res()};clipSrc=s;try{s.start()}catch(e){res()}})}
+function playClips(parts,queue){
+  if(!queue){stopClips();clipChain=Promise.resolve()}
+  const gen=clipGen,loads=parts.map(p=>clipBuf(CLIPS.map.clips[p]));loads.forEach(p=>p.catch(()=>{}));
+  clipChain=clipChain.then(async()=>{for(let i=0;i<loads.length;i++){if(gen!==clipGen)return;let b;try{b=await loads[i]}catch(e){continue}await playBuf(b,gen);if(i<loads.length-1)await new Promise(r=>setTimeout(r,140))}}).catch(()=>{});
+}
+function say(t,queue){
+  if(!S.sound)return;
+  const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!parts.length)return;
+  if(ownVoice()&&parts.every(p=>CLIPS.map.clips[p])){try{speechSynthesis.cancel()}catch(e){}playClips(parts,queue);return}
+  if(!hasTTS)return;const v=VOICE[S.lang];if(!v)return;
+  if(!queue)stopClips();
+  try{if(!queue)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(parts.join(' '));u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.12;speechSynthesis.speak(u)}catch(e){}
+}
+function renderVoiceSel(){
+  const box=$('voiceSel');if(!box)return;const l=L(),vs=CLIPS.map?CLIPS.map.voices:[];
+  box.hidden=!(S.lang==='tr'&&vs.length>1);$('voiceSelLabel').textContent=l.voiceLabel;box.setAttribute('aria-label',l.voiceLabel);
+  box.querySelectorAll('button').forEach(b=>{b.hidden=!vs.includes(b.dataset.voice);b.textContent=l.voiceNames[b.dataset.voice];b.setAttribute('aria-pressed',String(curVoice()===b.dataset.voice))});
+}
+document.querySelectorAll('#voiceSel button').forEach(b=>b.onclick=()=>{S.voice=b.dataset.voice;save();renderVoiceSel();say(L().voiceTestSay)});
+
 function tone(f,d,t0,type,vol){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+(t0||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'triangle';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.17,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.05)}catch(e){}}
 const chime=n=>{const base=[523,587,659,698,784,880,988][n%7];tone(base,.3);tone(base*1.5,.3,.08)};
 const boop=()=>{tone(330,.18,0,'sine',.14);tone(262,.25,.13,'sine',.14)};
@@ -513,7 +547,7 @@ function answer(b){
     if(Q.cat==='pattern'){const slot=$('qslot');if(slot){slot.classList.add('filled');slot.innerHTML=token(Q.ans.s,Q.ans.c)}}
     S.total++;S.streak=(S.streak||0)+1;S.best=Math.max(S.best,S.streak);
     S.bands++;const bandIdx=S.bands-1;chime(bandIdx);confetti(36);
-    say(`${pick(L().praise)} ${goodText(Q)}`);say(cap(L().colors[bandIdx],S.lang)+'!',true);
+    say([pick(L().praise),goodText(Q),cap(L().colors[bandIdx],S.lang)+'!']);
     $('streak').textContent=S.streak>=3?L().streak(S.streak):'';
     const done=S.bands>=7;
     save();renderSky(true);
@@ -567,11 +601,11 @@ function renderStatic(){
   $('parentTitle').textContent=l.parent;$('parentNote').textContent=l.parentNote;$('parentClose').textContent=l.close;
   $('resetBtn').textContent=l.reset;$('wardTitle').textContent=l.wardrobe;$('wardClose').textContent=l.close;$('rewardGo').textContent=l.cont;
 }
-function renderAll(){renderStatic();renderSky();renderUni();renderVoiceNote();if(screen==='home')renderHome();else if(Q)renderQuestion()}
+function renderAll(){renderVoiceSel();renderStatic();renderSky();renderUni();renderVoiceNote();if(screen==='home')renderHome();else if(Q)renderQuestion()}
 function show(s){
   screen=s;$('home').hidden=s!=='home';$('play').hidden=s!=='play';
   $('scene').classList.toggle('mini',s==='play');
-  if(s==='home'){renderHome();try{speechSynthesis.cancel()}catch(e){}}
+  if(s==='home'){renderHome();hush()}
 }
 function renderWardrobe(){
   const l=L(),n=unlocked();
@@ -585,8 +619,8 @@ function renderStats(){
   const l=L();const lab={pattern:l.modes.pattern,more:l.modes.more,shadow:l.modes.shadow};
   const rows=Object.keys(lab).map(k=>{const[c,t]=S.stats[k],p=t?Math.round(c/t*100):0;return`<div class="row"><span>${lab[k]}</span><div class="track"><i style="width:${p}%"></i></div><em>${t?p+'%':'—'} <small>(${c}/${t})</small></em></div>`}).join('');
   const v=VOICE[S.lang];
-  $('stats').innerHTML=`<div class="kpis"><div class="kpi"><b>${S.total}</b><span>${l.totalStars}</span></div><div class="kpi"><b>${S.rainbows}</b><span>${l.rainbows}</span></div><div class="kpi"><b>${S.best}</b><span>${l.bestStreak}</span></div></div><p class="note" style="margin:0">${l.firstTry}</p>${rows}<p class="note" style="margin:0">${l.lvlNote(level())}</p><div class="voice-line"><span>${v?l.voiceUsed(`${v.name} (${v.lang})`):l.voiceNone}</span>${v?`<button class="pill small" id="testVoice">${l.voiceTest}</button>`:''}</div>`;
-  if(v)$('testVoice').onclick=()=>{const was=S.sound;S.sound=true;say(l.voiceTestSay);S.sound=was};
+  $('stats').innerHTML=`<div class="kpis"><div class="kpi"><b>${S.total}</b><span>${l.totalStars}</span></div><div class="kpi"><b>${S.rainbows}</b><span>${l.rainbows}</span></div><div class="kpi"><b>${S.best}</b><span>${l.bestStreak}</span></div></div><p class="note" style="margin:0">${l.firstTry}</p>${rows}<p class="note" style="margin:0">${l.lvlNote(level())}</p><div class="voice-line"><span>${ownVoice()?l.voiceUsed(`${l.voiceNames[curVoice()]} · ${l.voiceBuiltIn}`):v?l.voiceUsed(`${v.name} (${v.lang})`):l.voiceNone}</span>${(v||ownVoice())?`<button class="pill small" id="testVoice">${l.voiceTest}</button>`:''}</div>`;
+  if(v||ownVoice())$('testVoice').onclick=()=>{const was=S.sound;S.sound=true;say(l.voiceTestSay);S.sound=was};
 }
 let resetArm=false;
 $('resetBtn').onclick=()=>{const l=L();if(!resetArm){resetArm=true;$('resetBtn').textContent=l.resetSure;setTimeout(()=>{resetArm=false;$('resetBtn').textContent=L().reset},4000);return}const keep={sound:S.sound,lang:S.lang};S=Object.assign(fresh(),keep);save();resetArm=false;renderAll();renderStats()};
@@ -596,8 +630,8 @@ $('backBtn').onclick=()=>show('home');
 $('speakBtn').onclick=()=>Q&&say(questionText(Q).speech);
 $('wardBtn').onclick=()=>{renderWardrobe();$('wardOv').hidden=false};
 $('parentBtn').onclick=()=>{renderStats();$('parentOv').hidden=false};
-$('soundBtn').onclick=()=>{S.sound=!S.sound;save();renderStatic();renderVoiceNote();if(!S.sound)try{speechSynthesis.cancel()}catch(e){}};
-document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{if(S.lang===b.dataset.lang)return;S.lang=b.dataset.lang;save();try{speechSynthesis.cancel()}catch(e){}renderAll();if(screen==='play'&&Q)say(questionText(Q).speech)});
+$('soundBtn').onclick=()=>{S.sound=!S.sound;save();renderStatic();renderVoiceNote();if(!S.sound)hush()};
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{if(S.lang===b.dataset.lang)return;S.lang=b.dataset.lang;save();hush();renderAll();if(screen==='play'&&Q)say(questionText(Q).speech)});
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{$(b.dataset.close).hidden=true});
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o&&o.id!=='rewardOv')o.hidden=true}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')['wardOv','parentOv'].forEach(id=>$(id).hidden=true)});

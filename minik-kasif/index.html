@@ -102,6 +102,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 @keyframes spin-in{from{transform:scale(.2) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media (max-width:420px){.ch{min-height:110px;font-size:50px}.brand{font-size:26px}}
+.seg{display:inline-flex;align-items:stretch;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card)}.seg span{font:800 13px var(--body);padding:6px 4px 6px 12px;align-self:center}.seg button{font:800 13px var(--body);border:0;background:none;color:var(--ink);padding:6px 11px;cursor:pointer}.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
 </style>
 </head>
 <body>
@@ -125,6 +126,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
     <div class="tiles" id="tiles"></div>
     <div class="btns">
       <button class="pill small" id="soundBtn"></button>
+      <div class="seg" id="voiceSel" role="group" hidden><span id="voiceSelLabel"></span><button data-voice="kadin"></button></div>
       <button class="pill small" id="parentBtn"></button>
     </div>
   </section>
@@ -211,7 +213,7 @@ const T={
     voiceUsed:v=>`Okuyan ses: ${v}`,voiceNone:'Bu cihazda Türkçe ses yok',voiceTest:'Sesi dene',voiceTestSay:'Merhaba! Ben Minik Kâşif. Haydi oynayalım!',
     noVoiceTitle:'Bu cihazda Türkçe okuma sesi bulunamadı',
     noVoiceBody:'Yanlış aksanla okumaması için sesli okuma şimdilik kapalı; sorular ekranda yazılı. Türkçe sesi bir kez yükleyip sayfayı yenilediğinizde oyun Türkçe konuşur:',
-    retry:'Yeniden kontrol et'
+    retry:'Yeniden kontrol et',voiceBuiltIn:'oyunun kendi Türkçe sesi',voiceLabel:'Ses:',voiceNames:{kadin:'Kadın'}
   },
   en:{
     name:'Little Explorer',
@@ -241,7 +243,7 @@ const T={
     voiceUsed:v=>`Voice: ${v}`,voiceNone:'No English voice on this device',voiceTest:'Test voice',voiceTestSay:"Hi! I'm Little Explorer. Let's play!",
     noVoiceTitle:'No English voice found on this device',
     noVoiceBody:'Reading aloud is off so it never uses the wrong accent; questions are shown on screen. Install an English voice once, then reload the page:',
-    retry:'Check again'
+    retry:'Check again',voiceBuiltIn:'built-in Turkish voice',voiceLabel:'Voice:',voiceNames:{kadin:'Female'}
   }
 };
 const GUIDE={
@@ -313,7 +315,7 @@ const ICON={
 };
 
 const KEY='minik-kasif-v1';
-const fresh=()=>({total:0,stars:0,stickers:0,best:0,streak:0,stats:{count:[0,0],color:[0,0],shape:[0,0]},sound:true,lang:null});
+const fresh=()=>({total:0,stars:0,stickers:0,best:0,streak:0,stats:{count:[0,0],color:[0,0],shape:[0,0]},sound:true,lang:null,voice:'kadin'});
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
 if(!S.lang){const nl=(navigator.language||'').toLowerCase();S.lang=nl.startsWith('en')?'en':'tr'}
@@ -353,13 +355,8 @@ function watchVoices(){
   const iv=setInterval(()=>{tries++;if(loadVoices()||tries>24){clearInterval(iv);if(!voicesChecked){voicesChecked=true;renderVoiceNote()}}},250);
 }
 if(hasTTS){try{speechSynthesis.addEventListener('voiceschanged',loadVoices)}catch(e){try{speechSynthesis.onvoiceschanged=loadVoices}catch(_){}}}
-function say(t){
-  if(!S.sound||!hasTTS)return;
-  const v=VOICE[S.lang];if(!v)return;
-  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.1;speechSynthesis.speak(u)}catch(e){}
-}
 function renderVoiceNote(){
-  const box=$('voiceNote');const missing=voicesChecked&&!VOICE[S.lang]&&S.sound;
+  const box=$('voiceNote');const missing=voicesChecked&&!VOICE[S.lang]&&S.sound&&!ownVoice();
   box.hidden=!missing;if(!missing)return;
   const steps=GUIDE[S.lang][platform()];
   box.innerHTML=`<b>${L().noVoiceTitle}</b><p>${L().noVoiceBody}</p><ol>${steps.map(s=>`<li>${s}</li>`).join('')}</ol><div><button class="pill small" id="retryVoice">${L().retry}</button></div>`;
@@ -368,6 +365,43 @@ function renderVoiceNote(){
 
 /* ---------- efektler ---------- */
 let AC=null;
+/* ---------- kayıtlı Türkçe ses: cihazın sesine bağlı kalmadan doğal Türkçe (kadın) ---------- */
+const CLIPS={base:'audio/',map:null};
+try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips&&m.voices&&m.voices.length){CLIPS.map=m;renderVoiceNote();renderVoiceSel()}}).catch(()=>{})}catch(e){}
+function curVoice(){const vs=CLIPS.map?CLIPS.map.voices:[];return vs.includes(S.voice)?S.voice:vs[0]}
+function ownVoice(){return S.lang==='tr'&&!!CLIPS.map}
+function audioCtx(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC}catch(e){return null}}
+document.addEventListener('pointerdown',()=>{const a=audioCtx();if(a&&a.state==='suspended')a.resume().catch(()=>{})},{capture:true});
+const clipBufs={};
+function clipBuf(id){
+  const a=audioCtx(),key=curVoice()+'/'+id;if(!a)return Promise.reject(new Error('no audio'));
+  if(!clipBufs[key]){clipBufs[key]=fetch(CLIPS.base+key+'.mp3').then(r=>{if(!r.ok)throw new Error('missing');return r.arrayBuffer()}).then(b=>new Promise((res,rej)=>a.decodeAudioData(b,res,rej)));clipBufs[key].catch(()=>{delete clipBufs[key]})}
+  return clipBufs[key];
+}
+let clipGen=0,clipSrc=null,clipChain=Promise.resolve();
+function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
+function hush(){stopClips();try{speechSynthesis.cancel()}catch(e){}}
+function playBuf(buf,gen){return new Promise(res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null;res()};clipSrc=s;try{s.start()}catch(e){res()}})}
+function playClips(parts,queue){
+  if(!queue){stopClips();clipChain=Promise.resolve()}
+  const gen=clipGen,loads=parts.map(p=>clipBuf(CLIPS.map.clips[p]));loads.forEach(p=>p.catch(()=>{}));
+  clipChain=clipChain.then(async()=>{for(let i=0;i<loads.length;i++){if(gen!==clipGen)return;let b;try{b=await loads[i]}catch(e){continue}await playBuf(b,gen);if(i<loads.length-1)await new Promise(r=>setTimeout(r,140))}}).catch(()=>{});
+}
+function say(t,queue){
+  if(!S.sound)return;
+  const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!parts.length)return;
+  if(ownVoice()&&parts.every(p=>CLIPS.map.clips[p])){try{speechSynthesis.cancel()}catch(e){}playClips(parts,queue);return}
+  if(!hasTTS)return;const v=VOICE[S.lang];if(!v)return;
+  if(!queue)stopClips();
+  try{if(!queue)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(parts.join(' '));u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.12;speechSynthesis.speak(u)}catch(e){}
+}
+function renderVoiceSel(){
+  const box=$('voiceSel');if(!box)return;const l=L(),vs=CLIPS.map?CLIPS.map.voices:[];
+  box.hidden=!(S.lang==='tr'&&vs.length>1);$('voiceSelLabel').textContent=l.voiceLabel;box.setAttribute('aria-label',l.voiceLabel);
+  box.querySelectorAll('button').forEach(b=>{b.hidden=!vs.includes(b.dataset.voice);b.textContent=l.voiceNames[b.dataset.voice];b.setAttribute('aria-pressed',String(curVoice()===b.dataset.voice))});
+}
+document.querySelectorAll('#voiceSel button').forEach(b=>b.onclick=()=>{S.voice=b.dataset.voice;save();renderVoiceSel();say(L().voiceTestSay)});
+
 function tone(f,d,t0,type,vol){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+(t0||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'triangle';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.18,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.05)}catch(e){}}
 const ding=()=>[523,659,784].forEach((f,i)=>tone(f,.25,i*.09));
 const boop=()=>{tone(330,.18,0,'sine',.15);tone(262,.25,.13,'sine',.15)};
@@ -438,7 +472,7 @@ function answer(b){
     locked=true;if(firstTry){st[0]++;st[1]++}
     b.classList.add('ok');ding();confetti(40);
     S.total++;S.stars++;S.streak=(S.streak||0)+1;S.best=Math.max(S.best,S.streak);
-    say(`${pick(l.praise)} ${goodText(Q)}`);
+    say([pick(l.praise),goodText(Q)]);
     $('streak').textContent=S.streak>=3?l.streak(S.streak):'';
     if(S.streak%3===0)setTimeout(()=>confetti(70),300);
     const unlock=S.stars%5===0&&S.stickers<ANIMALS.length;
@@ -484,8 +518,8 @@ function renderStatic(){
   $('speakBtn').innerHTML=ICON.speaker;$('speakBtn').setAttribute('aria-label',l.replay);
   ['tr','en'].forEach(k=>$('lang-'+k).setAttribute('aria-pressed',String(S.lang===k)));
 }
-function renderAll(){renderStatic();renderHud();renderHome();if(screen==='play'&&Q){renderPrompt();renderBoard(false);$('streak').textContent=S.streak>=3?L().streak(S.streak):''}if(!$('albumOv').hidden)renderAlbum();if(!$('parentOv').hidden)renderStats()}
-function show(s){screen=s;$('home').hidden=s!=='home';$('play').hidden=s!=='play';if(s==='home'){renderHome();try{speechSynthesis.cancel()}catch(e){}}}
+function renderAll(){renderVoiceSel();renderStatic();renderHud();renderHome();if(screen==='play'&&Q){renderPrompt();renderBoard(false);$('streak').textContent=S.streak>=3?L().streak(S.streak):''}if(!$('albumOv').hidden)renderAlbum();if(!$('parentOv').hidden)renderStats()}
+function show(s){screen=s;$('home').hidden=s!=='home';$('play').hidden=s!=='play';if(s==='home'){renderHome();hush()}}
 function renderAlbum(){
   const l=L();$('albumTitle').textContent=l.albumTitle;
   $('albumText').textContent=S.stickers===ANIMALS.length?l.albumAll:l.albumNext(5-S.stars%5);
@@ -495,8 +529,8 @@ function renderStats(){
   const l=L();
   const rows=['count','color','shape'].map(k=>{const[c,t]=S.stats[k],p=t?Math.round(c/t*100):0;return`<div class="row"><span>${l.modes[k]}</span><div class="track"><i style="width:${p}%"></i></div><em>${t?p+'%':'—'} <small>(${c}/${t})</small></em></div>`}).join('');
   const v=VOICE[S.lang];
-  $('stats').innerHTML=`<div class="kpis"><div class="kpi"><b>${S.total}</b><span>${l.totalStars}</span></div><div class="kpi"><b>${S.best}</b><span>${l.bestStreak}</span></div><div class="kpi"><b>${level()}/4</b><span>${l.diff}</span></div></div><p class="note" style="margin:0">${l.firstTry}</p>${rows}<p class="note" style="margin:0">${l.nowShowing(maxCount(),nOpts())}</p><div class="voice-line"><span>${v?l.voiceUsed(`${v.name} (${v.lang})`):l.voiceNone}</span>${v?`<button class="pill small" id="testVoice">${l.voiceTest}</button>`:''}</div>`;
-  if(v)$('testVoice').onclick=()=>{const was=S.sound;S.sound=true;say(l.voiceTestSay);S.sound=was};
+  $('stats').innerHTML=`<div class="kpis"><div class="kpi"><b>${S.total}</b><span>${l.totalStars}</span></div><div class="kpi"><b>${S.best}</b><span>${l.bestStreak}</span></div><div class="kpi"><b>${level()}/4</b><span>${l.diff}</span></div></div><p class="note" style="margin:0">${l.firstTry}</p>${rows}<p class="note" style="margin:0">${l.nowShowing(maxCount(),nOpts())}</p><div class="voice-line"><span>${ownVoice()?l.voiceUsed(`${l.voiceNames[curVoice()]} · ${l.voiceBuiltIn}`):v?l.voiceUsed(`${v.name} (${v.lang})`):l.voiceNone}</span>${(v||ownVoice())?`<button class="pill small" id="testVoice">${l.voiceTest}</button>`:''}</div>`;
+  if(v||ownVoice())$('testVoice').onclick=()=>{const was=S.sound;S.sound=true;say(l.voiceTestSay);S.sound=was};
 }
 let resetArm=false;
 $('resetBtn').onclick=()=>{const l=L();if(!resetArm){resetArm=true;$('resetBtn').textContent=l.resetSure;setTimeout(()=>{resetArm=false;$('resetBtn').textContent=L().reset},4000);return}const keep={sound:S.sound,lang:S.lang};S=Object.assign(fresh(),keep);save();resetArm=false;renderAll()};
@@ -506,9 +540,9 @@ $('backBtn').onclick=()=>show('home');
 $('speakBtn').onclick=()=>Q&&say(qText(Q).speech);
 $('albumBtn').onclick=()=>{renderAlbum();$('albumOv').hidden=false};
 $('parentBtn').onclick=()=>{renderStats();$('parentOv').hidden=false};
-$('soundBtn').onclick=()=>{S.sound=!S.sound;save();renderHome();if(!S.sound)try{speechSynthesis.cancel()}catch(e){}};
+$('soundBtn').onclick=()=>{S.sound=!S.sound;save();renderHome();if(!S.sound)hush()};
 $('rewardGo').onclick=()=>{$('rewardOv').hidden=true;next()};
-document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{if(S.lang===b.dataset.lang)return;S.lang=b.dataset.lang;save();try{speechSynthesis.cancel()}catch(e){}renderAll();if(screen==='play'&&Q)say(qText(Q).speech)});
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{if(S.lang===b.dataset.lang)return;S.lang=b.dataset.lang;save();hush();renderAll();if(screen==='play'&&Q)say(qText(Q).speech)});
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{$(b.dataset.close).hidden=true});
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o&&o.id!=='rewardOv')o.hidden=true}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')['albumOv','parentOv'].forEach(id=>$(id).hidden=true)});
