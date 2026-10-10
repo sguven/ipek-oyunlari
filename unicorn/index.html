@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Pırıl'ın Gökkuşağı</title>
+<title>İpek ve Pırıl'ın Gökkuşağı</title>
 <meta name="description" content="tek boynuzlu at Pırıl ile örüntü, çok-az ve gölge oyunu. Sparkle the unicorn: patterns, more or less and shadow matching.">
 <meta name="theme-color" content="#efe6ff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='38,92 62,92 54,6' fill='%23ffcb3d' stroke='%233b2a5c' stroke-width='6' stroke-linejoin='round'/%3E%3C/svg%3E">
@@ -49,7 +49,8 @@ button{font-family:inherit}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
 .tile{background:var(--card);border:4px solid var(--ink);border-radius:28px;padding:16px 12px 14px;box-shadow:0 6px 0 var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--ink)}
 .tile .art{height:64px;display:flex;align-items:center;justify-content:center;gap:2px}
-.tile .art svg{height:100%;width:auto}
+.tile .art{width:100%;min-width:0}
+.tile .art svg{height:100%;width:auto;min-width:0;max-width:calc((100% - 4px) / 3);flex:0 1 auto}
 .tile b{font:700 24px/1.1 var(--display);text-align:center}
 .tile span{font:700 12px var(--body);color:var(--ink2);letter-spacing:.06em;text-transform:uppercase}
 .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
@@ -116,6 +117,9 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media (max-width:420px){.brand{font-size:23px}.ch{min-height:100px}.cloud{min-height:120px}}
 .seg{display:inline-flex;align-items:stretch;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card)}.seg span{font:800 13px var(--body);padding:6px 4px 6px 12px;align-self:center}.seg button{font:800 13px var(--body);border:0;background:none;color:var(--ink);padding:6px 11px;cursor:pointer}.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.lang button,.seg button{min-height:40px}.pill.small{min-height:40px}
+.card>.btns:last-child{position:sticky;bottom:-22px;background:var(--card);padding-block:10px 4px;margin-bottom:-4px}
+@media (max-height:520px) and (orientation:landscape){.scene.mini{display:none}.wrap{gap:10px;padding-block:8px 24px}.board{padding:10px;gap:10px}.ask h2{font-size:22px}.round{width:46px;height:46px}.stage{min-height:56px;padding:8px}.stage .o,.stage .it,.stage .q{width:48px}.stage .big{width:96px}.ch{min-height:86px;padding:6px}.ch svg{width:min(100%,70px)}.cloud{min-height:96px;padding:10px}.choices{gap:10px}}
 </style>
 </head>
 <body>
@@ -207,16 +211,16 @@ const ACC=['crown','wings','cape','glasses','necklace','sparkles'];
 
 const T={
   tr:{
-    name:"Pırıl'ın Gökkuşağı",uni:'Pırıl',
-    hello:"Pırıl'a gökkuşağı yapmasında yardım et! Her doğru cevap gökkuşağına bir renk ekler. Gökkuşağı tamamlanınca Pırıl'a yeni bir süs gelir.",
+    name:"İpek ve Pırıl'ın Gökkuşağı",uni:'Pırıl',greet:'Merhaba İpek! Ben Pırıl. Haydi gökkuşağı yapalım!',parentTitle:'İpek’in ilerlemesi',
+    hello:"Merhaba İpek! Pırıl'a gökkuşağı yapmasında yardım eder misin? Her doğru cevap gökkuşağına bir renk ekler. Gökkuşağı tamamlanınca Pırıl'a yeni bir süs gelir.",
     modes:{pattern:'Örüntüler',more:'Çok mu, az mı?',shadow:'Gölgeler',mix:'Karışık'},
     allInOne:'Hepsi bir arada',level:n=>`Seviye ${n}`,
     soundOn:'Ses açık',soundOff:'Ses kapalı',parent:'Ebeveyn paneli',close:'Kapat',cont:'Devam et',wardrobe:"Pırıl'ın dolabı",
     back:'Ana sayfaya dön',replay:'Soruyu tekrar dinle',
     nums:['sıfır','bir','iki','üç','dört','beş','altı','yedi','sekiz','dokuz'],
     abl:['sıfırdan','birden','ikiden','üçten','dörtten','beşten','altıdan','yediden','sekizden','dokuzdan'],
-    praise:['Aferin!','Harika!','Süpersin!','Bravo!','Çok güzel!','Muhteşem!'],
-    tryAgain:'Bir daha dene!',
+    praise:['Aferin İpek!','Harika!','Süpersin İpek!','Bravo İpek!','Çok güzel!','Muhteşemsin İpek!'],
+    tryAgain:'Bir daha dene İpek!',
     colors:['kırmızı','turuncu','sarı','yeşil','mavi','lacivert','mor'],
     patternQ:'Sırada hangisi var?',patternSay:'Sırada hangisi var? Bak ve bul!',patternGood:'Örüntüyü buldun!',
     moreQ:'Hangi bulutta daha çok yıldız var?',lessQ:'Hangi bulutta daha az yıldız var?',
@@ -224,33 +228,33 @@ const T={
     shadowQ:'Gölgesini bul!',shadowSay:o=>`Bu ${o}. Gölgesini bul!`,shadowGood:o=>`Bu bir ${o}!`,
     objects:{star:'yıldız',moon:'ay',heart:'kalp',flower:'çiçek',butterfly:'kelebek',cupcake:'kek',gem:'elmas'},
     bands:n=>`Gökkuşağı ${n}/7`,
-    rainbowDone:"Kırmızı, turuncu, sarı, yeşil, mavi, lacivert, mor! Gökkuşağı tamam!",
+    rainbowDone:"Kırmızı, turuncu, sarı, yeşil, mavi, lacivert, mor! Gökkuşağı tamam! Teşekkürler İpek!",
     accNames:{crown:'Taç',wings:'Kanatlar',cape:'Pelerin',glasses:'Kalpli gözlük',necklace:'Çiçek kolye',sparkles:'Parıltılar'},
-    newAcc:a=>`Pırıl'a yeni süs: ${a}!`,accSay:a=>`Yaşasın! Gökkuşağını tamamladın. Pırıl'a yeni bir süs geldi: ${a}!`,
+    newAcc:a=>`İpek, Pırıl'a yeni süs: ${a}!`,accSay:a=>`Yaşasın İpek! Gökkuşağını tamamladın. Pırıl'a yeni bir süs geldi: ${a}!`,
     accNext:'Sıradaki süs için bir gökkuşağı daha tamamla.',accAll:'Bütün süsleri topladın! Gökkuşağı yapmaya devam edebilirsin.',
     wardText:'Toplanan süslere dokunarak Pırıl’a giydir ya da çıkar.',locked:'Kilitli',lockedHint:n=>`${n}. gökkuşağında`,
-    tapUni:["Merhaba! Ben Pırıl.","Gökkuşağında yedi renk var!","Kırmızı, turuncu, sarı, yeşil, mavi, lacivert, mor!","Birlikte oynayalım mı?","Sen çok akıllısın!"],
-    streak:n=>`Üst üste ${n} doğru!`,
+    tapUni:["Merhaba İpek! Ben Pırıl.","İpek, gökkuşağında yedi renk var!","Kırmızı, turuncu, sarı, yeşil, mavi, lacivert, mor!","Birlikte oynayalım mı İpek?","Sen çok akıllısın İpek!","İpek, sen benim en iyi arkadaşımsın!"],
+    streak:n=>`Üst üste ${n} doğru, İpek!`,
     totalStars:'doğru cevap',rainbows:'gökkuşağı',bestStreak:'en uzun seri',firstTry:'İlk denemede doğru cevap oranı',
     lvlNote:l=>`Şu anki seviye: ${l}/3. Her tamamlanan gökkuşağında oyun biraz zorlaşır: örüntüler uzar, sayılar büyür, seçenekler artar.`,
     parentNote:'Örüntüler matematiğe hazırlık, çok-az karşılaştırması sayı algısı, gölge eşleştirme görsel dikkat içindir. Yanlış cevaplarda puan düşmez; seçenek soluklaşır ve çocuk tekrar dener. İlerleme bu cihazda saklanır.',
     reset:'İlerlemeyi sıfırla',resetSure:'Emin misin? Tekrar dokun',
-    voiceUsed:v=>`Okuyan ses: ${v}`,voiceNone:'Bu cihazda Türkçe ses yok',voiceTest:'Sesi dene',voiceTestSay:'Merhaba! Ben Pırıl. Haydi gökkuşağı yapalım!',
+    voiceUsed:v=>`Okuyan ses: ${v}`,voiceNone:'Bu cihazda Türkçe ses yok',voiceTest:'Sesi dene',voiceTestSay:'Merhaba İpek! Ben Pırıl. Haydi gökkuşağı yapalım!',
     noVoiceTitle:'Bu cihazda Türkçe okuma sesi bulunamadı',
     noVoiceBody:'Yanlış aksanla okumaması için sesli okuma şimdilik kapalı; sorular ekranda yazılı. Türkçe sesi bir kez yükleyip sayfayı yenilediğinizde oyun Türkçe konuşur:',
     retry:'Yeniden kontrol et',voiceBuiltIn:'oyunun kendi Türkçe sesi',voiceLabel:'Ses:',voiceNames:{kadin:'Kadın'}
   },
   en:{
-    name:"Sparkle's Rainbow",uni:'Sparkle',
-    hello:'Help Sparkle build a rainbow! Every right answer adds a color. When the rainbow is complete, Sparkle gets a new treat to wear.',
+    name:"Ipek & Sparkle's Rainbow",uni:'Sparkle',greet:"Hi Ipek! I'm Sparkle. Let's build a rainbow!",parentTitle:'Ipek’s progress',
+    hello:'Hi Ipek! Will you help Sparkle build a rainbow? Every right answer adds a color. When the rainbow is complete, Sparkle gets a new treat to wear.',
     modes:{pattern:'Patterns',more:'More or less?',shadow:'Shadows',mix:'Mixed'},
     allInOne:'All together',level:n=>`Level ${n}`,
     soundOn:'Sound on',soundOff:'Sound off',parent:'Parent panel',close:'Close',cont:'Keep going',wardrobe:"Sparkle's closet",
     back:'Back to home',replay:'Hear the question again',
     nums:['zero','one','two','three','four','five','six','seven','eight','nine'],
     abl:[],
-    praise:['Great job!','Awesome!','You did it!','Bravo!','Well done!','Amazing!'],
-    tryAgain:'Try again!',
+    praise:['Great job, Ipek!','Awesome!','You did it, Ipek!','Bravo!','Well done, Ipek!','Amazing!'],
+    tryAgain:'Try again, Ipek!',
     colors:['red','orange','yellow','green','blue','indigo','purple'],
     patternQ:'What comes next?',patternSay:'What comes next? Look and find it!',patternGood:'You found the pattern!',
     moreQ:'Which cloud has more stars?',lessQ:'Which cloud has fewer stars?',
@@ -258,18 +262,18 @@ const T={
     shadowQ:'Find its shadow!',shadowSay:o=>`This is a ${o}. Find its shadow!`,shadowGood:o=>`It's a ${o}!`,
     objects:{star:'star',moon:'moon',heart:'heart',flower:'flower',butterfly:'butterfly',cupcake:'cupcake',gem:'gem'},
     bands:n=>`Rainbow ${n}/7`,
-    rainbowDone:'Red, orange, yellow, green, blue, indigo, purple! The rainbow is done!',
+    rainbowDone:'Red, orange, yellow, green, blue, indigo, purple! The rainbow is done! Thank you, Ipek!',
     accNames:{crown:'Crown',wings:'Wings',cape:'Cape',glasses:'Heart glasses',necklace:'Flower necklace',sparkles:'Sparkles'},
-    newAcc:a=>`New for Sparkle: ${a}!`,accSay:a=>`Hooray! You finished the rainbow. Sparkle got something new: ${a}!`,
+    newAcc:a=>`New for Sparkle: ${a}!`,accSay:a=>`Hooray, Ipek! You finished the rainbow. Sparkle got something new: ${a}!`,
     accNext:'Finish one more rainbow for the next treat.',accAll:'You collected every treat! Keep building rainbows.',
     wardText:'Tap a treat you have collected to put it on Sparkle or take it off.',locked:'Locked',lockedHint:n=>`Rainbow ${n}`,
-    tapUni:["Hi! I'm Sparkle.","A rainbow has seven colors!","Red, orange, yellow, green, blue, indigo, purple!","Shall we play together?","You are so smart!"],
-    streak:n=>`${n} in a row!`,
+    tapUni:["Hi Ipek! I'm Sparkle.","Ipek, a rainbow has seven colors!","Red, orange, yellow, green, blue, indigo, purple!","Shall we play together, Ipek?","You are so smart, Ipek!","Ipek, you are my best friend!"],
+    streak:n=>`${n} in a row, Ipek!`,
     totalStars:'right answers',rainbows:'rainbows',bestStreak:'best streak',firstTry:'Correct on the first try',
     lvlNote:l=>`Current level: ${l}/3. Each finished rainbow makes the game a little harder: longer patterns, bigger numbers, more choices.`,
     parentNote:'Patterns build early math, more-or-less builds number sense, and shadow matching trains visual attention. Wrong answers never cost points: the choice fades and your child tries again. Progress is saved on this device.',
     reset:'Reset progress',resetSure:'Sure? Tap again',
-    voiceUsed:v=>`Voice: ${v}`,voiceNone:'No English voice on this device',voiceTest:'Test voice',voiceTestSay:"Hi! I'm Sparkle. Let's build a rainbow!",
+    voiceUsed:v=>`Voice: ${v}`,voiceNone:'No English voice on this device',voiceTest:'Test voice',voiceTestSay:"Hi Ipek! I'm Sparkle. Let's build a rainbow!",
     noVoiceTitle:'No English voice found on this device',
     noVoiceBody:'Reading aloud is off so it never uses the wrong accent; questions are shown on screen. Install an English voice once, then reload the page:',
     retry:'Check again',voiceBuiltIn:'built-in Turkish voice',voiceLabel:'Voice:',voiceNames:{kadin:'Female'}
@@ -413,7 +417,11 @@ try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&
 function curVoice(){const vs=CLIPS.map?CLIPS.map.voices:[];return vs.includes(S.voice)?S.voice:vs[0]}
 function ownVoice(){return S.lang==='tr'&&!!CLIPS.map}
 function audioCtx(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC}catch(e){return null}}
-document.addEventListener('pointerdown',()=>{const a=audioCtx();if(a&&a.state==='suspended')a.resume().catch(()=>{})},{capture:true});
+try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+let audioUnlocked=false;
+function unlockAudio(){const a=audioCtx();if(!a)return;if(a.state!=='running')a.resume().catch(()=>{});if(!audioUnlocked){try{const b=a.createBuffer(1,1,22050),s=a.createBufferSource();s.buffer=b;s.connect(a.destination);s.start(0);audioUnlocked=true}catch(e){}}}
+['pointerdown','pointerup','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&AC&&AC.state!=='running')AC.resume().catch(()=>{})});
 const clipBufs={};
 function clipBuf(id){
   const a=audioCtx(),key=curVoice()+'/'+id;if(!a)return Promise.reject(new Error('no audio'));
@@ -423,7 +431,7 @@ function clipBuf(id){
 let clipGen=0,clipSrc=null,clipChain=Promise.resolve();
 function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
 function hush(){stopClips();try{speechSynthesis.cancel()}catch(e){}}
-function playBuf(buf,gen){return new Promise(res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null;res()};clipSrc=s;try{s.start()}catch(e){res()}})}
+function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null;res()};clipSrc=s;try{s.start()}catch(e){res()}})}
 function playClips(parts,queue){
   if(!queue){stopClips();clipChain=Promise.resolve()}
   const gen=clipGen,loads=parts.map(p=>clipBuf(CLIPS.map.clips[p]));loads.forEach(p=>p.catch(()=>{}));
@@ -532,11 +540,12 @@ function renderQuestion(){
   }
   ch.querySelectorAll('button').forEach(b=>b.onclick=()=>answer(b));
 }
+let greeted=false;
 function next(){
   const cat=mode==='mix'?pick(['pattern','more','shadow']):mode;
   Q=cat==='pattern'?makePattern():cat==='more'?makeMore():makeShadow();
   locked=false;firstTry=true;renderQuestion();
-  setTimeout(()=>{if(screen==='play')say(questionText(Q).speech)},250);
+  const first=!greeted;greeted=true;setTimeout(()=>{if(screen==='play')say(first?[L().greet,questionText(Q).speech]:questionText(Q).speech)},250);
 }
 function answer(b){
   if(locked)return;
@@ -598,7 +607,7 @@ function renderStatic(){
   $('parentBtn').textContent=l.parent;$('wardBtn').innerHTML=ACCICON.crown+l.wardrobe;
   $('backBtn').innerHTML=ICON.back;$('backBtn').setAttribute('aria-label',l.back);
   $('speakBtn').innerHTML=ICON.speaker;$('speakBtn').setAttribute('aria-label',l.replay);
-  $('parentTitle').textContent=l.parent;$('parentNote').textContent=l.parentNote;$('parentClose').textContent=l.close;
+  $('parentTitle').textContent=l.parentTitle;$('parentNote').textContent=l.parentNote;$('parentClose').textContent=l.close;
   $('resetBtn').textContent=l.reset;$('wardTitle').textContent=l.wardrobe;$('wardClose').textContent=l.close;$('rewardGo').textContent=l.cont;
 }
 function renderAll(){renderVoiceSel();renderStatic();renderSky();renderUni();renderVoiceNote();if(screen==='home')renderHome();else if(Q)renderQuestion()}

@@ -1,0 +1,7 @@
+{
+  "name": "oyun-testleri",
+  "private": true,
+  "description": "Minik Kâşif ve Pırıl'ın Gökkuşağı için otomatik testler",
+  "scripts": { "test": "node run-tests.js" },
+  "devDependencies": { "playwright": "1.56.1" }
+}

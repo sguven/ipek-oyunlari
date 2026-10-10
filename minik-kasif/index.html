@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Minik Kâşif</title>
+<title>Minik Kâşif İpek</title>
 <meta name="description" content="sesli, iki dilli sayı, renk ve şekil oyunu. A talking counting, colors and shapes game.">
 <meta name="theme-color" content="#d6efff">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,6 61,38 95,38 67,58 78,92 50,71 22,92 33,58 5,38 39,38' fill='%23ffc531' stroke='%232b2d5c' stroke-width='6' stroke-linejoin='round'/%3E%3C/svg%3E">
@@ -45,7 +45,8 @@ button{font-family:inherit}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px}
 .tile{background:var(--card);border:4px solid var(--ink);border-radius:28px;padding:18px 12px 14px;box-shadow:0 6px 0 var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--ink)}
 .tile .art{height:78px;display:flex;align-items:flex-end;justify-content:center;gap:2px}
-.tile .art svg{height:100%;width:auto}
+.tile .art{width:100%;min-width:0}
+.tile .art svg{height:100%;width:auto;min-width:0;max-width:calc((100% - 4px) / 3);flex:0 1 auto}
 .tile b{font:800 26px/1 var(--display)}
 .tile span{font:700 12px var(--body);color:var(--ink2);letter-spacing:.06em;text-transform:uppercase}
 .hello{margin:0;font:700 18px/1.5 var(--body);color:var(--ink2);text-align:center;text-wrap:balance}
@@ -103,6 +104,9 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media (max-width:420px){.ch{min-height:110px;font-size:50px}.brand{font-size:26px}}
 .seg{display:inline-flex;align-items:stretch;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card)}.seg span{font:800 13px var(--body);padding:6px 4px 6px 12px;align-self:center}.seg button{font:800 13px var(--body);border:0;background:none;color:var(--ink);padding:6px 11px;cursor:pointer}.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.lang button,.seg button{min-height:40px}.pill.small{min-height:40px}
+.card>.btns:last-child{position:sticky;bottom:-22px;background:var(--card);padding-block:10px 4px;margin-bottom:-4px}
+@media (max-height:520px) and (orientation:landscape){.wrap{gap:10px;padding-block:8px 24px}.board{padding:10px;gap:10px}.ask h2{font-size:22px}.round{width:46px;height:46px}.stage{min-height:56px;padding:8px}.stage .o,.stage .it,.stage .q{width:48px}.stage .big{width:96px}.ch{min-height:86px;padding:6px}.ch svg{width:min(100%,70px)}.cloud{min-height:96px;padding:10px}.choices{gap:10px}}
 </style>
 </head>
 <body>
@@ -163,7 +167,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 
 <div class="ov" id="parentOv" hidden>
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="parentTitle">
-    <h3 id="parentTitle" data-t="parent"></h3>
+    <h3 id="parentTitle" data-t="parentTitle"></h3>
     <div class="stats" id="stats"></div>
     <p class="note" data-t="parentNote"></p>
     <div class="btns">
@@ -186,15 +190,15 @@ const cap=(s,l)=>s[0].toLocaleUpperCase(l==='tr'?'tr-TR':'en-US')+s.slice(1);
 
 const T={
   tr:{
-    name:'Minik Kâşif',
-    hello:'Bir oyun seç, doğru cevap ver, yıldız topla. Her 5 yıldızda yeni bir hayvan çıkartması kazanırsın!',
+    name:'Minik Kâşif İpek',greet:'Merhaba İpek! Haydi oynayalım!',parentTitle:'İpek’in ilerlemesi',
+    hello:'Merhaba İpek! Bir oyun seç, doğru cevabı bul, yıldız topla. Her 5 yıldızda yeni bir hayvan arkadaş seni bekliyor!',
     modes:{count:'Sayılar',color:'Renkler',shape:'Şekiller',mix:'Karışık'},
     allInOne:'Hepsi bir arada',level:n=>`Seviye ${n}`,
     soundOn:'Ses açık',soundOff:'Ses kapalı',parent:'Ebeveyn paneli',close:'Kapat',cont:'Devam et',
     starsLabel:n=>`Yıldızlar: 5 üzerinden ${n}`,albumLabel:'Çıkartma albümü',back:'Ana sayfaya dön',replay:'Soruyu tekrar dinle',
     nums:['sıfır','bir','iki','üç','dört','beş','altı','yedi','sekiz'],
-    praise:['Aferin!','Harika!','Süpersin!','Bravo!','Çok güzel!','Muhteşem!'],
-    tryAgain:'Bir daha dene!',
+    praise:['Aferin İpek!','Harika!','Süpersin İpek!','Bravo İpek!','Çok güzel!','Muhteşemsin İpek!'],
+    tryAgain:'Bir daha dene İpek!',
     things:{apple:'elma',star:'yıldız',fish:'balık',flower:'çiçek'},
     countQ:t=>`Kaç tane ${t} var?`,countSay:t=>`Kaç tane ${t} var? Sayalım!`,countGood:(n,t,w)=>`${w} ${t}!`,
     colors:{red:'kırmızı',blue:'mavi',yellow:'sarı',green:'yeşil',orange:'turuncu',purple:'mor',pink:'pembe'},
@@ -202,29 +206,29 @@ const T={
     shapes:{circle:['daire','daireyi'],square:['kare','kareyi'],triangle:['üçgen','üçgeni'],star:['yıldız','yıldızı'],heart:['kalp','kalbi']},
     shapeQ:a=>`${a} bul!`,shapeGood:s=>`Bu bir ${s}!`,
     animals:['Kedi','Ayı','Kurbağa','Civciv','Tavşan','Domuz','Panda','Aslan'],
-    streak:n=>`Üst üste ${n} doğru!`,
-    newSticker:a=>`Yeni çıkartma: ${a}!`,stickerSay:a=>`Yaşasın! Yeni bir çıkartma kazandın: ${a}!`,
-    albumDone:'Albümün tamamlandı! Sen bir süper kâşifsin.',albumSoFar:(n,k)=>`Albümünde ${n} hayvan var. Sıradaki için ${k} yıldız daha topla.`,
-    albumTitle:'Çıkartma albümüm',albumAll:'Bütün hayvanları topladın!',albumNext:k=>`Her 5 yıldızda yeni bir hayvan gelir. Sıradakine ${k} yıldız kaldı.`,locked:'Kilitli çıkartma',
+    streak:n=>`Üst üste ${n} doğru, İpek!`,
+    newSticker:a=>`İpek’e yeni çıkartma: ${a}!`,stickerSay:a=>`Yaşasın İpek! Yeni bir çıkartma kazandın: ${a}!`,
+    albumDone:'Albümün tamamlandı! İpek bir süper kâşif!',albumSoFar:(n,k)=>`Albümünde ${n} hayvan var. Sıradaki için ${k} yıldız daha topla.`,
+    albumTitle:'İpek’in çıkartma albümü',albumAll:'Bütün hayvanları topladın!',albumNext:k=>`Her 5 yıldızda yeni bir hayvan gelir. Sıradakine ${k} yıldız kaldı.`,locked:'Kilitli çıkartma',
     totalStars:'toplam yıldız',bestStreak:'en uzun seri',diff:'zorluk seviyesi',firstTry:'İlk denemede doğru cevap oranı',
     nowShowing:(m,o)=>`Sayılarda şu an 1–${m} arası nesne, renk ve şekillerde ${o} seçenek gösteriliyor.`,
     parentNote:'İlk denemede doğru oranı, çocuğun konuyu ne kadar oturttuğunu gösterir. Yanlış cevaplarda puan düşmez; seçenek soluklaşır ve çocuk tekrar dener. Zorluk, toplanan yıldızla kendiliğinden artar. İlerleme bu cihazda saklanır.',
     reset:'İlerlemeyi sıfırla',resetSure:'Emin misin? Tekrar dokun',
-    voiceUsed:v=>`Okuyan ses: ${v}`,voiceNone:'Bu cihazda Türkçe ses yok',voiceTest:'Sesi dene',voiceTestSay:'Merhaba! Ben Minik Kâşif. Haydi oynayalım!',
+    voiceUsed:v=>`Okuyan ses: ${v}`,voiceNone:'Bu cihazda Türkçe ses yok',voiceTest:'Sesi dene',voiceTestSay:'Merhaba İpek! Haydi oynayalım!',
     noVoiceTitle:'Bu cihazda Türkçe okuma sesi bulunamadı',
     noVoiceBody:'Yanlış aksanla okumaması için sesli okuma şimdilik kapalı; sorular ekranda yazılı. Türkçe sesi bir kez yükleyip sayfayı yenilediğinizde oyun Türkçe konuşur:',
     retry:'Yeniden kontrol et',voiceBuiltIn:'oyunun kendi Türkçe sesi',voiceLabel:'Ses:',voiceNames:{kadin:'Kadın'}
   },
   en:{
-    name:'Little Explorer',
-    hello:'Pick a game, find the right answer and collect stars. Every 5 stars wins a new animal sticker!',
+    name:'Little Explorer Ipek',greet:'Hi Ipek! Let’s play!',parentTitle:'Ipek’s progress',
+    hello:'Hi Ipek! Pick a game, find the right answer and collect stars. Every 5 stars, a new animal friend is waiting for you!',
     modes:{count:'Numbers',color:'Colors',shape:'Shapes',mix:'Mixed'},
     allInOne:'All together',level:n=>`Level ${n}`,
     soundOn:'Sound on',soundOff:'Sound off',parent:'Parent panel',close:'Close',cont:'Keep going',
     starsLabel:n=>`Stars: ${n} of 5`,albumLabel:'Sticker album',back:'Back to home',replay:'Hear the question again',
     nums:['zero','one','two','three','four','five','six','seven','eight'],
-    praise:['Great job!','Awesome!','You did it!','Bravo!','Well done!','Amazing!'],
-    tryAgain:'Try again!',
+    praise:['Great job, Ipek!','Awesome!','You did it, Ipek!','Bravo!','Well done, Ipek!','Amazing!'],
+    tryAgain:'Try again, Ipek!',
     things:{apple:['apple','apples'],star:['star','stars'],fish:['fish','fish'],flower:['flower','flowers']},
     countQ:t=>`How many ${t} are there?`,countSay:t=>`How many ${t} are there? Let's count!`,countGood:(n,t,w)=>`${w} ${t}!`,
     colors:{red:'red',blue:'blue',yellow:'yellow',green:'green',orange:'orange',purple:'purple',pink:'pink'},
@@ -232,15 +236,15 @@ const T={
     shapes:{circle:['circle'],square:['square'],triangle:['triangle'],star:['star'],heart:['heart']},
     shapeQ:a=>`Find the ${a}!`,shapeGood:s=>`It's a ${s}!`,
     animals:['Cat','Bear','Frog','Chick','Bunny','Pig','Panda','Lion'],
-    streak:n=>`${n} in a row!`,
-    newSticker:a=>`New sticker: ${a}!`,stickerSay:a=>`Hooray! You won a new sticker: the ${a}!`,
-    albumDone:'Your album is complete! You are a super explorer.',albumSoFar:(n,k)=>`You have ${n} animals in your album. Collect ${k} more stars for the next one.`,
-    albumTitle:'My sticker album',albumAll:'You collected every animal!',albumNext:k=>`A new animal arrives every 5 stars. ${k} more to go.`,locked:'Locked sticker',
+    streak:n=>`${n} in a row, Ipek!`,
+    newSticker:a=>`A new sticker for Ipek: ${a}!`,stickerSay:a=>`Hooray, Ipek! You won a new sticker: the ${a}!`,
+    albumDone:'Your album is complete! Ipek is a super explorer!',albumSoFar:(n,k)=>`You have ${n} animals in your album. Collect ${k} more stars for the next one.`,
+    albumTitle:'Ipek’s sticker album',albumAll:'You collected every animal!',albumNext:k=>`A new animal arrives every 5 stars. ${k} more to go.`,locked:'Locked sticker',
     totalStars:'total stars',bestStreak:'best streak',diff:'difficulty',firstTry:'Correct on the first try',
     nowShowing:(m,o)=>`Numbers now show 1–${m} objects; colors and shapes show ${o} choices.`,
     parentNote:'First-try accuracy shows how well your child has learned each topic. Wrong answers never cost points: the choice fades and your child tries again. Difficulty rises on its own as stars add up. Progress is saved on this device.',
     reset:'Reset progress',resetSure:'Sure? Tap again',
-    voiceUsed:v=>`Voice: ${v}`,voiceNone:'No English voice on this device',voiceTest:'Test voice',voiceTestSay:"Hi! I'm Little Explorer. Let's play!",
+    voiceUsed:v=>`Voice: ${v}`,voiceNone:'No English voice on this device',voiceTest:'Test voice',voiceTestSay:'Hi Ipek! Let’s play!',
     noVoiceTitle:'No English voice found on this device',
     noVoiceBody:'Reading aloud is off so it never uses the wrong accent; questions are shown on screen. Install an English voice once, then reload the page:',
     retry:'Check again',voiceBuiltIn:'built-in Turkish voice',voiceLabel:'Voice:',voiceNames:{kadin:'Female'}
@@ -371,7 +375,11 @@ try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&
 function curVoice(){const vs=CLIPS.map?CLIPS.map.voices:[];return vs.includes(S.voice)?S.voice:vs[0]}
 function ownVoice(){return S.lang==='tr'&&!!CLIPS.map}
 function audioCtx(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC}catch(e){return null}}
-document.addEventListener('pointerdown',()=>{const a=audioCtx();if(a&&a.state==='suspended')a.resume().catch(()=>{})},{capture:true});
+try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+let audioUnlocked=false;
+function unlockAudio(){const a=audioCtx();if(!a)return;if(a.state!=='running')a.resume().catch(()=>{});if(!audioUnlocked){try{const b=a.createBuffer(1,1,22050),s=a.createBufferSource();s.buffer=b;s.connect(a.destination);s.start(0);audioUnlocked=true}catch(e){}}}
+['pointerdown','pointerup','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&AC&&AC.state!=='running')AC.resume().catch(()=>{})});
 const clipBufs={};
 function clipBuf(id){
   const a=audioCtx(),key=curVoice()+'/'+id;if(!a)return Promise.reject(new Error('no audio'));
@@ -381,7 +389,7 @@ function clipBuf(id){
 let clipGen=0,clipSrc=null,clipChain=Promise.resolve();
 function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
 function hush(){stopClips();try{speechSynthesis.cancel()}catch(e){}}
-function playBuf(buf,gen){return new Promise(res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null;res()};clipSrc=s;try{s.start()}catch(e){res()}})}
+function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null;res()};clipSrc=s;try{s.start()}catch(e){res()}})}
 function playClips(parts,queue){
   if(!queue){stopClips();clipChain=Promise.resolve()}
   const gen=clipGen,loads=parts.map(p=>clipBuf(CLIPS.map.clips[p]));loads.forEach(p=>p.catch(()=>{}));
@@ -445,11 +453,12 @@ function goodText(q){
   return l.shapeGood(l.shapes[q.answer][0]);
 }
 function renderPrompt(){if(!Q)return;$('prompt').innerHTML=qText(Q).html}
+let greeted=false;
 function next(){
   const cat=mode==='mix'?pick(['count','color','shape']):mode;
   Q=makeQuestion(cat);locked=false;firstTry=true;
   renderPrompt();renderBoard(true);
-  setTimeout(()=>say(qText(Q).speech),250);
+  const first=!greeted;greeted=true;setTimeout(()=>{if(screen==='play')say(first?[L().greet,qText(Q).speech]:qText(Q).speech)},250);
 }
 function renderBoard(anim){
   const stage=$('stage'),ch=$('choices'),l=L(),cat=Q.cat;
