@@ -27,6 +27,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .brand{font:700 28px/1 var(--display);display:flex;align-items:center;gap:8px;margin:0;text-wrap:balance}
 .brand svg{width:40px;height:40px;flex:none}
 .hud{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+a.games-link{text-decoration:none;min-height:40px;box-sizing:border-box}
 button{font-family:inherit}
 .pill{font:800 15px var(--body);background:var(--card);color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 0 var(--ink)}
 .pill svg{width:20px;height:20px}
@@ -127,6 +128,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
   <header>
     <h1 class="brand" id="brand"></h1>
     <div class="hud">
+      <a class="pill small games-link" id="gamesLink" href="../"></a>
       <div class="lang" role="group" aria-label="Dil / Language">
         <button id="lang-tr" data-lang="tr">TR</button>
         <button id="lang-en" data-lang="en">EN</button>
@@ -602,6 +604,7 @@ function renderStatic(){
   const l=L();
   document.documentElement.lang=S.lang;document.title=l.name;
   $('brand').innerHTML=ICON.logo+l.name;
+  $('gamesLink').innerHTML=svg(`<rect x="10" y="10" width="34" height="34" rx="9" fill="#ff7eb6" ${st(5)}/><rect x="56" y="10" width="34" height="34" rx="9" fill="#ffd93d" ${st(5)}/><rect x="10" y="56" width="34" height="34" rx="9" fill="#4aa8ff" ${st(5)}/><rect x="56" y="56" width="34" height="34" rx="9" fill="#5fd3b5" ${st(5)}/>`)+(S.lang==='tr'?'Oyunlar':'Games');$('gamesLink').setAttribute('aria-label',S.lang==='tr'?'Tüm oyunlar':'All games');
   ['tr','en'].forEach(k=>$('lang-'+k).setAttribute('aria-pressed',String(S.lang===k)));
   $('soundBtn').innerHTML=(S.sound?ICON.speaker:ICON.mute)+(S.sound?l.soundOn:l.soundOff);
   $('parentBtn').textContent=l.parent;$('wardBtn').innerHTML=ACCICON.crown+l.wardrobe;

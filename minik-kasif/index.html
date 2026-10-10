@@ -31,6 +31,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .brand{font:800 30px/1 var(--display);display:flex;align-items:center;gap:8px;margin:0}
 .brand svg{width:38px;height:38px}
 .hud{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+a.games-link{text-decoration:none;min-height:40px;box-sizing:border-box}
 .bar{display:flex;gap:2px;background:var(--card);padding:5px 10px;border-radius:999px;border:3px solid var(--ink)}
 .bar svg{width:28px;height:28px;display:block}
 .bar svg.pulse{animation:bounce .5s}
@@ -115,6 +116,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
   <header>
     <h1 class="brand" id="brand"></h1>
     <div class="hud">
+      <a class="pill small games-link" id="gamesLink" href="../"></a>
       <div class="bar" id="bar"></div>
       <button class="pill" id="albumBtn"></button>
       <div class="lang" role="group" aria-label="Dil / Language">
@@ -507,6 +509,7 @@ function reward(){
 function renderHud(){
   const l=L();
   $('brand').innerHTML=ICON.logo+l.name;
+  $('gamesLink').innerHTML=svg(`<rect x="10" y="10" width="34" height="34" rx="9" fill="#ff7eb6" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/><rect x="56" y="10" width="34" height="34" rx="9" fill="#ffd93d" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/><rect x="10" y="56" width="34" height="34" rx="9" fill="#4aa8ff" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/><rect x="56" y="56" width="34" height="34" rx="9" fill="#5fd3b5" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>`)+(S.lang==='tr'?'Oyunlar':'Games');$('gamesLink').setAttribute('aria-label',S.lang==='tr'?'Tüm oyunlar':'All games');
   const filled=S.stars%5;$('bar').innerHTML=[0,1,2,3,4].map(i=>starIcon(i<filled)).join('');
   $('bar').setAttribute('aria-label',l.starsLabel(filled));
   $('albumBtn').innerHTML=ICON.book+`${S.stickers}/${ANIMALS.length}`;$('albumBtn').setAttribute('aria-label',l.albumLabel);
