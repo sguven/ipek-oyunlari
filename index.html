@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>İpek'in Oyunları</title>
-<meta name="description" content="İpek için eğitici oyunlar: Minik Kâşif, Pırıl'ın Gökkuşağı ve Kelebek Bahçesi. Learning games for Ipek.">
+<meta name="description" content="İpek için eğitici oyunlar: Minik Kâşif, Pırıl'ın Gökkuşağı, Kelebek Bahçesi ve Araba Gezisi. Learning games for Ipek.">
 <meta name="theme-color" content="#fff3e6">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -44,6 +44,7 @@ h1{margin:0;font:700 clamp(28px,7vw,48px)/1.05 var(--display);text-wrap:balance}
 .g1 .art{background:linear-gradient(#fff6c9,#ffe39a)}
 .g2 .art{background:linear-gradient(#fbe9ff,#e8f3ff)}
 .g3 .art{background:linear-gradient(#a9dcff 0%,#e3f4ff 62%,#a8e27f 62%,#86d066 100%)}
+.g4 .art{background:linear-gradient(#bfe2ff,#fff1cf)}
 .body{padding:14px 16px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
 .body b{font:700 26px/1.1 var(--display);text-wrap:balance}
 .body p{margin:0;font-weight:700;color:var(--ink2);line-height:1.45}
@@ -102,6 +103,11 @@ const ART3=svg(`<g class="bob" style="transform-origin:60px 50px"><svg x="20" y=
 <svg x="104" y="2" width="40" height="40" viewBox="0 0 100 100">${bf('#ffd93d','#fff1a6')}</svg>
 <g transform="translate(118 48) scale(.62)"><rect x="10" y="22" width="80" height="90" rx="20" fill="#e9f6ff" fill-opacity=".8" ${st(5)}/><rect x="18" y="8" width="64" height="16" rx="6" fill="#c79bff" ${st(5)}/><svg x="22" y="56" width="36" height="36" viewBox="0 0 100 100">${bf('#ff5a5a','#ffc2c2')}</svg><svg x="46" y="72" width="34" height="34" viewBox="0 0 100 100">${bf('#4aa8ff','#c4e3ff')}</svg></g>`,'0 0 180 125');
 
+
+/* Araba Gezisi: Çeşnigir Köprüsü + pembe araba */
+const ART4=svg(`<path d="M0 108 Q90 96 180 108 V125 H0Z" fill="#7cc6f0"/><path d="M4 92 Q90 40 176 92 L176 104 L4 104 Z" fill="#e6d8b8" ${st(4)}/><path d="M64 104 Q90 66 116 104 Z" fill="#7cc6f0" ${st(4)}/><path d="M28 104 Q40 88 52 104 Z M128 104 Q140 88 152 104 Z" fill="#7cc6f0" ${st(3)}/>
+<g class="bob" style="transform-origin:90px 56px"><g transform="translate(58 26) scale(.64)"><path d="M10 62 Q10 48 24 46 L32 30 Q36 24 44 24 H60 Q68 24 72 30 L80 46 Q92 48 92 62 V70 H10 Z" fill="#ff6fa8" ${st(6)}/><path d="M36 44 L41 32 H59 L66 44 Z" fill="#cfe9ff" ${st(5)}/><circle cx="28" cy="72" r="11" fill="${INK}"/><circle cx="74" cy="72" r="11" fill="${INK}"/><circle cx="28" cy="72" r="4" fill="#fff"/><circle cx="74" cy="72" r="4" fill="#fff"/></g></g>
+${[[26,30,10],[150,24,9],[160,60,7]].map(([x,y,r])=>`<polygon points="${starPts(x,y,r,r*.42)}" fill="#ffd93d" ${st(2.5)}/>`).join('')}`,'0 0 180 125');
 const PLAY=svg(`<polygon points="22,12 88,50 22,88" fill="${INK}"/>`);
 const T={
   tr:{title:"İpek'in Oyunları",hello:'Merhaba İpek! Hangi oyunu oynamak istersin? Bir karta dokun, oyun açılsın.',play:'Oyna',nw:'Yeni!',
@@ -109,17 +115,19 @@ const T={
     games:[
       {href:'minik-kasif/',name:'Minik Kâşif İpek',desc:'Elmaları say, balonların rengini bul, şekilleri tanı.',tags:['Sayılar','Renkler','Şekiller']},
       {href:'unicorn/',name:"İpek ve Pırıl'ın Gökkuşağı",desc:'Tek boynuzlu at Pırıl ile her doğru cevapta gökkuşağına bir renk ekle.',tags:['Örüntüler','Çok mu, az mı?','Gölgeler']},
-      {href:'kelebek/',name:"İpek'in Kelebek Bahçesi",desc:'Uçan kelebeklere dokunup yakala, kavanozu doldur, sonra serbest bırak.',tags:['Kelebek yakala','Renk avı','Say ve yakala'],isNew:true}
+      {href:'kelebek/',name:"İpek'in Kelebek Bahçesi",desc:'Uçan kelebeklere dokunup yakala, kavanozu doldur, sonra serbest bırak.',tags:['Kelebek yakala','Renk avı','Say ve yakala']},
+      {href:'araba/',name:"İpek'in Araba Gezisi",desc:"Çeşnigir Köprüsü'nden geç, Köprüköy'ü gez, yıldızları topla. Sarı ok yolu gösterir.",tags:['3D araba','Yön bulma','Köprüköy'],isNew:true}
     ]},
   en:{title:"Ipek's Games",hello:'Hi Ipek! Which game do you want to play? Tap a card to start.',play:'Play',nw:'New!',
     foot:'The “Games” button inside each game brings you back here. Progress is saved separately on each device.',
     games:[
       {href:'minik-kasif/',name:'Little Explorer Ipek',desc:'Count apples, find balloon colors and learn shapes.',tags:['Numbers','Colors','Shapes']},
       {href:'unicorn/',name:"Ipek & Sparkle's Rainbow",desc:'Help Sparkle the unicorn add a color to the rainbow with every right answer.',tags:['Patterns','More or less?','Shadows']},
-      {href:'kelebek/',name:"Ipek's Butterfly Garden",desc:'Tap flying butterflies to catch them, fill the jar, then let them fly free.',tags:['Catch them','Color hunt','Count & catch'],isNew:true}
+      {href:'kelebek/',name:"Ipek's Butterfly Garden",desc:'Tap flying butterflies to catch them, fill the jar, then let them fly free.',tags:['Catch them','Color hunt','Count & catch']},
+      {href:'araba/',name:"Ipek's Car Trip",desc:'Cross the Çeşnigir Bridge, tour Köprüköy village and collect stars. The yellow arrow shows the way.',tags:['3D driving','Finding the way','Köprüköy'],isNew:true}
     ]}
 };
-const ART=[ART1,ART2,ART3];
+const ART=[ART1,ART2,ART3,ART4];
 let lang='tr';
 try{const s=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')||'{}');if(s.lang)lang=s.lang;else if((navigator.language||'').toLowerCase().startsWith('en'))lang='en'}catch(e){}
 try{const l=localStorage.getItem('ipek-oyunlar-lang');if(l==='tr'||l==='en')lang=l}catch(e){}
