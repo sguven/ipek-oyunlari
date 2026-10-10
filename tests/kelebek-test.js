@@ -19,7 +19,7 @@ const DEVICES = [
   { name: 'ipad', width: 820, height: 1180, mobile: true },
   { name: 'masaustu', width: 1280, height: 800, mobile: false },
 ];
-const TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mp3': 'audio/mpeg' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; charset=utf-8', '.webmanifest': 'application/manifest+json', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.png': 'image/png' };
 function serve() {
   return new Promise(res => {
     const srv = http.createServer((req, rsp) => {
