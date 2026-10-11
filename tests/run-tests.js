@@ -163,7 +163,10 @@ async function answerRound(page, dev, wrongFirst) {
   await tap(page, dev, btns.nth(ci));
   const cls = await btns.nth(ci).getAttribute('class');
   if (!/\bok\b/.test(cls)) problems.push('doğru cevap işaretlenmedi');
-  await advance(page, 4000);
+  // sonraki soru, önceki konuşma bitince gelir (sesler üst üste binmesin); en fazla ~9 sn bekle
+  await page.evaluate(() => { window.__lastQ = Q; });
+  for (let i = 0; i < 18; i++) { await advance(page, 500); if (await page.evaluate(() => Q !== window.__lastQ || !document.getElementById('rewardOv').hidden)) break; await sleep(150); }
+  await advance(page, 400);
   return { problems, cat: q.cat };
 }
 

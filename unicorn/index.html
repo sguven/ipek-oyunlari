@@ -435,14 +435,17 @@ function clipBuf(id){
   if(!clipBufs[key]){clipBufs[key]=fetch(CLIPS.base+key+'.mp3').then(r=>{if(!r.ok)throw new Error('missing');return r.arrayBuffer()}).then(b=>new Promise((res,rej)=>a.decodeAudioData(b,res,rej)));clipBufs[key].catch(()=>{delete clipBufs[key]})}
   return clipBufs[key];
 }
-let clipGen=0,clipSrc=null,clipChain=Promise.resolve();
-function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
+let clipGen=0,clipSrc=null,clipChain=Promise.resolve(),clipBusy=0;
+/* konuşma bitene kadar bekle (en fazla maxMs): geçişlerde sesler üst üste binmesin */
+function speechDone(maxMs){return new Promise(res=>{const t0=Date.now();(function poll(){let tts=false;try{tts=speechSynthesis.speaking||speechSynthesis.pending}catch(e){}if((!clipBusy&&!tts)||Date.now()-t0>maxMs)return res();setTimeout(poll,120)})()})}
+function stopClips(){clipGen++;clipBusy=0;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
 function hush(){stopClips();try{speechSynthesis.cancel()}catch(e){}}
 function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null;res()};clipSrc=s;try{s.start()}catch(e){res()}})}
 function playClips(parts,queue){
   if(!queue){stopClips();clipChain=Promise.resolve()}
   const gen=clipGen,loads=parts.map(p=>clipBuf(CLIPS.map.clips[p]));loads.forEach(p=>p.catch(()=>{}));
-  clipChain=clipChain.then(async()=>{for(let i=0;i<loads.length;i++){if(gen!==clipGen)return;let b;try{b=await loads[i]}catch(e){continue}await playBuf(b,gen);if(i<loads.length-1)await new Promise(r=>setTimeout(r,140))}}).catch(()=>{});
+  clipBusy++;
+  clipChain=clipChain.then(async()=>{for(let i=0;i<loads.length;i++){if(gen!==clipGen)return;let b;try{b=await loads[i]}catch(e){continue}await playBuf(b,gen);if(i<loads.length-1)await new Promise(r=>setTimeout(r,140))}}).catch(()=>{}).then(()=>{if(gen===clipGen)clipBusy=Math.max(0,clipBusy-1)});
 }
 function say(t,queue){
   if(!S.sound)return;
@@ -552,7 +555,7 @@ function next(){
   const cat=mode==='mix'?pick(['pattern','more','shadow']):mode;
   Q=cat==='pattern'?makePattern():cat==='more'?makeMore():makeShadow();
   locked=false;firstTry=true;renderQuestion();
-  const first=!greeted;greeted=true;setTimeout(()=>{if(screen==='play')say(first?[L().greet,questionText(Q).speech]:questionText(Q).speech)},250);
+  const first=!greeted;greeted=true;const q0=Q;setTimeout(()=>{if(screen==='play'&&Q===q0)say(first?[L().greet,questionText(Q).speech]:questionText(Q).speech,true)},250);
 }
 function answer(b){
   if(locked)return;
@@ -568,7 +571,7 @@ function answer(b){
     const done=S.bands>=7;
     save();renderSky(true);
     const u=$('uni');u.classList.remove('hop');void u.offsetWidth;u.classList.add('hop');
-    setTimeout(()=>done?finishRainbow():next(),done?1500:2200);
+    const q0=Q;setTimeout(async()=>{await speechDone(6000);if(screen!=='play'||Q!==q0)return;done?finishRainbow():next()},done?900:1300);
   }else{
     if(firstTry){st_[1]++;firstTry=false}
     S.streak=0;$('streak').textContent='';save();
