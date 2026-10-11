@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>İpek'in Oyunları</title>
-<meta name="description" content="İpek için eğitici oyunlar: Minik Kâşif, Pırıl'ın Gökkuşağı, Kelebek Bahçesi ve Araba Gezisi. Learning games for Ipek.">
+<meta name="description" content="İpek için eğitici oyunlar: Minik Kâşif, Pırıl'ın Gökkuşağı, Kelebek Bahçesi, Araba Gezisi ve Yardım Köyü. Learning games for Ipek.">
 <meta name="theme-color" content="#fff3e6">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -45,6 +45,7 @@ h1{margin:0;font:700 clamp(28px,7vw,48px)/1.05 var(--display);text-wrap:balance}
 .g2 .art{background:linear-gradient(#fbe9ff,#e8f3ff)}
 .g3 .art{background:linear-gradient(#a9dcff 0%,#e3f4ff 62%,#a8e27f 62%,#86d066 100%)}
 .g4 .art{background:linear-gradient(#bfe2ff,#fff1cf)}
+.g5 .art{background:linear-gradient(#ffe9d2,#ffd1df)}
 .body{padding:14px 16px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
 .body b{font:700 26px/1.1 var(--display);text-wrap:balance}
 .body p{margin:0;font-weight:700;color:var(--ink2);line-height:1.45}
@@ -108,6 +109,11 @@ const ART3=svg(`<g class="bob" style="transform-origin:60px 50px"><svg x="20" y=
 const ART4=svg(`<path d="M0 108 Q90 96 180 108 V125 H0Z" fill="#7cc6f0"/><path d="M4 92 Q90 40 176 92 L176 104 L4 104 Z" fill="#e6d8b8" ${st(4)}/><path d="M64 104 Q90 66 116 104 Z" fill="#7cc6f0" ${st(4)}/><path d="M28 104 Q40 88 52 104 Z M128 104 Q140 88 152 104 Z" fill="#7cc6f0" ${st(3)}/>
 <g class="bob" style="transform-origin:90px 56px"><g transform="translate(58 26) scale(.64)"><path d="M10 62 Q10 48 24 46 L32 30 Q36 24 44 24 H60 Q68 24 72 30 L80 46 Q92 48 92 62 V70 H10 Z" fill="#ff6fa8" ${st(6)}/><path d="M36 44 L41 32 H59 L66 44 Z" fill="#cfe9ff" ${st(5)}/><circle cx="28" cy="72" r="11" fill="${INK}"/><circle cx="74" cy="72" r="11" fill="${INK}"/><circle cx="28" cy="72" r="4" fill="#fff"/><circle cx="74" cy="72" r="4" fill="#fff"/></g></g>
 ${[[26,30,10],[150,24,9],[160,60,7]].map(([x,y,r])=>`<polygon points="${starPts(x,y,r,r*.42)}" fill="#ffd93d" ${st(2.5)}/>`).join('')}`,'0 0 180 125');
+
+/* Yardım Köyü: kalp + iki arkadaş (biri atkı veriyor) */
+const ART5=svg(`<path d="M90 92 C40 62 52 20 90 40 C128 20 140 62 90 92Z" fill="#ff5a8a" ${st(4)}/><path d="M62 52 Q74 40 86 50 M118 52 Q106 40 94 50" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>
+<g class="bob" style="transform-origin:34px 96px"><circle cx="34" cy="92" r="20" fill="#f6b26b" ${st(3.5)}/><path d="M20 78 L16 60 L32 72 Z M48 78 L52 60 L36 72 Z" fill="#f6b26b" ${st(3)}/><path d="M26 92 Q30 88 34 92 M38 92 Q42 88 46 92" stroke="${INK}" stroke-width="3" fill="none"/><path d="M28 100 Q34 106 40 100" stroke="${INK}" stroke-width="3" fill="none"/><path d="M16 108 Q34 116 52 108 L52 114 Q34 122 16 114Z" fill="#ff5a5a" ${st(3)}/></g>
+<g><circle cx="146" cy="92" r="20" fill="#c8915a" ${st(3.5)}/><circle cx="132" cy="74" r="7" fill="#c8915a" ${st(3)}/><circle cx="160" cy="74" r="7" fill="#c8915a" ${st(3)}/><path d="M138 92 Q142 88 146 92 M150 92 Q154 88 158 92" stroke="${INK}" stroke-width="3" fill="none"/><path d="M140 100 Q146 106 152 100" stroke="${INK}" stroke-width="3" fill="none"/></g>`,'0 0 180 125');
 const PLAY=svg(`<polygon points="22,12 88,50 22,88" fill="${INK}"/>`);
 const T={
   tr:{title:"İpek'in Oyunları",hello:'Merhaba İpek! Hangi oyunu oynamak istersin? Bir karta dokun, oyun açılsın.',play:'Oyna',nw:'Yeni!',
@@ -116,7 +122,8 @@ const T={
       {href:'minik-kasif/',name:'Minik Kâşif İpek',desc:'Elmaları say, balonların rengini bul, şekilleri tanı.',tags:['Sayılar','Renkler','Şekiller']},
       {href:'unicorn/',name:"İpek ve Pırıl'ın Gökkuşağı",desc:'Tek boynuzlu at Pırıl ile her doğru cevapta gökkuşağına bir renk ekle.',tags:['Örüntüler','Çok mu, az mı?','Gölgeler']},
       {href:'kelebek/',name:"İpek'in Kelebek Bahçesi",desc:'Uçan kelebeklere dokunup yakala, kavanozu doldur, sonra serbest bırak.',tags:['Kelebek yakala','Renk avı','Say ve yakala','Robota öğret']},
-      {href:'araba/',name:"İpek'in Araba Gezisi",desc:"Çeşnigir Köprüsü'nden geç, Köprüköy'ü gez, yıldızları topla. Sarı ok yolu gösterir.",tags:['3D araba','Yön bulma','Köprüköy'],isNew:true}
+      {href:'araba/',name:"İpek'in Araba Gezisi",desc:"Çeşnigir Köprüsü'nden geç, Köprüköy'ü gez, yıldızları topla. Sarı ok yolu gösterir.",tags:['3D araba','Yön bulma','Köprüköy']},
+      {href:'yardim/',name:"İpek'in Yardım Köyü",desc:'Arkadaşların derdine çare bul, kurabiyeleri eşit paylaş, parkı temizle.',tags:['Yardım et','Paylaş','Topla'],isNew:true}
     ]},
   en:{title:"Ipek's Games",hello:'Hi Ipek! Which game do you want to play? Tap a card to start.',play:'Play',nw:'New!',
     foot:'The “Games” button inside each game brings you back here. Progress is saved separately on each device.',
@@ -124,10 +131,11 @@ const T={
       {href:'minik-kasif/',name:'Little Explorer Ipek',desc:'Count apples, find balloon colors and learn shapes.',tags:['Numbers','Colors','Shapes']},
       {href:'unicorn/',name:"Ipek & Sparkle's Rainbow",desc:'Help Sparkle the unicorn add a color to the rainbow with every right answer.',tags:['Patterns','More or less?','Shadows']},
       {href:'kelebek/',name:"Ipek's Butterfly Garden",desc:'Tap flying butterflies to catch them, fill the jar, then let them fly free.',tags:['Catch them','Color hunt','Count & catch','Teach the robot']},
-      {href:'araba/',name:"Ipek's Car Trip",desc:'Cross the Çeşnigir Bridge, tour Köprüköy village and collect stars. The yellow arrow shows the way.',tags:['3D driving','Finding the way','Köprüköy'],isNew:true}
+      {href:'araba/',name:"Ipek's Car Trip",desc:'Cross the Çeşnigir Bridge, tour Köprüköy village and collect stars. The yellow arrow shows the way.',tags:['3D driving','Finding the way','Köprüköy']},
+      {href:'yardim/',name:"Ipek's Helping Village",desc:'Find what each friend needs, share cookies fairly and clean the park.',tags:['Help a friend','Share','Clean up'],isNew:true}
     ]}
 };
-const ART=[ART1,ART2,ART3,ART4];
+const ART=[ART1,ART2,ART3,ART4,ART5];
 let lang='tr';
 try{const s=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')||'{}');if(s.lang)lang=s.lang;else if((navigator.language||'').toLowerCase().startsWith('en'))lang='en'}catch(e){}
 try{const l=localStorage.getItem('ipek-oyunlar-lang');if(l==='tr'||l==='en')lang=l}catch(e){}
