@@ -504,6 +504,45 @@ function textBoard(text,w,h,bg,fg,font){
   tree.add(trunk,crown);tree.position.set(tx,ty,tz);tree.traverse(shade);scene.add(tree);
 })();
 const FOUNTAIN={drops:[],jet:null};
+/* ÇELENK: beyaz dalgalı pano, kırmızı-beyaz çiçek halkası, yeşil dallar, çapraz kurdele "YAZILIM / SERHAT GÜVEN" */
+function makeWreath(){
+  const W=512,H=660,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  const cx=W/2,cy=H/2-6,rx=210,ry=284;
+  /* dalgalı beyaz pano */
+  g.fillStyle='#ffffff';g.strokeStyle='#d9d4cc';g.lineWidth=3;
+  g.beginPath();g.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);g.fill();
+  for(let i=0;i<46;i++){const a=i/46*Math.PI*2,x=cx+Math.cos(a)*rx,y=cy+Math.sin(a)*ry;g.beginPath();g.arc(x,y,24,0,Math.PI*2);g.fill();g.stroke()}
+  g.beginPath();g.ellipse(cx,cy,rx-4,ry-4,0,0,Math.PI*2);g.fill();
+  /* yeşil dallar (kenara doğru) */
+  g.strokeStyle='#6f9a3c';g.lineWidth=3;
+  for(let i=0;i<26;i++){const a=i/26*Math.PI*2+.1,x0=cx+Math.cos(a)*rx*.62,y0=cy+Math.sin(a)*ry*.62,x1=cx+Math.cos(a)*rx*.98,y1=cy+Math.sin(a)*ry*.98;
+    g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke();
+    for(let k=1;k<6;k++){const t=k/6,x=x0+(x1-x0)*t,y=y0+(y1-y0)*t,n=Math.atan2(y1-y0,x1-x0);[1,-1].forEach(sd=>{g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(n+sd*.8)*12,y+Math.sin(n+sd*.8)*12);g.stroke()})}}
+  /* çiçek halkası */
+  const flower=(x,y,r,red)=>{g.fillStyle=red?'#e3262b':'#ffffff';g.strokeStyle=red?'#b8161c':'#cfcfcf';g.lineWidth=1.5;
+    for(let p=0;p<14;p++){const a=p/14*Math.PI*2;g.beginPath();g.ellipse(x+Math.cos(a)*r*.55,y+Math.sin(a)*r*.55,r*.48,r*.2,a,0,Math.PI*2);g.fill();g.stroke()}
+    g.fillStyle=red?'#e3262b':'#ffffff';g.beginPath();g.arc(x,y,r*.42,0,Math.PI*2);g.fill();
+    g.fillStyle=red?'#3f8f3a':'#f2c12e';g.beginPath();g.arc(x,y,r*.2,0,Math.PI*2);g.fill()};
+  const ring=[];for(let row=0;row<3;row++){const k=.42+row*.14,n=18+row*6;for(let i=0;i<n;i++){const a=i/n*Math.PI*2+row*.2;ring.push([cx+Math.cos(a)*rx*k,cy+Math.sin(a)*ry*k,30-row*2])}}
+  ring.forEach(([x,y,r],i)=>flower(x,y,r,(i*7)%5!==0));
+  /* çapraz kurdele */
+  g.save();g.translate(cx,cy+10);g.rotate(-Math.PI/3.2);
+  g.fillStyle='#ffffff';g.strokeStyle='#bdbdbd';g.lineWidth=3;g.shadowColor='rgba(0,0,0,.25)';g.shadowBlur=8;
+  g.beginPath();g.moveTo(-330,-62);g.lineTo(330,-62);g.lineTo(312,0);g.lineTo(330,62);g.lineTo(-330,62);g.lineTo(-312,0);g.closePath();g.fill();g.shadowBlur=0;g.stroke();
+  g.textAlign='center';g.textBaseline='middle';
+  g.fillStyle='#1d1d1d';g.font='900 54px Arial Black, Arial, sans-serif';g.fillText('YAZILIM',0,-26,560);
+  g.fillStyle='#c8344a';g.font='900 50px Arial Black, Arial, sans-serif';g.fillText('SERHAT GÜVEN',0,28,600);
+  g.restore();
+  const tex=new THREE.CanvasTexture(c);tex.anisotropy=4;
+  const grp=new THREE.Group();
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(2.3,2.3*H/W),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.5,side:THREE.DoubleSide}));
+  face.position.y=1.0+2.3*H/W/2;face.rotation.x=-.08;grp.add(face);
+  /* ahşap ayaklık */
+  const wood=new THREE.MeshLambertMaterial({color:0x7a5230});
+  [[-.6,.12],[.6,.12]].forEach(([x,z])=>{const l=new THREE.Mesh(new THREE.CylinderGeometry(.05,.06,2.6,6),wood);l.position.set(x,1.25,z);l.rotation.z=x>0?-.12:.12;grp.add(l)});
+  const back=new THREE.Mesh(new THREE.CylinderGeometry(.05,.06,2.5,6),wood);back.position.set(0,1.2,-.45);back.rotation.x=-.32;grp.add(back);
+  return grp;
+}
 (function dernek(){
   const x=118,z=14,y=terrainH(x,z),ry=-Math.PI/2-.35,g=new THREE.Group();
   const wallMat=new THREE.MeshLambertMaterial({color:0xefe6d0}),baseMat=new THREE.MeshLambertMaterial({color:0xb9a888});
@@ -517,7 +556,9 @@ const FOUNTAIN={drops:[],jet:null};
   const sign=textBoard('ÇEŞNİGİR-DER',7.4,1.35,'#33261a','#f2cf7e',190);sign.position.set(0,2.95,3.64);g.add(sign);
   const pole=new THREE.Mesh(new THREE.CylinderGeometry(.06,.08,5.5,8),new THREE.MeshLambertMaterial({color:0xcccccc}));pole.position.set(5.2,2.75,3);
   const flag=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1),new THREE.MeshLambertMaterial({color:0xc8102e,side:THREE.DoubleSide}));flag.position.set(6,4.9,3);
-  g.add(pole,flag);g.traverse(shade);g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
+  g.add(pole,flag);g.traverse(shade);
+  const wr=makeWreath();wr.scale.setScalar(1.75);wr.position.set(-6.4,0,6.2);wr.rotation.y=.3;g.add(wr);
+  g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
   /* köy meydanı: taş döşeme + fıskiyeli havuz (derneğin önü açık) */
   const fx_=Math.sin(ry),fz_=Math.cos(ry),cx=x+fx_*14,cz=z+fz_*14,cy=terrainH(cx,cz);
   const plaza=new THREE.Mesh(new THREE.CylinderGeometry(13,13,.5,40),new THREE.MeshLambertMaterial({color:0xcfc2a2}));plaza.position.set(cx,cy+.02,cz);if(SHADOWS)plaza.receiveShadow=true;scene.add(plaza);
