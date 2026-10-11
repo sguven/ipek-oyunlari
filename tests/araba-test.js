@@ -88,7 +88,7 @@ async function runCase(browser, base, dev) {
   check(await page.locator('#startOv').isHidden(), `${tag}: başla düğmesi çalışmadı`);
 
   // --- yerleşim: kontroller ekranda, birbiriyle ve üst çubukla çakışmıyor, yatay taşma yok
-  const boxes = await G(page, () => ['#gamesLink', '#stars', '#stickers', '#menuBtn', '#cLeft', '#cRight', '#cGas', '#cBack', '#cHorn'].map(s => { const r = document.querySelector(s).getBoundingClientRect(); return { s, x: r.x, y: r.y, w: r.width, h: r.height }; }));
+  const boxes = await G(page, () => ['#gamesLink', '#stars', '#stickers', '#menuBtn', '#radar', '#cLeft', '#cRight', '#cGas', '#cBack', '#cHorn'].map(s => { const r = document.querySelector(s).getBoundingClientRect(); return { s, x: r.x, y: r.y, w: r.width, h: r.height }; }));
   for (const b of boxes) check(b.x >= 0 && b.y >= 0 && b.x + b.w <= dev.width + 1 && b.y + b.h <= dev.height + 1 && b.w > 0, `${tag}: ${b.s} ekran dışında`);
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
     const a = boxes[i], b = boxes[j];
@@ -124,13 +124,26 @@ async function runCase(browser, base, dev) {
   // rota boyunca yol yüksekliğinde ani düşüş yok (köprü rampaları)
   const drop = await G(page, () => { let worst = 0, at = null; const R = __game.ROUTE; for (let i = 0; i < R.length - 1; i++) { const a = R[i], b = R[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])); let prev = null; for (let k = 0; k <= n; k++) { const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n, h = __game.groundInfo(x, z).h; if (prev !== null && Math.abs(h - prev) > worst) { worst = Math.abs(h - prev); at = [x.toFixed(0), z.toFixed(0)]; } prev = h; } } return { worst, at }; });
   check(drop.worst < 1.2, `${tag}: rotada ani yükseklik değişimi ${drop.worst.toFixed(2)} (${drop.at})`);
+  // rota hiçbir binaya/ağaca/kayaya değmiyor
+  const blocked = await G(page, () => { const R = __game.ROUTE, bad = []; for (let i = 0; i < R.length - 1; i++) { const a = R[i], b = R[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])); for (let k = 0; k <= n; k++) { const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n; if (__game.hitObst(x, z, __game.groundInfo(x, z).h, 1.3)) { bad.push([x.toFixed(0), z.toFixed(0)]); break; } } } return bad; });
+  check(!blocked.length, `${tag}: rota engelle kesişiyor: ${JSON.stringify(blocked)}`);
+  // binaya doğru gaz: içine girmemeli, kamera da binanın içine düşmemeli
+  await G(page, () => { __game.teleport(97, 55); __game.heading = 0; });
+  await hold(page, '#cGas', 0, 1);
+  let inside = false, camIn = false;
+  const tb = await G(page, () => __game.simT);
+  while ((await G(page, () => __game.simT)) - tb < 3) { await sleep(60); const r = await G(page, () => ({ c: !!__game.hitObst(__game.pos.x, __game.pos.z, __game.pos.y, 0.3), k: !!__game.hitObst(__game.cam.x, __game.cam.z, __game.cam.y, 0) })); if (r.c) inside = true; if (r.k) camIn = true; }
+  await release(page, '#cGas', 1);
+  check(!inside, `${tag}: araba caminin içine girdi`);
+  check(!camIn, `${tag}: kamera binanın içine düştü`);
+  await page.screenshot({ path: path.join(OUT, `araba-${tag}-3b-cami.png`) });
   // geri
   await hold(page, '#cBack', 1800, 3);
   check((await G(page, () => __game.speed)) < 0, `${tag}: geri gitmiyor`);
   await tap(page, dev, '#cHorn');
 
   // --- su engeli: kıyıdan suya doğru sür; asla suya girmemeli
-  await G(page, () => { __game.teleport(-75, 30); __game.heading = Math.atan2(40, -30); });
+  await G(page, () => { __game.teleport(-62, 22); __game.heading = Math.atan2(40, -30); });
   await hold(page, '#cGas', 0, 1);
   let wet = false;
   let toastSeen = false;
@@ -193,11 +206,11 @@ async function autopilot(page, tag) {
     }, 30);
   });
   const t0 = Date.now(); let lastDone = -1, lastChange = Date.now(), wet = false;
-  while (Date.now() - t0 < 420000) {
+  while (Date.now() - t0 < 900000) {
     await sleep(1000);
     const st = await G(page, () => ({ done: __game.items.filter(i => i.done).length, total: __game.items.length, win: !document.getElementById('winOv').hidden, wet: __game.isWater(__game.groundInfo(__game.pos.x, __game.pos.z)), p: [__game.pos.x, __game.pos.z] }));
     if (st.wet) wet = true;
-    if (st.done !== lastDone) { lastDone = st.done; lastChange = Date.now(); }
+    if (st.done !== lastDone) { lastDone = st.done; lastChange = Date.now(); if (process.env.APLOG) console.log('  ilerleme', st.done, '/', st.total, 'durak', await G(page, () => __game.stopsDone.map(b => b ? 1 : 0).join('')), 'konum', st.p.map(v => v.toFixed(0)).join(',')); }
     if (st.win) break;
     if (Date.now() - lastChange > 60000) { fails.push(`${tag}: otopilot takıldı (${st.done}/${st.total}, konum ${st.p.map(v => v.toFixed(0))})`); break; }
   }
