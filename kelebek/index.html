@@ -479,7 +479,8 @@ async function pump(){
 function say(t,queue){
   if(!S.sound)return;
   const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!parts.length)return;
-  if(!queue)hush();
+  /* cihaz sesi konuşurken kesmek (speechSynthesis.cancel) iPad'de ekranı dondurabiliyor: o cümleyi bitirtip sonra konuş */
+  if(!queue){let tts=false;try{tts=speechSynthesis.speaking||speechSynthesis.pending}catch(e){}if(tts)SQ=[];else{SQ=[];sqBusy=false;stopClips()}}
   SQ.push(parts);pump();
 }
 function renderVoiceSel(){
@@ -719,6 +720,7 @@ function renderGoal(){
   g.innerHTML=`<div class="gi${mode==='color'?' flap':''}">${icon}</div><div class="txt"><h2 id="prompt">${txt}</h2>${dots?`<div class="dots" aria-hidden="true">${dots}</div>`:''}</div>`;
 }
 function startPlay(m){
+  if(CLIPS.map)['bir','iki','üç',L().greet].forEach(t=>{const id=CLIPS.map.clips[t];if(id)clipBuf(id).catch(()=>{})});
   mode=m;playGen++;paused=false;locked=false;catchSeq=0;
   BF.forEach(b=>b.el.remove());BF=[];
   show('play');setupField();

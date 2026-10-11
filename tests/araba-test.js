@@ -113,6 +113,17 @@ async function runCase(browser, base, dev) {
   check(s2.gasOn && s2.leftOn, `${tag}: iki parmakla aynı anda basılamıyor`);
   check(s2.sp > s1.sp + 2, `${tag}: gaz hızlandırmıyor (${s1.sp.toFixed(1)} → ${s2.sp.toFixed(1)})`);
   check(Math.abs(s2.h - s1.h) > 0.3, `${tag}: direksiyon dönmüyor`);
+  // DUR: bir dokunuş durdurur, durmaya devam eder; gaz yeniden başlatır
+  await hold(page, '#cBack', 150, 3);
+  await waitSim(page, 1.6);
+  const sp1 = await G(page, () => Math.abs(__game.speed));
+  check(sp1 < 0.3, `${tag}: DUR'a bir kez dokununca araba durmadı (hız ${sp1.toFixed(1)})`);
+  await hold(page, '#cGas', 150, 1);
+  await waitSim(page, 1.2);
+  check((await G(page, () => __game.speed)) > 3, `${tag}: gaza dokununca araba yeniden gitmedi`);
+  // rota boyunca yol yüksekliğinde ani düşüş yok (köprü rampaları)
+  const drop = await G(page, () => { let worst = 0, at = null; const R = __game.ROUTE; for (let i = 0; i < R.length - 1; i++) { const a = R[i], b = R[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])); let prev = null; for (let k = 0; k <= n; k++) { const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n, h = __game.groundInfo(x, z).h; if (prev !== null && Math.abs(h - prev) > worst) { worst = Math.abs(h - prev); at = [x.toFixed(0), z.toFixed(0)]; } prev = h; } } return { worst, at }; });
+  check(drop.worst < 1.2, `${tag}: rotada ani yükseklik değişimi ${drop.worst.toFixed(2)} (${drop.at})`);
   // geri
   await hold(page, '#cBack', 1800, 3);
   check((await G(page, () => __game.speed)) < 0, `${tag}: geri gitmiyor`);
