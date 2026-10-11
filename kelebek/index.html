@@ -95,6 +95,44 @@ button{font-family:inherit}
 
 .hello{margin:0;font:700 18px/1.5 var(--body);color:var(--ink2);text-align:center;text-wrap:balance}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.tile.ai{background:linear-gradient(#f3f0ff,#fff)}
+/* Robota öğret */
+.rstage{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:10px;background:linear-gradient(#e9f4ff,#f6fbff);border:4px solid var(--ink);border-radius:28px;box-shadow:0 6px 0 var(--ink);padding:12px;min-height:190px}
+.robot{display:flex;flex-direction:column;align-items:center;gap:6px}
+.robot svg{width:min(100%,190px);height:auto;overflow:visible}
+.robot .lights{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:180px}
+.robot .lights i{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:#fff}
+.robot .lights i.on{background:var(--gold);box-shadow:0 0 8px #ffd93d}
+.robot.think .antb{animation:blink .5s steps(2) infinite}
+.robot.think .eyes{transform:translateY(-4px)}
+.robot.happy svg{animation:bounce .6s}
+.robot.sad svg{animation:shake .5s}
+.robot .eyes{transition:transform .2s}
+@keyframes blink{to{fill:#fff}}
+.rbf{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;min-height:150px}
+.rcard{position:relative;background:#fff;border:4px solid var(--ink);border-radius:26px;box-shadow:0 5px 0 var(--ink);padding:10px;width:min(100%,170px);aspect-ratio:1;display:grid;place-items:center;box-sizing:border-box}
+.rcard.new{animation:pop .4s backwards}
+.rcard svg{width:88%;height:auto;overflow:visible}
+.rcard .scan{position:absolute;left:8%;right:8%;height:6px;border-radius:3px;background:#5fd3b5;box-shadow:0 0 12px #5fd3b5;top:20%;animation:scan 1.2s ease-in-out infinite alternate;pointer-events:none}
+@keyframes scan{to{top:78%}}
+.bubble{position:relative;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:6px 12px;font:700 16px/1.25 var(--display);max-width:100%;text-align:center;text-wrap:balance}
+.bubble:after{content:"";position:absolute;left:-13px;top:50%;margin-top:-9px;border:9px solid transparent;border-right-color:var(--ink);border-left:0}
+.rhomes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.home{border:4px solid var(--ink);border-radius:26px;box-shadow:0 6px 0 var(--ink);padding:8px 8px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;min-height:150px;color:var(--ink);font:700 18px var(--display)}
+.home.h0{background:#ffe1ee}.home.h1{background:#dcefff}
+.home .fl2{width:64px;height:64px}.home .fl2 svg{width:100%;height:100%}
+.home .kids{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;min-height:30px}
+.home .kids svg{width:30px;height:30px}
+.home.pick{animation:pulse 1s ease-in-out infinite}
+.home.guess{outline:6px dashed #ffcb3d;outline-offset:4px}
+.home:disabled{cursor:default;opacity:1}
+.home:active:not(:disabled){transform:translateY(3px)}
+.rcheck{display:flex;gap:14px;justify-content:center}
+.rcheck button{font-size:44px;line-height:1;width:96px;height:80px;border-radius:24px;border:4px solid var(--ink);box-shadow:0 5px 0 var(--ink);cursor:pointer}
+.rcheck .yes{background:#c9f2d6}.rcheck .no{background:#ffd6d6}
+.rcheck button:active{transform:translateY(3px)}
+.rnote{margin:0;text-align:center;font:700 14px/1.4 var(--body);color:var(--ink2)}
+@media (max-width:420px){.rstage{min-height:160px;padding:8px}.home{min-height:120px}.bubble{font-size:14px}}
 .tile{background:var(--card);border:4px solid var(--ink);border-radius:28px;padding:16px 12px 14px;box-shadow:0 6px 0 var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--ink)}
 .tile .art{height:66px;width:100%;min-width:0;display:flex;align-items:center;justify-content:center;gap:2px}
 .tile .art>svg{height:100%;width:auto;min-width:0;max-width:calc((100% - 4px) / 3);flex:0 1 auto}
@@ -186,6 +224,21 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
     </div>
   </section>
 
+  <section id="robotPlay" hidden style="display:flex;flex-direction:column;gap:12px">
+    <div class="bar">
+      <button class="round" id="rBack"></button>
+      <div class="goal"><div class="txt"><h2 id="rPrompt"></h2></div></div>
+      <button class="round speak" id="rSpeak"></button>
+    </div>
+    <div class="rstage">
+      <div class="robot" id="robotFig"></div>
+      <div class="rbf" id="rBf"></div>
+    </div>
+    <div class="rcheck" id="rCheck" hidden><button class="yes" id="rYes">👍</button><button class="no" id="rNo">👎</button></div>
+    <div class="rhomes"><button class="home h0" data-h="0"></button><button class="home h1" data-h="1"></button></div>
+    <p class="rnote" id="rNote"></p>
+  </section>
+
   <section id="play" hidden style="display:flex;flex-direction:column;gap:10px">
     <div class="bar">
       <button class="round" id="backBtn"></button>
@@ -251,8 +304,23 @@ const T={
   tr:{
     name:"İpek'in Kelebek Bahçesi",greet:'Merhaba İpek! Haydi oynayalım!',parentTitle:'İpek’in ilerlemesi',
     hello:'Merhaba İpek! Bahçede rengârenk kelebekler uçuyor. Onlara dokunup yakala ve kavanoza koy! İstediğin zaman kavanozu boşalt: uçan her kelebek için bir yıldız kazanırsın. Yıldızlar biriktikçe albümüne yeni kelebekler gelir.',
-    modes:{free:'Kelebek yakala',color:'Renk avı',count:'Say ve yakala'},
-    sub:{free:'Kavanozu doldur',color:'Doğru rengi bul',count:'Sayarak yakala'},
+    modes:{free:'Kelebek yakala',color:'Renk avı',count:'Say ve yakala',robot:'Robota öğret'},
+    sub:{free:'Kavanozu doldur',color:'Doğru rengi bul',count:'Sayarak yakala',robot:'Yapay zekâ ile tanış'},
+    ai:{homes:['Pembe çiçek','Mavi çiçek'],
+      intro:'Bu Robot Bıcır. Kelebekleri tanımayı bilmiyor. Haydi ona öğretelim!',
+      teach:'Bu kelebek hangi çiçeğe gitsin? Sen seç!',teachT:'Sen öğret: hangi çiçeğe?',
+      learned:'Öğrendim! Teşekkürler İpek!',
+      turn:'Şimdi sıra robotta. Bakalım bilecek mi?',think:'Hmm… düşünüyorum…',
+      guess:h=>h?'Bence bu mavi çiçeğe gider!':'Bence bu pembe çiçeğe gider!',
+      check:'Robot doğru mu bildi?',
+      right:'Yaşasın! Robot doğru bildi!',
+      wrong:'Ups! Robot yanıldı. Doğrusunu sen göster.',
+      unknown:'Bu rengi hiç görmedim! Bana sen göster.',
+      fixed:'Şimdi öğrendim! Bir dahakine bilirim.',
+      done:'Robot öğrendi! Sen harika bir öğretmensin İpek!',doneT:'Robot öğrendi!',
+      doneX:'Robotlar ve yapay zekâ örneklerle öğrenir. Bazen yanılırlar; o zaman biz yardım ederiz. Sen harika bir öğretmensin!',
+      again:'Yeniden öğret',
+      note:n=>`Robotun beyninde ${n} örnek var.`},
     soundOn:'Ses açık',soundOff:'Ses kapalı',parent:'Ebeveyn paneli',close:'Kapat',album:'Kelebek albümü',
     back:'Ana sayfaya dön',replay:'Görevi tekrar dinle',
     nums:['sıfır','bir','iki','üç','dört','beş','altı','yedi','sekiz'],
@@ -274,7 +342,7 @@ const T={
     caught:'yakalanan kelebek',jars:'kazanılan yıldız',albumK:'albüm',
     colorRow:'Renk avı',colorNote:'İlk dokunuşta doğru renk oranı',rounds:'Say ve yakala',roundsTxt:n=>`${n} tur`,
     lvlNote:l=>`Şu anki seviye: ${l}/3. Her iki kavanozda bir kelebekler biraz hızlanır, çiçeklere daha kısa konar ve sayılar büyür.`,
-    parentNote:'Kelebek yakala el-göz koordinasyonunu ve saymayı, Renk avı renk tanımayı ve seçici dikkati, Say ve yakala sayı-miktar eşleştirmesini çalıştırır. Yanlış kelebeğe dokunmak puan götürmez; kelebek kaçar ve çocuk tekrar dener. Kelebekler arada çiçeklere konar; o an yakalamak en kolayıdır. İlerleme bu cihazda saklanır.',
+    parentNote:'Kelebek yakala el-göz koordinasyonunu ve saymayı, Renk avı renk tanımayı ve seçici dikkati, Say ve yakala sayı-miktar eşleştirmesini çalıştırır. Robota öğret modu yapay zekânın temel fikrini tanıtır: robot, çocuğun gösterdiği örneklerden öğrenir, görmediği şeyi bilmez ve yanıldığında çocuk düzeltir. Yanlış kelebeğe dokunmak puan götürmez; kelebek kaçar ve çocuk tekrar dener. Kelebekler arada çiçeklere konar; o an yakalamak en kolayıdır. İlerleme bu cihazda saklanır.',
     reset:'İlerlemeyi sıfırla',resetSure:'Emin misin? Tekrar dokun',
     voiceUsed:v=>`Okuyan ses: ${v}`,voiceNone:'Bu cihazda Türkçe ses yok',voiceTest:'Sesi dene',voiceTestSay:'Merhaba İpek! Haydi oynayalım!',
     noVoiceTitle:'Bu cihazda Türkçe okuma sesi bulunamadı',
@@ -284,8 +352,23 @@ const T={
   en:{
     name:"Ipek's Butterfly Garden",greet:"Hi Ipek! Let's play!",parentTitle:'Ipek’s progress',
     hello:'Hi Ipek! Colorful butterflies are flying in the garden. Tap them to catch them and put them in the jar! Empty the jar whenever you like: you win a star for every butterfly that flies away. Stars bring new butterflies to your album.',
-    modes:{free:'Catch them',color:'Color hunt',count:'Count & catch'},
-    sub:{free:'Fill the jar',color:'Find the color',count:'Count as you catch'},
+    modes:{free:'Catch them',color:'Color hunt',count:'Count & catch',robot:'Teach the robot'},
+    sub:{free:'Fill the jar',color:'Find the color',count:'Count as you catch',robot:'Meet AI'},
+    ai:{homes:['Pink flower','Blue flower'],
+      intro:"This is Robot Bıcır. It doesn't know butterflies yet. Let's teach it!",
+      teach:'Which flower should this butterfly go to? You choose!',teachT:'You teach: which flower?',
+      learned:'I learned it! Thank you, Ipek!',
+      turn:"Now it's the robot's turn. Will it know?",think:'Hmm… thinking…',
+      guess:h=>h?'I think it goes to the blue flower!':'I think it goes to the pink flower!',
+      check:'Did the robot get it right?',
+      right:'Hooray! The robot got it right!',
+      wrong:'Oops! The robot made a mistake. Show it the right one.',
+      unknown:"I've never seen this color! Please show me.",
+      fixed:'Now I know! I will get it next time.',
+      done:'The robot learned! You are a great teacher, Ipek!',doneT:'The robot learned!',
+      doneX:'Robots and AI learn from examples. Sometimes they make mistakes, and then we help them. You are a great teacher!',
+      again:'Teach again',
+      note:n=>`The robot's brain has ${n} examples.`},
     soundOn:'Sound on',soundOff:'Sound off',parent:'Parent panel',close:'Close',album:'Butterfly album',
     back:'Back to home',replay:'Hear the task again',
     nums:['zero','one','two','three','four','five','six','seven','eight'],
@@ -307,7 +390,7 @@ const T={
     caught:'butterflies caught',jars:'stars won',albumK:'album',
     colorRow:'Color hunt',colorNote:'Right color on the first tap',rounds:'Count & catch',roundsTxt:n=>`${n} rounds`,
     lvlNote:l=>`Current level: ${l}/3. Every two jars the butterflies fly a little faster, rest on flowers for less time, and the numbers grow.`,
-    parentNote:'Catch them builds hand-eye coordination and counting, Color hunt builds color recognition and focused attention, and Count & catch links numbers to amounts. Tapping the wrong butterfly never costs points: it flutters away and your child tries again. Butterflies sometimes rest on flowers, which is the easiest moment to catch them. Progress is saved on this device.',
+    parentNote:'Catch them builds hand-eye coordination and counting, Color hunt builds color recognition and focused attention, and Count & catch links numbers to amounts. Teach the robot introduces the core idea of AI: the robot learns from your child’s examples, doesn’t know what it has never seen, and your child corrects its mistakes. Tapping the wrong butterfly never costs points: it flutters away and your child tries again. Butterflies sometimes rest on flowers, which is the easiest moment to catch them. Progress is saved on this device.',
     reset:'Reset progress',resetSure:'Sure? Tap again',
     voiceUsed:v=>`Voice: ${v}`,voiceNone:'No English voice on this device',voiceTest:'Test voice',voiceTestSay:"Hi Ipek! Let's play!",
     noVoiceTitle:'No English voice found on this device',
@@ -699,7 +782,8 @@ function emptyJar(){
     later(()=>{paused=true;$('rewardTitle').textContent=l.jarFull;$('rewardArt').innerHTML=bfSvg(idx,true);$('rewardText').textContent=l.newBf(l.colors[idx])+(after>=7?' '+l.allBf:'');$('rewardGo').textContent=l.release;$('rewardOv').hidden=false;say(l.colorSay[idx],true);if(idx===6)say(l.allColors,true)},1500);
   }
 }
-$('rewardGo').onclick=()=>{$('rewardOv').hidden=true;tone(988,.2);paused=false};
+function rewardGoDefault(){$('rewardOv').hidden=true;tone(988,.2);paused=false}
+$('rewardGo').onclick=rewardGoDefault;
 
 function newColorRound(){
   const prev=CR.target;let c;do{c=pick(HUNT)}while(c===prev&&HUNT.length>1);
@@ -732,6 +816,103 @@ function startPlay(m){
   if(mode==='color'&&BF.filter(b=>b.ci===CR.target).length<1){BF[0].ci=CR.target;BF[0].el.innerHTML=bfSvg(CR.target,false)}
 }
 
+/* =====================================================================
+   ROBOTA ÖĞRET — yapay zekâya ilk adım: robot örneklerden öğrenir
+   (en yakın komşu: aynı renk için İpek'in gösterdiği çiçek; görmediği renk = "bilmiyorum")
+   ===================================================================== */
+function robotSvg(small,mood){
+  const m=mood||'ok',eyesY=small?0:0;
+  const mouth=m==='sad'?'<path d="M40 74 Q50 66 60 74" stroke="#5fd3b5" stroke-width="4" fill="none" stroke-linecap="round"/>':m==='think'?'<rect x="42" y="70" width="16" height="4" rx="2" fill="#5fd3b5"/>':'<path d="M38 68 Q50 80 62 68" stroke="#5fd3b5" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  return svg(`<line x1="50" y1="8" x2="50" y2="22" stroke="${INK}" stroke-width="4"/><circle class="antb" cx="50" cy="8" r="6" fill="#ff7eb6" ${st(3)}/>
+  <rect x="14" y="22" width="72" height="64" rx="18" fill="#cfd8ff" ${st(4)}/><rect x="22" y="32" width="56" height="46" rx="12" fill="#2b2244"/>
+  <g class="eyes"><circle cx="38" cy="${52+eyesY}" r="7" fill="#5fd3b5"/><circle cx="62" cy="${52+eyesY}" r="7" fill="#5fd3b5"/><circle cx="40" cy="${50+eyesY}" r="2.4" fill="#fff"/><circle cx="64" cy="${50+eyesY}" r="2.4" fill="#fff"/></g>${mouth}
+  <rect x="6" y="44" width="8" height="22" rx="4" fill="#a9b6f0" ${st(3)}/><rect x="86" y="44" width="8" height="22" rx="4" fill="#a9b6f0" ${st(3)}/>
+  ${small?'':`<rect x="28" y="86" width="44" height="10" rx="4" fill="#a9b6f0" ${st(3)}/>`}`,small?'0 0 100 90':'0 0 100 100');
+}
+const AI_COLORS=[0,2,4,6]; /* kırmızı, sarı, mavi, mor */
+const AI={gen:0,ex:[],phase:'intro',cur:null,streak:0,turns:0,guess:null,busy:false};
+function aiPredict(ci){
+  const same=AI.ex.filter(e=>e.ci===ci);if(!same.length)return null;
+  const c=[0,0];same.forEach(e=>c[e.h]++);return c[1]>c[0]?1:c[0]>c[1]?0:same[same.length-1].h;
+}
+function aiLater(fn,ms){const g=AI.gen;setTimeout(()=>{if(g===AI.gen&&screen==='robot')fn()},ms)}
+function startRobot(){
+  AI.gen++;Object.assign(AI,{ex:[],phase:'teach',cur:null,streak:0,turns:0,guess:null,busy:false});
+  show('robot');const l=L().ai;
+  $('rBack').innerHTML=ICON.back;$('rBack').setAttribute('aria-label',L().back);
+  $('rSpeak').innerHTML=ICON.speaker;$('rSpeak').setAttribute('aria-label',L().replay);
+  say({t:l.intro});
+  aiNext();
+}
+function aiRenderHomes(pickable,guess){
+  const l=L().ai;
+  document.querySelectorAll('#robotPlay .home').forEach(b=>{const h=+b.dataset.h;
+    b.innerHTML=`<span class="fl2">${flowerSvg(h?'#7cc6f0':'#ff7eb6')}</span>${l.homes[h]}<span class="kids">${AI.ex.filter(e=>e.h===h).slice(-8).map(e=>bfSvg(e.ci,false)).join('')}</span>`;
+    b.disabled=!pickable;b.classList.toggle('pick',!!pickable);b.classList.toggle('guess',guess===h);b.setAttribute('aria-label',l.homes[h])});
+}
+function aiRobot(mood,bubble,scan){
+  const n=AI.ex.length;
+  $('robotFig').className='robot'+(mood&&mood!=='ok'?' '+mood:'');
+  $('robotFig').innerHTML=robotSvg(false,mood)+`<div class="lights">${Array.from({length:8},(_,i)=>`<i class="${i<Math.min(8,n)?'on':''}"></i>`).join('')}</div>`;
+  const c=AI.cur,isNew=AI.shown!==AI.turns+'-'+AI.ex.length+'-'+c;AI.shown=AI.turns+'-'+AI.ex.length+'-'+c;
+  $('rBf').innerHTML=(bubble?`<div class="bubble">${bubble}</div>`:'')+(c!=null?`<div class="rcard flap${isNew?' new':''}">${bfSvg(c,false)}${scan?'<div class="scan"></div>':''}</div>`:'');
+  $('rNote').textContent=L().ai.note(n);
+}
+function aiPickColor(){
+  /* öğretme: önce iki farklı renk; robot sırası: çoğunlukla gördüğü renkler, arada bir hiç görmediği renk */
+  const seen=[...new Set(AI.ex.map(e=>e.ci))];
+  if(AI.phase==='teach'){const unseen=AI_COLORS.filter(c=>!seen.includes(c));return AI.ex.length<3&&unseen.length?pick(unseen):pick(seen.length?seen:AI_COLORS)}
+  const unseen=AI_COLORS.filter(c=>!seen.includes(c));
+  if(unseen.length&&AI.turns>=1&&Math.random()<.3)return pick(unseen);
+  let c;do{c=pick(seen)}while(seen.length>1&&c===AI.cur&&Math.random()<.7);return c;
+}
+function aiNext(){
+  const l=L().ai;$('rCheck').hidden=true;
+  if(AI.phase==='teach'&&AI.ex.length>=4){AI.phase='robot';say({t:l.turn},true)}
+  AI.cur=aiPickColor();
+  if(AI.phase==='teach'){
+    $('rPrompt').textContent=l.teachT;aiRobot('ok',null);aiRenderHomes(true);say({t:l.teach},true);return;
+  }
+  /* robotun sırası */
+  AI.turns++;AI.guess=aiPredict(AI.cur);
+  $('rPrompt').textContent=l.think;aiRobot('think',l.think,true);aiRenderHomes(false);tone(660,.1);tone(880,.1,.15);
+  aiLater(()=>{
+    if(AI.guess==null){AI.phase='fix';$('rPrompt').textContent=l.unknown;aiRobot('think',l.unknown);aiRenderHomes(true);say({t:l.unknown},true);return}
+    $('rPrompt').textContent=l.check;aiRobot('ok',l.guess(AI.guess));aiRenderHomes(false,AI.guess);
+    say([{t:l.guess(AI.guess)},{t:l.check}],true);$('rCheck').hidden=false;
+  },1700);
+}
+function aiTeach(h){
+  if(AI.busy)return;const l=L().ai;
+  if(AI.phase!=='teach'&&AI.phase!=='fix')return;
+  AI.busy=true;AI.ex.push({ci:AI.cur,h});pling(AI.ex.length);
+  const wasFix=AI.phase==='fix';if(wasFix){AI.phase='robot';AI.streak=0}
+  aiRobot('happy',wasFix?l.fixed:l.learned);aiRenderHomes(false,h);say({t:wasFix?l.fixed:l.learned});
+  aiLater(()=>{AI.busy=false;aiNext()},1900);
+}
+function aiCheck(ok){
+  if(AI.busy||$('rCheck').hidden)return;const l=L().ai;AI.busy=true;$('rCheck').hidden=true;
+  if(ok){
+    AI.streak++;AI.ex.push({ci:AI.cur,h:AI.guess});harpS();confetti(40);aiRobot('happy',l.right);say({t:l.right});
+    if(AI.streak>=3||AI.turns>=10){aiLater(aiDone,1800);return}
+    aiLater(()=>{AI.busy=false;aiNext()},1900);
+  }else{
+    AI.streak=0;boop();AI.phase='fix';aiRobot('sad',l.wrong);aiRenderHomes(true);$('rPrompt').textContent=l.wrong;say({t:l.wrong});AI.busy=false;
+  }
+}
+function harpS(){[784,988,1175].forEach((f,i)=>tone(f,.22,i*.08))}
+function aiDone(){
+  const l=L().ai;AI.busy=false;S.stars+=3;S.aiDone=(S.aiDone||0)+1;save();
+  harp();confetti(140);aiRobot('happy',l.doneT);
+  $('rewardTitle').textContent=l.doneT;$('rewardArt').innerHTML=robotSvg(false,'ok');$('rewardText').textContent=l.doneX;$('rewardGo').textContent=l.again;$('rewardOv').hidden=false;
+  say([pick(L().praise),{t:l.done}]);
+  $('rewardGo').onclick=()=>{$('rewardOv').hidden=true;tone(988,.2);$('rewardGo').onclick=rewardGoDefault;if(screen==='robot')startRobot()};
+}
+document.querySelectorAll('#robotPlay .home').forEach(b=>b.addEventListener('click',()=>aiTeach(+b.dataset.h)));
+$('rYes').onclick=()=>aiCheck(true);$('rNo').onclick=()=>aiCheck(false);
+$('rBack').onclick=()=>show('home');
+$('rSpeak').onclick=()=>{const l=L().ai;say({t:AI.phase==='teach'?l.teach:AI.phase==='fix'?l.wrong:!$('rCheck').hidden?l.check:l.turn})};
+
 /* ---------- ekranlar ---------- */
 function renderHome(){
   const l=L();
@@ -740,9 +921,10 @@ function renderHome(){
   const art={
     free:bfSvg(0,false)+jarSvg([[2,0],[4,0],[6,0]]),
     color:bfSvg(2,false)+bfSvg(4,false)+bfSvg(1,false),
-    count:`<span class="num">3</span>`+bfSvg(3,false)
+    count:`<span class="num">3</span>`+bfSvg(3,false),
+    robot:robotSvg(true)+bfSvg(2,false)
   };
-  $('tiles').innerHTML=['free','color','count'].map(k=>`<button class="tile" data-mode="${k}"><div class="art">${art[k]}</div><b>${l.modes[k]}</b><span>${l.sub[k]}</span></button>`).join('');
+  $('tiles').innerHTML=['free','color','count','robot'].map(k=>`<button class="tile${k==='robot'?' ai':''}" data-mode="${k}"><div class="art">${art[k]}</div><b>${l.modes[k]}</b><span>${l.sub[k]}</span></button>`).join('');
 }
 function renderStatic(){
   const l=L();
@@ -759,9 +941,10 @@ function renderStatic(){
 }
 function renderAll(){renderVoiceSel();renderStatic();renderVoiceNote();if(screen==='home')renderHome();else{renderGoal();renderJar()}}
 function show(s){
-  screen=s;$('home').hidden=s!=='home';$('play').hidden=s!=='play';
-  document.body.classList.toggle('playing',s==='play');
-  if(s==='play')window.scrollTo(0,0);
+  screen=s;$('home').hidden=s!=='home';$('play').hidden=s!=='play';$('robotPlay').hidden=s!=='robot';
+  document.body.classList.toggle('playing',s==='play'||s==='robot');
+  if(s!=='home')window.scrollTo(0,0);
+  if(s!=='robot')AI.gen++;
   if(s==='home'){playGen++;BF.forEach(b=>b.el.remove());BF=[];$('field').innerHTML='';renderHome();hush();window.scrollTo(0,0)}
 }
 function renderAlbum(){
@@ -784,7 +967,7 @@ function renderStats(){
 let resetArm=false;
 $('resetBtn').onclick=()=>{const l=L();if(!resetArm){resetArm=true;$('resetBtn').textContent=l.resetSure;setTimeout(()=>{resetArm=false;$('resetBtn').textContent=L().reset},4000);return}const keep={sound:S.sound,lang:S.lang,voice:S.voice};S=Object.assign(fresh(),keep);save();resetArm=false;renderAll();renderStats()};
 
-$('tiles').onclick=e=>{const t=e.target.closest('.tile');if(!t)return;startPlay(t.dataset.mode)};
+$('tiles').onclick=e=>{const t=e.target.closest('.tile');if(!t)return;if(t.dataset.mode==='robot')startRobot();else startPlay(t.dataset.mode)};
 $('backBtn').onclick=()=>show('home');
 $('speakBtn').onclick=()=>say(goalSpeech());
 $('emptyBtn').onclick=()=>emptyJar();
