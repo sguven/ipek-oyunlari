@@ -120,22 +120,27 @@ async function runCase(browser, base, dev, deep) {
   check(!(await overflow()), `${tag}: oyun ekranı yatay taşıyor`);
   await sleep(1500);
   await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-free.png`) });
-  const goal = deep ? 8 : 3;
+  const goal = deep ? 10 : 3;
   for (let i = 0; i < goal; i++) check(await catchOne(page, dev), `${tag}: ${i + 1}. kelebek yakalanamadı`);
   await sleep(800);
   const jarTxt = await page.locator('#jarLbl').textContent();
-  check(jarTxt.includes(deep ? '8/8' : '3/8') || (deep && !(await page.locator('#rewardOv').isHidden())), `${tag}: kavanoz sayacı yanlış: ${jarTxt}`);
+  check(jarTxt.includes(String(goal)), `${tag}: kavanoz sayacı yanlış: ${jarTxt}`);
+  check(await page.locator('#emptyBtn').isVisible(), `${tag}: Boşalt düğmesi görünmüyor`);
+  check(await page.locator('#rewardOv').isHidden(), `${tag}: kavanoz sınırı hâlâ var (ödül penceresi kendiliğinden açıldı)`);
   if (deep) {
-    check(await waitFor(page, () => !document.getElementById('rewardOv').hidden, 4000), `${tag}: kavanoz dolunca ödül çıkmadı`);
+    check(await page.evaluate(() => document.getElementById('jar').classList.contains('over')), `${tag}: kavanoz taşma görüntüsü yok`);
+    await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-tasma.png`) });
+    await tapSel(page, dev, '#emptyBtn');
+    await sleep(300);
+    const st = await page.evaluate(() => ({ jar: S.jar.length, stars: S.stars, caught: S.caught }));
+    check(st.jar === 0, `${tag}: kavanoz boşalmadı`);
+    check(st.stars === goal, `${tag}: ödül yıldızı ${st.stars}, beklenen ${goal}`);
+    check(await waitFor(page, () => !document.getElementById('rewardOv').hidden, 4000), `${tag}: 8 yıldızda albüm ödülü çıkmadı`);
     await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-reward.png`) });
-    check((await page.evaluate(() => S.jars)) === 1, `${tag}: dolan kavanoz sayısı 1 değil`);
-    // ödül açıkken dokunma yakalamamalı
     await tapSel(page, dev, '#rewardGo');
-    await sleep(400);
-    check((await page.evaluate(() => S.jar.length)) === 0, `${tag}: kavanoz boşalmadı`);
     await sleep(700);
-    await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-release.png`) });
-    check(await catchOne(page, dev), `${tag}: serbest bıraktıktan sonra yakalama çalışmıyor`);
+    check(st.caught === (await page.evaluate(() => S.caught)), `${tag}: boşaltma kelebek yakaladı`);
+    check(await catchOne(page, dev), `${tag}: boşalttıktan sonra yakalama çalışmıyor`);
   }
   await tapSel(page, dev, '#backBtn');
   await sleep(300);
@@ -186,7 +191,7 @@ async function runCase(browser, base, dev, deep) {
   // --- Albüm, ebeveyn paneli, dil
   await tapSel(page, dev, '#albumBtn'); await sleep(300);
   check(!(await page.locator('#albumOv').isHidden()), `${tag}: albüm açılmadı`);
-  check((await page.locator('.alb.got').count()) === (await page.evaluate(() => Math.min(7, S.jars))), `${tag}: albümde açılan kelebek sayısı yanlış`);
+  check((await page.locator('.alb.got').count()) === (await page.evaluate(() => Math.min(7, Math.floor(S.stars / 8)))), `${tag}: albümde açılan kelebek sayısı yanlış`);
   await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-album.png`) });
   await tapSel(page, dev, '#albumClose'); await sleep(200);
   await tapSel(page, dev, '#parentBtn'); await sleep(300);

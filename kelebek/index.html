@@ -65,10 +65,21 @@ button{font-family:inherit}
 @keyframes flap{to{transform:scaleX(.32)}}
 .alb .wl,.alb .wr,.gi .wl,.gi .wr,.reward .wl,.reward .wr,.brand .wl,.brand .wr,.pill .wl,.pill .wr,.tile .wl,.tile .wr{transform-box:view-box;transform-origin:50px 50px;animation:flapSoft 1.3s ease-in-out infinite alternate}
 @keyframes flapSoft{to{transform:scaleX(.72)}}
-.jar{position:absolute;right:2.5%;bottom:2.5%;width:clamp(76px,17%,128px);pointer-events:none;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px}
+.jar{position:absolute;right:2.5%;bottom:2.5%;width:clamp(80px,17%,130px);pointer-events:none;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px}
 .jar>svg{width:100%;height:auto;display:block;overflow:visible}
 .jar .lbl{font:800 13px var(--body);background:var(--card);border:2px solid var(--ink);border-radius:999px;padding:2px 9px;font-variant-numeric:tabular-nums;white-space:nowrap}
 .jar.bump>svg{animation:bounce .5s}
+.jar.over>svg{animation:wobble 1.6s ease-in-out infinite}
+.jar.burst>svg{animation:wobble .7s ease-in-out infinite}
+@keyframes wobble{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-4deg) scale(1.04,.98)}75%{transform:rotate(4deg) scale(1.04,.98)}}
+.empty{flex:none;font:700 18px var(--display);background:var(--gold);border:3px solid var(--ink);border-radius:999px;box-shadow:0 4px 0 var(--ink);padding:8px 14px;cursor:pointer;color:var(--ink);display:flex;align-items:center;gap:6px;min-height:48px;touch-action:manipulation}
+.empty svg{width:24px;height:24px}
+.empty.hot{animation:pulse 1s ease-in-out infinite;background:#ff9fc8}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.starpill{position:absolute;left:2.5%;top:3%;z-index:4;font:700 20px var(--display);background:var(--card);border:3px solid var(--ink);border-radius:999px;box-shadow:0 4px 0 var(--ink);padding:4px 12px 4px 6px;display:flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums;pointer-events:none}
+.starpill svg{width:28px;height:28px}
+.starpill.bump{animation:bounce .5s}
+.flytoast{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:6;font:700 clamp(20px,5vw,30px)/1.2 var(--display);background:var(--card);border:4px solid var(--ink);border-radius:24px;box-shadow:0 6px 0 var(--ink);padding:10px 18px;text-align:center;pointer-events:none;animation:pop .4s backwards;max-width:86%}
 .jarbf.pop{animation:pop .45s backwards}
 .hbf{position:absolute;width:clamp(58px,15%,96px);background:none;border:0;padding:0;cursor:pointer;z-index:3}
 .hbf>svg{width:100%;height:auto;display:block;overflow:visible}
@@ -104,6 +115,8 @@ button{font-family:inherit}
 .dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--ink);background:#fff;box-sizing:border-box}
 .dot.on{background:var(--gold);animation:bounce .45s}
 .goal.done h2{color:var(--ok)}
+.goal.free .gi{display:none}
+.goal h2{overflow-wrap:break-word}
 .round{width:52px;height:52px;border-radius:50%;border:4px solid var(--ink);cursor:pointer;flex:none;display:grid;place-items:center;padding:0;box-shadow:0 4px 0 var(--ink);background:var(--card)}
 .round svg{width:24px;height:24px}
 .round.speak{background:var(--gold)}
@@ -142,7 +155,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}50%{transform:translateX(10px)}75%{transform:translateX(-6px)}}
 @keyframes spin-in{from{transform:scale(.2) rotate(-25deg)}to{transform:scale(1) rotate(0)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
-@media (max-width:420px){.brand{font-size:23px}.bar{gap:7px}.goal .gi{width:42px;height:42px}.round{width:46px;height:46px}}
+@media (max-width:420px){.empty{font-size:15px;padding:6px 9px;min-height:44px}.empty svg{width:20px;height:20px}.brand{font-size:23px}.bar{gap:7px}.goal .gi{width:42px;height:42px}.round{width:46px;height:46px}}
 @media (max-height:520px) and (orientation:landscape){.meadow.home{height:170px}.bar{min-height:54px;padding:4px 8px}.round{width:44px;height:44px}.goal .gi{width:40px;height:40px}.goal h2{font-size:19px}.dot{width:14px;height:14px}.meadow.field{height:clamp(200px,calc(100vh - 112px),940px);height:clamp(200px,calc(100dvh - 112px),940px)}}
 </style>
 </head>
@@ -177,6 +190,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
     <div class="bar">
       <button class="round" id="backBtn"></button>
       <div class="goal" id="goal"></div>
+      <button class="empty" id="emptyBtn" hidden></button>
       <button class="round speak" id="speakBtn"></button>
     </div>
     <div class="meadow field" id="field"></div>
@@ -222,17 +236,21 @@ const rnd=n=>Math.floor(Math.random()*n);
 const pick=a=>a[rnd(a.length)];
 const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cap=(s,l)=>s?s[0].toLocaleUpperCase(l==='tr'?'tr-TR':'en-US')+s.slice(1):s;
-const JAR_SIZE=8;
 
 /* renkler: gökkuşağı sırası (oyunun Türkçe ses kayıtlarındaki renklerle aynı) */
 const RB=['#ff5a5a','#ff9f43','#ffd93d','#4cd17a','#4aa8ff','#5a63e0','#a66bff'];
 const RBL=['#ffc2c2','#ffd4a8','#fff1a6','#bdeecd','#c4e3ff','#c3c5f7','#e1cfff'];
 const HUNT=[0,1,2,3,4,6]; /* renk avında lacivert yok: mavi/mor ile karışmasın */
 
+function numWord(n,lang){
+  if(lang==='en'){const o=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'],t=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];if(n<20)return o[n];if(n<100)return t[Math.floor(n/10)]+(n%10?'-'+o[n%10]:'');return String(n)}
+  const o=['sıfır','bir','iki','üç','dört','beş','altı','yedi','sekiz','dokuz'],t=['','on','yirmi','otuz','kırk','elli','altmış','yetmiş','seksen','doksan'];
+  if(n<10)return o[n];if(n<100)return t[Math.floor(n/10)]+(n%10?' '+o[n%10]:'');return String(n);
+}
 const T={
   tr:{
     name:"İpek'in Kelebek Bahçesi",greet:'Merhaba İpek! Haydi oynayalım!',parentTitle:'İpek’in ilerlemesi',
-    hello:'Merhaba İpek! Bahçede rengârenk kelebekler uçuyor. Onlara dokunup yakala ve kavanozu doldur! Kavanoz dolunca kelebekleri serbest bırakırız, albümüne de yeni bir kelebek gelir.',
+    hello:'Merhaba İpek! Bahçede rengârenk kelebekler uçuyor. Onlara dokunup yakala ve kavanoza koy! İstediğin zaman kavanozu boşalt: uçan her kelebek için bir yıldız kazanırsın. Yıldızlar biriktikçe albümüne yeni kelebekler gelir.',
     modes:{free:'Kelebek yakala',color:'Renk avı',count:'Say ve yakala'},
     sub:{free:'Kavanozu doldur',color:'Doğru rengi bul',count:'Sayarak yakala'},
     soundOn:'Ses açık',soundOff:'Ses kapalı',parent:'Ebeveyn paneli',close:'Kapat',album:'Kelebek albümü',
@@ -244,16 +262,16 @@ const T={
     tryAgain:'Bir daha dene İpek!',
     isBf:'Bu bir kelebek!',
     allColors:'Kırmızı, turuncu, sarı, yeşil, mavi, lacivert, mor!',
-    freeQ:'Kelebekleri yakala!',colorQ:c=>`${cap(c,'tr')} kelebekleri yakala!`,countQ:n=>`${n} kelebek yakala!`,
-    jar:n=>`Kavanoz ${n}/${JAR_SIZE}`,
-    jarFull:'Kavanoz doldu!',
+    freeQ:'Kelebekleri yakala!',colorQ:c=>`${cap(c,'tr')} kelebekleri yakala!`,countQ:n=>`${n} kelebek yakala!`,colorSayQ:c=>`${cap(c,'tr')} kelebekleri yakala!`,countSayQ:n=>`${cap(numWord(n,'tr'),'tr')} kelebek yakala!`,
+    jar:n=>`Kavanoz: ${n}`,empty:'Boşalt',emptyHint:'Kavanoz çok doldu! Boşalt düğmesine dokun.',stars:n=>`${n} yıldız`,starsWon:n=>`${cap(numWord(n,'tr'),'tr')} yıldız kazandın!`,flew:n=>`${n} kelebek uçtu: +${n} yıldız!`,
+    jarFull:'Yeni kelebek!',
     newBf:c=>`Albümüne yeni bir kelebek geldi: ${cap(c,'tr')} kelebek!`,
     allBf:'Bütün kelebekleri topladın! Kavanozları doldurmaya devam edebilirsin.',
-    release:'Kelebekleri serbest bırak',
+    release:'Devam et',
     bfName:c=>`${cap(c,'tr')} kelebek`,
-    albumText:'Topladığın kelebeklere dokun, rengini söylesin.',albumEmpty:'İlk kelebek için bir kavanoz doldur!',
-    locked:'Kilitli',lockedHint:n=>`${n}. kavanozda`,
-    caught:'yakalanan kelebek',jars:'dolan kavanoz',albumK:'albüm',
+    albumText:'Topladığın kelebeklere dokun, rengini söylesin.',albumEmpty:'Kavanozu boşaltıp 8 yıldız topla, ilk albüm kelebeğin gelsin!',
+    locked:'Kilitli',lockedHint:n=>`${n*8} yıldızda`,
+    caught:'yakalanan kelebek',jars:'kazanılan yıldız',albumK:'albüm',
     colorRow:'Renk avı',colorNote:'İlk dokunuşta doğru renk oranı',rounds:'Say ve yakala',roundsTxt:n=>`${n} tur`,
     lvlNote:l=>`Şu anki seviye: ${l}/3. Her iki kavanozda bir kelebekler biraz hızlanır, çiçeklere daha kısa konar ve sayılar büyür.`,
     parentNote:'Kelebek yakala el-göz koordinasyonunu ve saymayı, Renk avı renk tanımayı ve seçici dikkati, Say ve yakala sayı-miktar eşleştirmesini çalıştırır. Yanlış kelebeğe dokunmak puan götürmez; kelebek kaçar ve çocuk tekrar dener. Kelebekler arada çiçeklere konar; o an yakalamak en kolayıdır. İlerleme bu cihazda saklanır.',
@@ -265,7 +283,7 @@ const T={
   },
   en:{
     name:"Ipek's Butterfly Garden",greet:"Hi Ipek! Let's play!",parentTitle:'Ipek’s progress',
-    hello:'Hi Ipek! Colorful butterflies are flying in the garden. Tap them to catch them and fill the jar! When the jar is full we let them fly free, and a new butterfly joins your album.',
+    hello:'Hi Ipek! Colorful butterflies are flying in the garden. Tap them to catch them and put them in the jar! Empty the jar whenever you like: you win a star for every butterfly that flies away. Stars bring new butterflies to your album.',
     modes:{free:'Catch them',color:'Color hunt',count:'Count & catch'},
     sub:{free:'Fill the jar',color:'Find the color',count:'Count as you catch'},
     soundOn:'Sound on',soundOff:'Sound off',parent:'Parent panel',close:'Close',album:'Butterfly album',
@@ -277,16 +295,16 @@ const T={
     tryAgain:'Try again, Ipek!',
     isBf:"It's a butterfly!",
     allColors:'Red, orange, yellow, green, blue, indigo, purple!',
-    freeQ:'Catch the butterflies!',colorQ:c=>`Catch the ${c} butterflies!`,countQ:n=>`Catch ${n} butterflies!`,
-    jar:n=>`Jar ${n}/${JAR_SIZE}`,
-    jarFull:'The jar is full!',
+    freeQ:'Catch the butterflies!',colorQ:c=>`Catch the ${c} butterflies!`,countQ:n=>`Catch ${n} butterflies!`,colorSayQ:c=>`Catch the ${c} butterflies!`,countSayQ:n=>`Catch ${numWord(n,'en')} butterflies!`,
+    jar:n=>`Jar: ${n}`,empty:'Empty',emptyHint:'The jar is very full! Tap Empty.',stars:n=>`${n} stars`,starsWon:n=>`You won ${numWord(n,'en')} stars!`,flew:n=>`${n} butterflies flew away: +${n} stars!`,
+    jarFull:'New butterfly!',
     newBf:c=>`A new butterfly joined your album: the ${c} butterfly!`,
     allBf:'You collected every butterfly! Keep filling jars.',
-    release:'Let them fly free',
+    release:'Keep playing',
     bfName:c=>`${cap(c,'en')} butterfly`,
-    albumText:'Tap a butterfly you collected to hear its color.',albumEmpty:'Fill a jar to get your first butterfly!',
-    locked:'Locked',lockedHint:n=>`Jar ${n}`,
-    caught:'butterflies caught',jars:'jars filled',albumK:'album',
+    albumText:'Tap a butterfly you collected to hear its color.',albumEmpty:'Empty the jar and collect 8 stars for your first album butterfly!',
+    locked:'Locked',lockedHint:n=>`${n*8} stars`,
+    caught:'butterflies caught',jars:'stars won',albumK:'album',
     colorRow:'Color hunt',colorNote:'Right color on the first tap',rounds:'Count & catch',roundsTxt:n=>`${n} rounds`,
     lvlNote:l=>`Current level: ${l}/3. Every two jars the butterflies fly a little faster, rest on flowers for less time, and the numbers grow.`,
     parentNote:'Catch them builds hand-eye coordination and counting, Color hunt builds color recognition and focused attention, and Count & catch links numbers to amounts. Tapping the wrong butterfly never costs points: it flutters away and your child tries again. Butterflies sometimes rest on flowers, which is the easiest moment to catch them. Progress is saved on this device.',
@@ -353,11 +371,16 @@ const SUN=svg(`<g stroke="#ffb703" stroke-width="5" stroke-linecap="round">${[0,
 const CLOUD=svg(`<g fill="#fff"><circle cx="30" cy="34" r="16"/><circle cx="52" cy="26" r="20"/><circle cx="74" cy="34" r="15"/><rect x="16" y="34" width="72" height="14" rx="7"/></g>`,'0 0 100 50');
 const GRASS=`<svg class="grass" viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 Q60 6 130 26 T260 24 T400 20 V100 H0 Z" fill="#a8e27f"/><path d="M0 58 Q90 34 190 52 T400 46 V100 H0 Z" fill="#86d066"/></svg>`;
 function jarInner(list,newIdx){
+  const L_=list||[],n=L_.length,over=n>8;
   const slots=[[30,92],[70,92],[50,80],[30,68],[70,68],[50,56],[30,44],[70,44]];
-  const bfs=(list||[]).slice(0,JAR_SIZE).map(([ci,sp],i)=>{const[x,y]=slots[i];return`<g class="jarbf${i===newIdx?' pop':''}" style="transform-origin:${x}px ${y}px"><svg x="${x-15}" y="${y-15}" width="30" height="30" viewBox="0 0 100 100">${bfInner(ci,!!sp)}</svg></g>`}).join('');
-  return `<rect x="10" y="22" width="80" height="90" rx="20" fill="#e9f6ff" fill-opacity=".75"/>${bfs}<rect x="10" y="22" width="80" height="90" rx="20" fill="none" ${st(4)}/><path d="M22 34 Q20 60 24 92" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/><rect x="18" y="8" width="64" height="16" rx="6" fill="#c79bff" ${st(4)}/><path d="M30 8 V24 M42 8 V24 M54 8 V24 M66 8 V24" stroke="${INK}" stroke-width="1.6" opacity=".35"/>`;
+  const tops=[[50,0],[24,6],[76,6],[38,-12],[62,-12],[50,-24],[18,-12],[82,-12],[30,-26],[70,-26],[50,-38],[12,-28],[88,-28],[40,-40],[60,-40]];
+  const bf=(ci,sp,x,y,i,sz)=>`<g class="jarbf${i===newIdx?' pop':''}" style="transform-origin:${x}px ${y}px"><svg x="${x-sz/2}" y="${y-sz/2}" width="${sz}" height="${sz}" viewBox="0 0 100 100">${bfInner(ci,!!sp)}</svg></g>`;
+  const inside=L_.slice(0,8).map(([ci,sp],i)=>bf(ci,sp,slots[i][0],slots[i][1],i,30)).join('');
+  const extra=L_.slice(8,8+tops.length).map(([ci,sp],k)=>bf(ci,sp,tops[k][0],tops[k][1],k+8,28)).join('');
+  const lid=over?`<g transform="rotate(-28 18 20) translate(-8 -10)"><rect x="18" y="8" width="64" height="16" rx="6" fill="#c79bff" ${st(4)}/></g>`:`<rect x="18" y="8" width="64" height="16" rx="6" fill="#c79bff" ${st(4)}/><path d="M30 8 V24 M42 8 V24 M54 8 V24 M66 8 V24" stroke="${INK}" stroke-width="1.6" opacity=".35"/>`;
+  return `<rect x="10" y="22" width="80" height="90" rx="20" fill="#e9f6ff" fill-opacity=".75"/>${inside}<rect x="10" y="22" width="80" height="90" rx="20" fill="none" ${st(4)}/><path d="M22 34 Q20 60 24 92" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>${lid}${extra}`;
 }
-const jarSvg=(list,newIdx)=>svg(jarInner(list,newIdx),'0 0 100 116');
+const jarSvg=(list,newIdx)=>svg(jarInner(list,newIdx),'0 -52 100 168');
 const ICON={
   speaker:svg(`<path d="M18 38 H36 L58 20 V80 L36 62 H18 Z" fill="${INK}"/><path d="M70 34 Q80 50 70 66" stroke="${INK}" stroke-width="7" fill="none" stroke-linecap="round"/>`),
   mute:svg(`<path d="M18 38 H36 L58 20 V80 L36 62 H18 Z" fill="${INK}"/><path d="M70 38 L88 62 M88 38 L70 62" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>`),
@@ -367,15 +390,16 @@ const ICON={
 
 /* ---------- durum ---------- */
 const KEY='kelebek-bahcesi-v1';
-const fresh=()=>({caught:0,jars:0,jar:[],colorStats:[0,0],colorRounds:0,countRounds:0,sound:true,lang:null,voice:'kadin'});
+const fresh=()=>({caught:0,jars:0,stars:0,released:0,jar:[],colorStats:[0,0],colorRounds:0,countRounds:0,sound:true,lang:null,voice:'kadin'});
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
 if(!Array.isArray(S.jar))S.jar=[];
+if(S.jars&&!S.released){S.released=S.jars*8;S.stars=S.stars||S.released}
 if(!S.lang){const nl=(navigator.language||'').toLowerCase();S.lang=nl.startsWith('en')?'en':'tr'}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
-const level=()=>Math.min(3,1+Math.floor(S.jars/2));
-const unlocked=()=>Math.min(7,S.jars);
+const level=()=>Math.min(3,1+Math.floor(S.released/16));
+const unlocked=()=>Math.min(7,Math.floor(S.stars/8));
 
 /* ---------- ses: her dil için o dile ait sesi seç; yoksa asla başka aksanla okuma ---------- */
 const VOICE={tr:null,en:null};let voicesChecked=false;
@@ -432,22 +456,31 @@ function clipBuf(id){
   if(!clipBufs[key]){clipBufs[key]=fetch(CLIPS.base+key+'.mp3').then(r=>{if(!r.ok)throw new Error('missing');return r.arrayBuffer()}).then(b=>new Promise((res,rej)=>a.decodeAudioData(b,res,rej)));clipBufs[key].catch(()=>{delete clipBufs[key]})}
   return clipBufs[key];
 }
-let clipGen=0,clipSrc=null,clipChain=Promise.resolve();
+let clipGen=0,clipSrc=null,SQ=[],sqBusy=false;
 function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
-function hush(){stopClips();try{speechSynthesis.cancel()}catch(e){}}
-function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null;res()};clipSrc=s;try{s.start()}catch(e){res()}})}
-function playClips(parts,queue){
-  if(!queue){stopClips();clipChain=Promise.resolve()}
-  const gen=clipGen,loads=parts.map(p=>clipBuf(CLIPS.map.clips[p]));loads.forEach(p=>p.catch(()=>{}));
-  clipChain=clipChain.then(async()=>{for(let i=0;i<loads.length;i++){if(gen!==clipGen)return;let b;try{b=await loads[i]}catch(e){continue}await playBuf(b,gen);if(i<loads.length-1)await new Promise(r=>setTimeout(r,140))}}).catch(()=>{});
+function hush(){SQ=[];sqBusy=false;stopClips();try{speechSynthesis.cancel()}catch(e){}}
+function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);let done=false;const fin=()=>{if(done)return;done=true;if(clipSrc===s)clipSrc=null;res()};s.onended=fin;setTimeout(fin,buf.duration*1000+400);clipSrc=s;try{s.start()}catch(e){fin()}})}
+function speakTTS(text){return new Promise(res=>{const v=VOICE[S.lang];if(!hasTTS||!v)return res();let done=false;const fin=()=>{if(!done){done=true;res()}};try{const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.12;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}setTimeout(fin,1800+text.length*95)})}
+/* parça: düz metin ya da {t:cümle, alt:kaydı olan kısa yedek} — Türkçe kayıt varsa onu, yoksa cihazın sesini kullanır */
+async function speakPart(p,gen){
+  const txt=typeof p==='object'?p.t:p,alt=typeof p==='object'?p.alt:null;
+  const clipOf=t=>ownVoice()&&t&&CLIPS.map.clips[t];
+  let use=null;
+  if(clipOf(txt))use=txt;else if(!(hasTTS&&VOICE[S.lang])&&clipOf(alt))use=alt;
+  if(use){let b=null;try{b=await clipBuf(CLIPS.map.clips[use])}catch(e){}if(b&&gen===clipGen)await playBuf(b,gen);return}
+  if(gen===clipGen)await speakTTS(txt);
 }
+async function pump(){
+  if(sqBusy)return;sqBusy=true;const gen=clipGen;
+  while(SQ.length&&gen===clipGen){const parts=SQ.shift();for(let i=0;i<parts.length;i++){if(gen!==clipGen)break;await speakPart(parts[i],gen);if(i<parts.length-1)await new Promise(r=>setTimeout(r,140))}if(SQ.length)await new Promise(r=>setTimeout(r,200))}
+  if(gen===clipGen)sqBusy=false;
+}
+/* queue=false: o anki konuşmayı keser (çocuğun yeni dokunuşu); queue=true: sıraya girer */
 function say(t,queue){
   if(!S.sound)return;
   const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!parts.length)return;
-  if(ownVoice()&&parts.every(p=>CLIPS.map.clips[p])){try{speechSynthesis.cancel()}catch(e){}playClips(parts,queue);return}
-  if(!hasTTS)return;const v=VOICE[S.lang];if(!v)return;
-  if(!queue)stopClips();
-  try{if(!queue)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(parts.join(' '));u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.12;speechSynthesis.speak(u)}catch(e){}
+  if(!queue)hush();
+  SQ.push(parts);pump();
 }
 function renderVoiceSel(){
   const box=$('voiceSel');if(!box)return;const l=L(),vs=CLIPS.map?CLIPS.map.voices:[];
@@ -489,7 +522,8 @@ function later(fn,ms){const g=playGen;setTimeout(function w(){if(g!==playGen||sc
 
 function setupField(){
   const f=$('field');
-  f.innerHTML=meadowBase()+`<div class="jar" id="jar"><span class="lbl" id="jarLbl"></span></div>`;
+  f.innerHTML=meadowBase()+`<div class="starpill" id="starPill"></div><div class="jar" id="jar"><span class="lbl" id="jarLbl"></span></div>`;
+
   renderJar();measure();
 }
 function measure(){
@@ -500,10 +534,12 @@ function measure(){
   BF.forEach(b=>{b.el.style.width=SZ+'px';if(b.state!=='leave'){b.x=Math.max(SZ*.5,Math.min(W-SZ*.5,b.x));b.y=Math.max(SZ*.5,Math.min(H-SZ*.5,b.y))}});
 }
 function renderJar(newIdx){
-  const j=$('jar');if(!j)return;
-  const lbl=`<span class="lbl" id="jarLbl">${L().jar(S.jar.length)}</span>`;
-  j.innerHTML=jarSvg(S.jar,newIdx)+lbl;
+  const j=$('jar');if(!j)return;const n=S.jar.length,l=L();
+  j.innerHTML=jarSvg(S.jar,newIdx)+`<span class="lbl" id="jarLbl">${l.jar(n)}</span>`;
+  j.classList.toggle('over',n>8&&n<14);j.classList.toggle('burst',n>=14);
   if(newIdx!=null){j.classList.remove('bump');void j.offsetWidth;j.classList.add('bump')}
+  const b=$('emptyBtn');if(b){b.hidden=!n;b.classList.toggle('hot',n>=8);b.innerHTML=ICON.sparkle+l.empty;b.setAttribute('aria-label',l.empty)}
+  const sp=$('starPill');if(sp)sp.innerHTML=ICON.sparkle+`<span>${S.stars}</span>`;
 }
 function jarPoint(){const f=$('field'),j=$('jar');if(!j)return{x:W-40,y:H-40};const fr=f.getBoundingClientRect(),r=j.getBoundingClientRect();return{x:r.left-fr.left+r.width/2,y:r.top-fr.top+r.height*.45}}
 function speed(){return Math.max(38,W*.1)*(1+.22*(level()-1))}
@@ -622,64 +658,64 @@ function hit(b,px,py){
 }
 function catchBf(b,px,py){
   freeFlower(b);BF.splice(BF.indexOf(b),1);
-  const n=++catchSeq;
+  catchSeq++;
   S.caught++;S.jar.push([b.ci,b.sp?1:0]);save();
-  const inJar=S.jar.length,full=inJar>=JAR_SIZE;if(full)locked=true;
+  const inJar=S.jar.length;
   sparkleAt(b.x,b.y);pling(inJar-1);
   const j=jarPoint();b.el.classList.remove('rest');b.el.classList.add('caught');
   b.el.style.transform=`translate3d(${(j.x-SZ/2).toFixed(1)}px,${(j.y-SZ/2).toFixed(1)}px,0) scale(.3)`;b.el.style.opacity='.2';
   setTimeout(()=>{b.el.remove();if(screen==='play')renderJar(inJar-1)},reduce?0:620);
   spawnCD=Math.max(spawnCD,.9);
-  const l=L();
-  if(mode==='free'){say(l.nums[inJar])}
+  const l=L(),num=n=>n<=8?l.nums[n]:{t:numWord(n,S.lang)};
+  if(mode==='free'){say(num(inJar));if(inJar===12||inJar===20)say(l.emptyHint,true)}
   else if(mode==='color'){
     CR.hits++;renderGoal();say(l.nums[CR.hits]);
-    if(CR.hits>=3){CR.done=true;S.colorRounds++;save();say(pick(l.praise),true);if(!full)confetti(50);later(newColorRound,2200)}
+    if(CR.hits>=3){CR.done=true;S.colorRounds++;save();say(pick(l.praise),true);confetti(50);later(newColorRound,1600)}
   }else{
-    CN.hits++;renderGoal();say(l.nums[CN.hits]);
-    if(CN.hits>=CN.n){CN.done=true;S.countRounds++;save();say(pick(l.praise),true);if(!full)confetti(50);later(newCountRound,2300)}
+    CN.hits++;renderGoal();say(num(CN.hits));
+    if(CN.hits>=CN.n){CN.done=true;S.countRounds++;save();say(pick(l.praise),true);confetti(50);later(newCountRound,1600)}
   }
-  if(full)setTimeout(()=>{if(screen==='play')jarFull()},reduce?200:950);
 }
-function jarFull(){
-  paused=true;S.jars++;save();
-  const l=L(),idx=S.jars-1;
-  harp();confetti(140);
-  $('rewardTitle').textContent=l.jarFull;
-  if(idx<7){$('rewardArt').innerHTML=bfSvg(idx,true);$('rewardText').textContent=l.newBf(l.colors[idx]);say([pick(l.praise),l.colorSay[idx]],true);if(idx===6)say(l.allColors,true)}
-  else{$('rewardArt').innerHTML=jarSvg(S.jar);$('rewardText').textContent=l.allBf;say(pick(l.praise),true)}
-  $('rewardGo').textContent=l.release;
-  const g=playGen;setTimeout(()=>{if(g===playGen&&screen==='play')$('rewardOv').hidden=false},reduce?0:1000);
-}
-function releaseJar(){
-  const f=$('field'),j=jarPoint(),list=S.jar.slice();
-  S.jar=[];save();renderJar();
-  if(!reduce)list.forEach(([ci,sp],i)=>{
-    const el=document.createElement('div');el.className='bf flap fly';el.style.width=Math.round(SZ*.6)+'px';el.innerHTML=bfSvg(ci,!!sp);
+/* İpek istediği zaman kavanozu boşaltır: uçan her kelebek = 1 yıldız; her 8 yıldızda albüme yeni kelebek */
+function emptyJar(){
+  const n=S.jar.length;if(!n||screen!=='play')return;
+  const f=$('field'),j=jarPoint(),list=S.jar.slice(),l=L();
+  const before=unlocked();
+  S.jar=[];S.stars+=n;S.released+=n;S.jars=S.stars;save();renderJar();
+  const sp=$('starPill');if(sp){sp.classList.remove('bump');void sp.offsetWidth;sp.classList.add('bump')}
+  harp();confetti(Math.min(160,40+n*8));
+  if(!reduce)list.slice(0,24).forEach(([ci,sp_],i)=>{
+    const el=document.createElement('div');el.className='bf flap fly';el.style.width=Math.round(SZ*.6)+'px';el.innerHTML=bfSvg(ci,!!sp_);
     el.style.transform=`translate3d(${j.x-SZ*.3}px,${j.y-SZ*.3}px,0) scale(.5)`;f.appendChild(el);
-    setTimeout(()=>{el.style.transform=`translate3d(${(Math.random()*W-SZ*.3).toFixed(0)}px,${(-SZ*2-Math.random()*H*.3).toFixed(0)}px,0) scale(1)`;el.style.opacity='0'},40+i*110);
-    setTimeout(()=>el.remove(),2100+i*110);
+    setTimeout(()=>{el.style.transform=`translate3d(${(Math.random()*W-SZ*.3).toFixed(0)}px,${(-SZ*2-Math.random()*H*.3).toFixed(0)}px,0) scale(1)`;el.style.opacity='0'},40+i*90);
+    setTimeout(()=>el.remove(),2000+i*90);
   });
-  locked=false;paused=false;
+  const t=document.createElement('div');t.className='flytoast';t.textContent=l.flew(n);f.appendChild(t);setTimeout(()=>t.remove(),2400);
+  say([pick(l.praise),{t:l.starsWon(n)}]);
+  const after=unlocked();
+  if(after>before){
+    const idx=after-1;
+    later(()=>{paused=true;$('rewardTitle').textContent=l.jarFull;$('rewardArt').innerHTML=bfSvg(idx,true);$('rewardText').textContent=l.newBf(l.colors[idx])+(after>=7?' '+l.allBf:'');$('rewardGo').textContent=l.release;$('rewardOv').hidden=false;say(l.colorSay[idx],true);if(idx===6)say(l.allColors,true)},1500);
+  }
 }
-$('rewardGo').onclick=()=>{$('rewardOv').hidden=true;tone(988,.2);if(screen==='play')releaseJar();else{S.jar=[];save()}};
+$('rewardGo').onclick=()=>{$('rewardOv').hidden=true;tone(988,.2);paused=false};
 
 function newColorRound(){
   const prev=CR.target;let c;do{c=pick(HUNT)}while(c===prev&&HUNT.length>1);
-  CR={target:c,hits:0,done:false};renderGoal();say(L().colorSay[c]);
+  CR={target:c,hits:0,done:false};renderGoal();say(goalSpeech(),true);
 }
 function newCountRound(){
   const lv=level(),lo=[2,2,3][lv-1],hi=[3,4,5][lv-1];let n;
   do{n=lo+rnd(hi-lo+1)}while(n===CN.n&&hi>lo);
-  CN={n,hits:0,done:false};renderGoal();say(L().nums[n]);
+  CN={n,hits:0,done:false};renderGoal();say(goalSpeech(),true);
 }
-function goalSpeech(){const l=L();if(mode==='color')return l.colorSay[CR.target];if(mode==='count')return l.nums[CN.n];return l.greet}
+function goalSpeech(){const l=L();if(mode==='color')return{t:l.colorSayQ(l.colors[CR.target]),alt:l.colorSay[CR.target]};if(mode==='count')return{t:l.countSayQ(CN.n),alt:l.nums[CN.n]};return{t:l.freeQ,alt:l.greet}}
 function renderGoal(){
   const l=L(),g=$('goal');let icon,txt,dots='',done=false;
   if(mode==='color'){icon=bfSvg(CR.target,false);txt=l.colorQ(l.colors[CR.target]);dots=[0,1,2].map(i=>`<i class="dot${i<CR.hits?' on':''}"></i>`).join('');done=CR.done}
   else if(mode==='count'){icon=`<span class="num">${CN.n}</span>`;txt=l.countQ(CN.n);dots=Array.from({length:CN.n},(_,i)=>`<i class="dot${i<CN.hits?' on':''}"></i>`).join('');done=CN.done}
-  else{icon=jarSvg([]);txt=l.freeQ}
-  g.className='goal'+(done?' done':'');
+  else{icon='';txt=l.freeQ}
+  g.className='goal'+(done?' done':'')+(mode==='free'?' free':'');
   g.innerHTML=`<div class="gi${mode==='color'?' flap':''}">${icon}</div><div class="txt"><h2 id="prompt">${txt}</h2>${dots?`<div class="dots" aria-hidden="true">${dots}</div>`:''}</div>`;
 }
 function startPlay(m){
@@ -688,11 +724,10 @@ function startPlay(m){
   show('play');setupField();
   if(mode==='color'){CR={target:-1,hits:0,done:false};newColorRound()}
   else if(mode==='count'){CN={n:0,hits:0,done:false};newCountRound()}
-  else{renderGoal();say(L().greet)}
+  else{renderGoal();say([L().greet,{t:L().freeQ}])}
   spawnCD=0;
   for(let i=0;i<3;i++){const b=spawn();b.x=SZ*.7+Math.random()*(W-SZ*1.4);b.y=SZ*.7+Math.random()*Math.max(10,H*.5-SZ*.7);place(b)}
   if(mode==='color'&&BF.filter(b=>b.ci===CR.target).length<1){BF[0].ci=CR.target;BF[0].el.innerHTML=bfSvg(CR.target,false)}
-  if(S.jar.length>=JAR_SIZE){locked=true;setTimeout(()=>{if(screen==='play')jarFull()},400)}
 }
 
 /* ---------- ekranlar ---------- */
@@ -738,7 +773,7 @@ function renderAlbum(){
 function renderStats(){
   const l=L();const[c,t]=S.colorStats,p=t?Math.round(c/t*100):0;
   const v=VOICE[S.lang];
-  $('stats').innerHTML=`<div class="kpis"><div class="kpi"><b>${S.caught}</b><span>${l.caught}</span></div><div class="kpi"><b>${S.jars}</b><span>${l.jars}</span></div><div class="kpi"><b>${unlocked()}/7</b><span>${l.albumK}</span></div></div>`+
+  $('stats').innerHTML=`<div class="kpis"><div class="kpi"><b>${S.caught}</b><span>${l.caught}</span></div><div class="kpi"><b>${S.stars}</b><span>${l.jars}</span></div><div class="kpi"><b>${unlocked()}/7</b><span>${l.albumK}</span></div></div>`+
     `<p class="note" style="margin:0">${l.colorNote}</p><div class="row"><span>${l.colorRow}</span><div class="track"><i style="width:${p}%"></i></div><em>${t?p+'%':'—'} <small>(${c}/${t})</small></em></div>`+
     `<div class="row"><span>${l.rounds}</span><div></div><em>${l.roundsTxt(S.countRounds)}</em></div>`+
     `<p class="note" style="margin:0">${l.lvlNote(level())}</p><div class="voice-line"><span>${ownVoice()?l.voiceUsed(`${l.voiceNames[curVoice()]} · ${l.voiceBuiltIn}`):v?l.voiceUsed(`${v.name} (${v.lang})`):l.voiceNone}</span>${(v||ownVoice())?`<button class="pill small" id="testVoice">${l.voiceTest}</button>`:''}</div>`;
@@ -750,6 +785,7 @@ $('resetBtn').onclick=()=>{const l=L();if(!resetArm){resetArm=true;$('resetBtn')
 $('tiles').onclick=e=>{const t=e.target.closest('.tile');if(!t)return;startPlay(t.dataset.mode)};
 $('backBtn').onclick=()=>show('home');
 $('speakBtn').onclick=()=>say(goalSpeech());
+$('emptyBtn').onclick=()=>emptyJar();
 $('field').addEventListener('pointerdown',onFieldDown);
 $('field').addEventListener('contextmenu',e=>e.preventDefault());
 $('albumBtn').onclick=()=>{renderAlbum();$('albumOv').hidden=false};
