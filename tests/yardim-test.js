@@ -43,10 +43,12 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
         await tap('.opt', wrong); await sleep(200);
         check(await page.locator('.opt').nth(wrong).evaluate(e => e.classList.contains('nope')), `${tag}: yanlış eşya işaretlenmedi`);
         await tap('.opt', keys.indexOf(st.item));
-        await waitReward();
+        await sleep(1500);
         if (r === 0) await page.screenshot({ path: path.join(OUT, `yardim-${tag}-3-tesekkur.png`) });
         check(!(await overflow()), `${tag}: yardım ekranı taşıyor`);
-        await tap('#rewardGo'); await sleep(400);
+        // düğmeye basmadan sıradaki arkadaş gelmeli
+        await page.waitForFunction(k => __yardim.G.kind !== k && !__yardim.G.done && document.querySelectorAll('.opt').length > 1, st.kind, { timeout: 12000 }).catch(() => fails.push(`${tag}: yardım ${r}: sıradaki arkadaş kendiliğinden gelmedi`));
+        check(await page.locator('#rewardOv').isHidden(), `${tag}: araya pencere girdi`);
       }
       const h1 = await page.evaluate(() => __yardim.S.hearts);
       check(h1 === 3, `${tag}: 3 yardımdan sonra kalp ${h1}`);
@@ -61,7 +63,8 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       check(await page.locator('.plate.hint').count() === 1, `${tag}: eşitsizlikte ipucu yok`);
       for (let i = 0; i < 12 && !(await page.evaluate(() => __yardim.G.done)); i++) { await tap('.plate.hint'); await sleep(120); }
       check(await page.evaluate(() => __yardim.G.done), `${tag}: paylaşım eşitlenmedi`);
-      await waitReward(); await tap('#rewardHome'); await sleep(300);
+      await page.waitForFunction(() => !__yardim.G.done && __yardim.G.basket > 0, null, { timeout: 12000 }).catch(() => fails.push(`${tag}: yeni paylaşım turu kendiliğinden gelmedi`));
+      await tap('#backBtn'); await sleep(300);
 
       step = 'topla';
       // TOPLA: önce çiçeğe dokun (kalmalı), sonra bütün çöpler
@@ -71,9 +74,10 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       check(await page.locator('.thing[data-t="flower"]').count() === 4 && !(await page.locator('.thing.gone[data-t="flower"]').count()), `${tag}: çiçek toplandı`);
       const n = await page.locator('.thing[data-t="trash"]').count();
       for (let i = 0; i < n; i++) { await tap('.thing[data-t="trash"]:not(.gone)'); await sleep(150); }
-      await waitReward();
+      await sleep(1600);
       await page.screenshot({ path: path.join(OUT, `yardim-${tag}-6-temiz.png`) });
-      await tap('#rewardHome'); await sleep(300);
+      await page.waitForFunction(() => !__yardim.G.done && __yardim.G.left > 0, null, { timeout: 14000 }).catch(() => fails.push(`${tag}: yeni park turu kendiliğinden gelmedi`));
+      await tap('#backBtn'); await sleep(300);
       const S = await page.evaluate(() => __yardim.S);
       check(S.hearts === 6 && S.cleans === 1 && S.shares === 1, `${tag}: sayaçlar yanlış ${JSON.stringify({ h: S.hearts, c: S.cleans, s: S.shares })}`);
       await tap('#albumBtn'); await sleep(200);

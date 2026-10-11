@@ -72,6 +72,8 @@ button,a{font-family:inherit}
 .stage.night{background:linear-gradient(#2c2a5a,#4a3f7a 60%,#3f6a4a 60%,#2f5a3a)}
 .stage.rainy{background:linear-gradient(#a9b8c8,#d4dde6 60%,#a9cf98 60%,#94c283)}
 .friend{width:min(62%,280px);position:relative}
+.banner{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:6;background:var(--card);border:4px solid var(--ink);border-radius:22px;box-shadow:0 5px 0 var(--ink);padding:8px 16px;font:700 clamp(17px,4.4vw,24px)/1.2 var(--display);text-align:center;max-width:90%;animation:pop .45s backwards;pointer-events:none}
+.banner small{display:block;font:700 14px/1.3 var(--body);color:var(--ink2);margin-top:2px}
 .friend svg{width:100%;height:auto;display:block;overflow:visible}
 .friend.happy svg{animation:bounce .7s}
 .friend.no svg{animation:shake .45s}
@@ -455,6 +457,12 @@ function fxTick(){fctx.clearRect(0,0,fx.width,fx.height);parts.forEach(p=>{p.vy+
 let screen='home',mode='help',G={gen:0},lastScene=null;
 const later=(fn,ms)=>{const g=G.gen;setTimeout(()=>{if(g===G.gen&&screen==='play')fn()},ms)};
 function addHeart(n){S.hearts+=n||1;save()}
+/* başarıdan sonra: sahnede kısa kutlama yazısı, sonra kendiliğinden sıradaki tur (düğmeye basmak gerekmez, ses takılsa da devam eder) */
+function celebrateThenNext(title,sub,next,minMs){
+  const b=document.createElement('div');b.className='banner';b.innerHTML=title+(sub?`<small>${sub}</small>`:'');$('stage').appendChild(b);
+  const g=G.gen,t0=Date.now();
+  later(async()=>{await speechDone(4500);const wait=Math.max(0,(minMs||3200)-(Date.now()-t0));setTimeout(()=>{if(g===G.gen&&screen==='play')next()},wait)},600);
+}
 function showReward(title,text,art,onNext){
   $('rewardTitle').textContent=title;$('rewardText').textContent=text;$('rewardArt').innerHTML=art;
   $('rewardGo').textContent=L().next;$('rewardHome').textContent=L().home;$('rewardOv').hidden=false;
@@ -474,7 +482,7 @@ function helpRound(){
   $('stage').innerHTML=`<div class="friend" id="friend">${animal(kind,'sad',sc.extra)}</div>`;
   $('below').innerHTML=`<div class="opts" id="opts">${opts.map((k,i)=>`<button class="opt" data-k="${k}" style="animation-delay:${i*90}ms">${ITEM[k]}${l.items[k]}</button>`).join('')}</div>`;
   $('opts').querySelectorAll('.opt').forEach(b=>b.onclick=()=>helpPick(b));
-  say(l.need[kind],true);
+  say(l.need[kind]);
 }
 function helpPick(b){
   if(G.done)return;const l=L(),k=b.dataset.k,kind=G.kind,sc=SC[kind];
@@ -490,8 +498,7 @@ function helpPick(b){
     harp();confetti(70);
     const isNew=!S.helped[kind];S.helped[kind]=true;S.helps++;addHeart(1);
     say([l.thanks[kind],pick(l.praise)]);
-    later(async()=>{await speechDone(7000);if(screen!=='play')return;
-      showReward(isNew?l.newFriend(l.names[kind]):l.heartGot,isNew?l.heartGot:l.thanks[kind],animal(kind,'happy',sc.extra),helpRound)},1400);
+    celebrateThenNext(l.thanks[kind],isNew?l.newFriend(l.names[kind]):l.heartGot,helpRound,3800);
   },520);
 }
 
@@ -502,7 +509,7 @@ function shareRound(){
   const fr=shuffle(pick(PAIRS).slice());if(three){let x;do{x=pick(SCENES)}while(fr.includes(x));fr.push(x)}
   const per=three?2:pick([2,3]);G.friends=fr;G.plates=fr.map(()=>0);G.basket=per*fr.length;G.done=false;
   $('prompt').textContent=l.shareT;$('stage').className='stage';
-  renderShare();say(l.shareQ,true);
+  renderShare();say(l.shareQ);
 }
 function renderShare(hintIdx){
   const l=L(),cookie=ITEM.cookie;
@@ -523,8 +530,8 @@ function sharePick(i){
   const min=Math.min(...G.plates),max=Math.max(...G.plates);
   if(G.basket===0&&min===max){
     G.done=true;renderShare();harp();confetti(70);S.shares++;addHeart(1);
-    say([l.shareDone,pick(l.praise)],true);
-    later(async()=>{await speechDone(6000);if(screen!=='play')return;showReward(l.heartGot,l.shareDone,ITEM.cookie+HEART,shareRound)},1500);
+    say([l.shareDone,pick(l.praise)]);
+    celebrateThenNext(l.shareDone,l.heartGot,shareRound,3800);
     return;
   }
   if(G.basket===0){
@@ -546,7 +553,7 @@ function cleanRound(){
   $('stage').innerHTML=`<div class="park" id="park">${h}<div class="bin" id="bin">${BIN}</div><div class="kids" id="kids"></div></div>`;
   G.left=kinds.length;
   $('park').querySelectorAll('.thing').forEach(b=>b.onclick=()=>cleanPick(b));
-  say(l.cleanQ,true);
+  say(l.cleanQ);
 }
 function cleanPick(b){
   if(G.done)return;const l=L();
@@ -558,8 +565,8 @@ function cleanPick(b){
   if(G.left<=0){
     G.done=true;
     later(()=>{$('kids').innerHTML=['rabbit','bear','cat','frog'].map((k,i)=>`<span style="animation-delay:${i*.15}s">${animal(k,'happy')}</span>`).join('');
-      harp();confetti(100);S.cleans++;addHeart(2);say([l.cleanDone,pick(l.praise)],true);
-      later(async()=>{await speechDone(7000);if(screen!=='play')return;showReward(l.heartGot,l.cleanDone,BIN+HEART,cleanRound)},1800)},600);
+      harp();confetti(100);S.cleans++;addHeart(2);say([l.cleanDone,pick(l.praise)]);
+      celebrateThenNext(l.cleanDone,l.heartGot,cleanRound,4500)},600);
   }
 }
 
