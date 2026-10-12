@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>İpek'in Oyunları</title>
-<meta name="description" content="İpek için eğitici oyunlar: Minik Kâşif, Pırıl'ın Gökkuşağı, Kelebek Bahçesi, Araba Gezisi ve Yardım Köyü. Learning games for Ipek.">
+<meta name="description" content="İpek için eğitici oyunlar: Minik Kâşif, Pırıl'ın Gökkuşağı, Kelebek Bahçesi, Araba Gezisi, Yardım Köyü ve Harf Adaları. Learning games for Ipek.">
 <meta name="theme-color" content="#fff3e6">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -46,6 +46,7 @@ h1{margin:0;font:700 clamp(28px,7vw,48px)/1.05 var(--display);text-wrap:balance}
 .g3 .art{background:linear-gradient(#a9dcff 0%,#e3f4ff 62%,#a8e27f 62%,#86d066 100%)}
 .g4 .art{background:linear-gradient(#bfe2ff,#fff1cf)}
 .g5 .art{background:linear-gradient(#ffe9d2,#ffd1df)}
+.g6 .art{background:linear-gradient(#d6ecff,#fff1c9)}
 .body{padding:14px 16px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
 .body b{font:700 26px/1.1 var(--display);text-wrap:balance}
 .body p{margin:0;font-weight:700;color:var(--ink2);line-height:1.45}
@@ -114,6 +115,12 @@ ${[[26,30,10],[150,24,9],[160,60,7]].map(([x,y,r])=>`<polygon points="${starPts(
 const ART5=svg(`<path d="M90 92 C40 62 52 20 90 40 C128 20 140 62 90 92Z" fill="#ff5a8a" ${st(4)}/><path d="M62 52 Q74 40 86 50 M118 52 Q106 40 94 50" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>
 <g class="bob" style="transform-origin:34px 96px"><circle cx="34" cy="92" r="20" fill="#f6b26b" ${st(3.5)}/><path d="M20 78 L16 60 L32 72 Z M48 78 L52 60 L36 72 Z" fill="#f6b26b" ${st(3)}/><path d="M26 92 Q30 88 34 92 M38 92 Q42 88 46 92" stroke="${INK}" stroke-width="3" fill="none"/><path d="M28 100 Q34 106 40 100" stroke="${INK}" stroke-width="3" fill="none"/><path d="M16 108 Q34 116 52 108 L52 114 Q34 122 16 114Z" fill="#ff5a5a" ${st(3)}/></g>
 <g><circle cx="146" cy="92" r="20" fill="#c8915a" ${st(3.5)}/><circle cx="132" cy="74" r="7" fill="#c8915a" ${st(3)}/><circle cx="160" cy="74" r="7" fill="#c8915a" ${st(3)}/><path d="M138 92 Q142 88 146 92 M150 92 Q154 88 158 92" stroke="${INK}" stroke-width="3" fill="none"/><path d="M140 100 Q146 106 152 100" stroke="${INK}" stroke-width="3" fill="none"/></g>`,'0 0 180 125');
+/* Harf Adaları: denizde ada, üstünde harf kartları ve kalem */
+const ART6=svg(`<path d="M0 98 Q45 88 90 98 T180 98 V125 H0Z" fill="#7cc6f0"/><ellipse cx="90" cy="98" rx="62" ry="13" fill="#ffe08a" ${st(3.5)}/>
+<g class="bob" style="transform-origin:60px 60px"><rect x="34" y="34" width="44" height="50" rx="10" fill="#fff" ${st(4)} transform="rotate(-8 56 59)"/><text x="56" y="74" text-anchor="middle" font-family="Andika,Fredoka,sans-serif" font-weight="700" font-size="36" fill="#ff5a8a" transform="rotate(-8 56 59)">a</text></g>
+<g><rect x="96" y="30" width="44" height="50" rx="10" fill="#fff" ${st(4)} transform="rotate(7 118 55)"/><text x="118" y="70" text-anchor="middle" font-family="Andika,Fredoka,sans-serif" font-weight="700" font-size="36" fill="#4aa8ff" transform="rotate(7 118 55)">e</text></g>
+<g transform="rotate(35 150 40)"><rect x="144" y="8" width="12" height="48" rx="3" fill="#ffcb3d" ${st(3)}/><path d="M144 56 L150 68 L156 56Z" fill="#f7d9b5" ${st(3)}/></g>
+${[[20,26,9],[166,92,6]].map(([x,y,r])=>`<polygon points="${starPts(x,y,r,r*.42)}" fill="#ffd93d" ${st(2.5)}/>`).join('')}`,'0 0 180 125');
 const PLAY=svg(`<polygon points="22,12 88,50 22,88" fill="${INK}"/>`);
 const T={
   tr:{title:"İpek'in Oyunları",hello:'Merhaba İpek! Hangi oyunu oynamak istersin? Bir karta dokun, oyun açılsın.',play:'Oyna',nw:'Yeni!',
@@ -123,7 +130,8 @@ const T={
       {href:'unicorn/',name:"İpek ve Pırıl'ın Gökkuşağı",desc:'Tek boynuzlu at Pırıl ile her doğru cevapta gökkuşağına bir renk ekle.',tags:['Örüntüler','Çok mu, az mı?','Gölgeler']},
       {href:'kelebek/',name:"İpek'in Kelebek Bahçesi",desc:'Uçan kelebeklere dokunup yakala, kavanozu doldur, sonra serbest bırak.',tags:['Kelebek yakala','Renk avı','Say ve yakala','Robota öğret']},
       {href:'araba/',name:"İpek'in Araba Gezisi",desc:"Çeşnigir Köprüsü'nden geç, Köprüköy'ü gez, yıldızları topla. Sarı ok yolu gösterir.",tags:['3D araba','Yön bulma','Köprüköy']},
-      {href:'yardim/',name:"İpek'in Yardım Köyü",desc:'Arkadaşların derdine çare bul, kurabiyeleri eşit paylaş, parkı temizle.',tags:['Yardım et','Paylaş','Topla'],isNew:true}
+      {href:'yardim/',name:"İpek'in Yardım Köyü",desc:'Arkadaşların derdine çare bul, kurabiyeleri eşit paylaş, parkı temizle.',tags:['Yardım et','Paylaş','Topla']},
+      {href:'harf/',name:"İpek'in Harf Adaları",desc:'Bilge Baykuş ile okuldaki gibi harf harf oku ve yaz: sesler, hece, kelime, cümle.',tags:['29 harf','Yazma','Hece','Okuma'],isNew:true}
     ]},
   en:{title:"Ipek's Games",hello:'Hi Ipek! Which game do you want to play? Tap a card to start.',play:'Play',nw:'New!',
     foot:'The “Games” button inside each game brings you back here. Progress is saved separately on each device.',
@@ -132,10 +140,11 @@ const T={
       {href:'unicorn/',name:"Ipek & Sparkle's Rainbow",desc:'Help Sparkle the unicorn add a color to the rainbow with every right answer.',tags:['Patterns','More or less?','Shadows']},
       {href:'kelebek/',name:"Ipek's Butterfly Garden",desc:'Tap flying butterflies to catch them, fill the jar, then let them fly free.',tags:['Catch them','Color hunt','Count & catch','Teach the robot']},
       {href:'araba/',name:"Ipek's Car Trip",desc:'Cross the Çeşnigir Bridge, tour Köprüköy village and collect stars. The yellow arrow shows the way.',tags:['3D driving','Finding the way','Köprüköy']},
-      {href:'yardim/',name:"Ipek's Helping Village",desc:'Find what each friend needs, share cookies fairly and clean the park.',tags:['Help a friend','Share','Clean up'],isNew:true}
+      {href:'yardim/',name:"Ipek's Helping Village",desc:'Find what each friend needs, share cookies fairly and clean the park.',tags:['Help a friend','Share','Clean up']},
+      {href:'harf/',name:"Ipek's Letter Islands",desc:'Learn to read and write Turkish letter by letter, the way first grade teaches it (in Turkish).',tags:['29 letters','Writing','Syllables','Reading'],isNew:true}
     ]}
 };
-const ART=[ART1,ART2,ART3,ART4,ART5];
+const ART=[ART1,ART2,ART3,ART4,ART5,ART6];
 let lang='tr';
 try{const s=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')||'{}');if(s.lang)lang=s.lang;else if((navigator.language||'').toLowerCase().startsWith('en'))lang='en'}catch(e){}
 try{const l=localStorage.getItem('ipek-oyunlar-lang');if(l==='tr'||l==='en')lang=l}catch(e){}
