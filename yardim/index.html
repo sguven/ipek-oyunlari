@@ -403,8 +403,23 @@ const level=()=>S.helps>=5?2:1;
 
 /* ---------- ses: kayıtlı Türkçe klipler + cihaz sesi; konuşmalar sıraya girer, üst üste binmez ---------- */
 const VOICE={tr:null,en:null};const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
+function scoreVoice(v,l){
+  /* en doğal kadın sesi öne: iPad/Mac'te indirilen "Gelişmiş/Premium" sesler, Edge'in "Natural" sesleri, Android'de Google sesi */
+  const n=(v.name||'').toLowerCase(),u=(v.voiceURI||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
+  if(/premium|enhanced|gelişmiş|geliştirilmiş|yüksek kalite|natural|neural|online/.test(n)||/premium|enhanced|neural/.test(u))s+=8;
+  if(/google/.test(n))s+=4;
+  if(l==='tr'&&/yelda|emel|filiz|seda|türkçe/.test(n))s+=3;
+  if(l==='tr'&&/ahmet|tolga|cem|kerem|erkek|male/.test(n))s-=4;
+  if(l==='tr'&&lg==='tr-tr')s+=2;
+  if(l==='en'&&lg==='en-us')s+=3;
+  if(l==='en'&&/samantha|ava|allison|aria|jenny|zoe|karen|serena/.test(n))s+=2;
+  if(/compact|eloquence|grandpa|grandma|bad news|bells|bubbles|cellos|jester|organ|trinoids|whisper|wobble|zarvox|albert|boing|fred|junior|ralph|kathy|bahh|hysterical|superstar|good news/.test(n))s-=8;
+  if(v.localService===false)s+=1;
+  if(v.default)s+=1;
+  return s;
+}
 function loadVoices(){if(!hasTTS)return;let vs=[];try{vs=speechSynthesis.getVoices()||[]}catch(e){}
-  ['tr','en'].forEach(l=>{const c=vs.filter(v=>{const lg=String(v.lang||'').toLowerCase().replace('_','-');return lg===l||lg.startsWith(l+'-')});c.sort((a,b)=>(/natural|neural|enhanced|premium|google|yelda|siri|samantha|ava|aria|jenny/i.test(b.name)?1:0)-(/natural|neural|enhanced|premium|google|yelda|siri|samantha|ava|aria|jenny/i.test(a.name)?1:0));VOICE[l]=c[0]||null})}
+  ['tr','en'].forEach(l=>{const c=vs.filter(v=>{const lg=String(v.lang||'').toLowerCase().replace('_','-');return lg===l||lg.startsWith(l+'-')});c.sort((a,b)=>scoreVoice(b,l)-scoreVoice(a,l));VOICE[l]=c[0]||null})}
 if(hasTTS){loadVoices();try{speechSynthesis.addEventListener('voiceschanged',loadVoices)}catch(e){}}
 let AC=null;
 function audioCtx(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC}catch(e){return null}}

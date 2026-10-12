@@ -342,14 +342,17 @@ const VOICE={tr:null,en:null};let voicesChecked=false;
 const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function normLang(l){return String(l||'').toLowerCase().replace('_','-')}
 function scoreVoice(v,l){
-  const n=v.name.toLowerCase(),lg=normLang(v.lang);let s=0;
-  if(/natural|neural|premium|enhanced|online|siri/.test(n))s+=6;
-  if(/google/.test(n))s+=3;
-  if(l==='tr'&&/yelda|emel|ahmet|filiz|tolga|cem|seda/.test(n))s+=3;
+  /* en doğal kadın sesi öne: iPad/Mac'te indirilen "Gelişmiş/Premium" sesler, Edge'in "Natural" sesleri, Android'de Google sesi */
+  const n=(v.name||'').toLowerCase(),u=(v.voiceURI||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
+  if(/premium|enhanced|gelişmiş|geliştirilmiş|yüksek kalite|natural|neural|online/.test(n)||/premium|enhanced|neural/.test(u))s+=8;
+  if(/google/.test(n))s+=4;
+  if(l==='tr'&&/yelda|emel|filiz|seda|türkçe/.test(n))s+=3;
+  if(l==='tr'&&/ahmet|tolga|cem|kerem|erkek|male/.test(n))s-=4;
   if(l==='tr'&&lg==='tr-tr')s+=2;
   if(l==='en'&&lg==='en-us')s+=3;
-  if(l==='en'&&/samantha|ava|allison|aria|jenny|zoe|karen|daniel/.test(n))s+=2;
-  if(/compact|eloquence|grandpa|grandma|bad news|bells|bubbles|cellos|jester|organ|trinoids|whisper|wobble|zarvox|albert|boing|fred|junior|ralph|kathy|bahh|hysterical|superstar|good news|pipe organ/.test(n))s-=8;
+  if(l==='en'&&/samantha|ava|allison|aria|jenny|zoe|karen|serena/.test(n))s+=2;
+  if(/compact|eloquence|grandpa|grandma|bad news|bells|bubbles|cellos|jester|organ|trinoids|whisper|wobble|zarvox|albert|boing|fred|junior|ralph|kathy|bahh|hysterical|superstar|good news/.test(n))s-=8;
+  if(v.localService===false)s+=1;
   if(v.default)s+=1;
   return s;
 }
