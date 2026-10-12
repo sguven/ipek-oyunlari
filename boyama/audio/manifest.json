@@ -1,0 +1,20 @@
+{
+ "voices": [
+  "kadin",
+  "erkek"
+ ],
+ "clips": {
+  "Kırmızı!": "59a332a233a3",
+  "Turuncu!": "78e5aef6feff",
+  "Sarı!": "02870782042f",
+  "Yeşil!": "f3f1b17affaa",
+  "Mavi!": "b4f19c3ef830",
+  "Lacivert!": "74b3779ba58a",
+  "Mor!": "d265697bc875",
+  "Aferin İpek!": "b4286c560cfa",
+  "Harika!": "b9db92aa9242",
+  "Bravo İpek!": "89029b95dd5f",
+  "Çok güzel!": "48d72dba43d2",
+  "Muhteşemsin İpek!": "f9e5c8102b53"
+ }
+}

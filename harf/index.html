@@ -379,29 +379,52 @@ function unlockAudio(){const a=audioCtx();if(!a)return;if(a.state!=='running')a.
 ['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&AC&&AC.state!=='running')AC.resume().catch(()=>{})});
 const CLIPS={base:'audio/',map:null};
-try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips){CLIPS.map=m;renderVoiceSel()}}).catch(()=>{})}catch(e){}
+try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips){CLIPS.map=m;renderVoiceSel();preload()}}).catch(()=>{})}catch(e){}
+function preload(){if(!CLIPS.map)return;const a=audioCtx();if(!a)return;Object.values(CLIPS.map.clips).forEach(id=>{clipBuf(id).catch(()=>{})})}
 const curVoice=()=>{const vs=CLIPS.map?CLIPS.map.voices:[];return vs.includes(S.voice)?S.voice:vs[0]};
 const bufs={};
 function clipBuf(id){const a=audioCtx(),k=curVoice()+'/'+id;if(!a)return Promise.reject();if(!bufs[k]){bufs[k]=fetch(CLIPS.base+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>new Promise((res,rej)=>a.decodeAudioData(b,res,rej)));bufs[k].catch(()=>{delete bufs[k]})}return bufs[k]}
-let clipGen=0,clipSrc=null,SQ=[],sqBusy=false;
+let clipGen=0,clipSrc=null,SQ=[],sqBusy=false,cut=false;
 function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
-function ttsBusy(){try{return speechSynthesis.speaking||speechSynthesis.pending}catch(e){return false}}
-function hush(){SQ=[];sqBusy=false;stopClips();try{if(ttsBusy())speechSynthesis.cancel()}catch(e){}}
+/* cihaz sesi: bazı tabletlerde "konuşuyor" bilgisi takılı kalır, onend gelmez ya da ses hiç başlamaz.
+   Bu yüzden kendi sayacımızı tutarız, süreyi metnin uzunluğundan tahmin ederiz ve başlamayan konuşmayı atlarız. */
+let ttsOn=0;
+function ttsBusy(){return ttsOn>0}
+function hush(){SQ=[];sqBusy=false;cut=false;stopClips()}
+let ttsPrimed=false;
+function primeTTS(){if(ttsPrimed||!hasTTS)return;ttsPrimed=true;if(!TRV)loadVoices();try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='tr-TR';if(TRV)u.voice=TRV;speechSynthesis.speak(u)}catch(e){}}
+['pointerdown','touchend','click'].forEach(ev=>document.addEventListener(ev,primeTTS,{capture:true,passive:true}));
+setInterval(()=>{if(ttsOn&&hasTTS){try{if(speechSynthesis.paused)speechSynthesis.resume()}catch(e){}}},500);
 function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);let done=false;const fin=()=>{if(done)return;done=true;if(clipSrc===s)clipSrc=null;res()};s.onended=fin;setTimeout(fin,buf.duration*1000+400);clipSrc=s;try{s.start()}catch(e){fin()}})}
-function speakTTS(text,rate){return new Promise(res=>{if(!hasTTS||!TRV)return res();let done=false;const fin=()=>{if(!done){done=true;res()}};try{const u=new SpeechSynthesisUtterance(text);u.voice=TRV;u.lang=TRV.lang;u.rate=rate||.85;u.pitch=1.1;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}setTimeout(fin,2500+text.length*130)})}
+let liveUtt=0; /* başlamış ve henüz bitmemiş konuşmalar */
+function speakTTS(text,rate,retry){return new Promise(res=>{
+  if(!hasTTS)return res();if(!TRV)loadVoices();
+  const r=rate||.85;let done=false,started=false,live=false;ttsOn++;
+  const fin=()=>{if(done)return;done=true;ttsOn=Math.max(0,ttsOn-1);if(live){live=false;liveUtt=Math.max(0,liveUtt-1)}res()};
+  const onStart=()=>{if(!started){started=true;live=true;liveUtt++}};
+  let u;try{u=new SpeechSynthesisUtterance(text);if(TRV)u.voice=TRV;u.lang=TRV?TRV.lang:'tr-TR';u.rate=r;u.pitch=1.1;
+    u.onstart=onStart;u.onboundary=onStart;u.onend=fin;u.onerror=fin;
+    if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){return fin()}
+  const est=500+text.length*85/r;
+  /* başlamadıysa ve bizden başka konuşan yoksa motor takılmıştır: temizle ve bir kez daha dene */
+  setTimeout(()=>{if(started||done)return;if(liveUtt===0){try{speechSynthesis.cancel()}catch(e){}done=true;ttsOn=Math.max(0,ttsOn-1);
+    if(!retry)speakTTS(text,rate,true).then(res);else res()}},1500);
+  setTimeout(fin,est+900);
+})}
 async function speakPart(p,gen){
   const txt=typeof p==='object'?p.t:p,rate=typeof p==='object'?p.rate:null;
   if(CLIPS.map&&CLIPS.map.clips[txt]){let b=null;try{b=await clipBuf(CLIPS.map.clips[txt])}catch(e){}if(b&&gen===clipGen)await playBuf(b,gen);return}
   if(gen===clipGen)await speakTTS(txt,rate);
 }
 async function pump(){if(sqBusy)return;sqBusy=true;const gen=clipGen;
-  while(SQ.length&&gen===clipGen){const parts=SQ.shift();for(let i=0;i<parts.length;i++){if(gen!==clipGen)break;await speakPart(parts[i],gen);if(i<parts.length-1)await new Promise(r=>setTimeout(r,160))}if(SQ.length)await new Promise(r=>setTimeout(r,220))}
+  while(SQ.length&&gen===clipGen){const parts=SQ.shift();cut=false;for(let i=0;i<parts.length;i++){if(gen!==clipGen||cut)break;await speakPart(parts[i],gen);if(i<parts.length-1)await new Promise(r=>setTimeout(r,160))}if(SQ.length)await new Promise(r=>setTimeout(r,220))}
   if(gen===clipGen)sqBusy=false}
 function say(t,queue){
   if(!S.sound)return;const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!parts.length)return;
-  if(!queue){SQ=[];if(!ttsBusy()){sqBusy=false;stopClips()}}
+  if(!queue){SQ=[];if(!ttsBusy()){sqBusy=false;stopClips()}else cut=true}
   SQ.push(parts);pump();
 }
+const WAIT=2400; /* doğru cevaptan sonra en fazla bu kadar konuşmanın bitmesi beklenir */
 function speechDone(maxMs){return new Promise(res=>{const t0=Date.now();(function p(){if((!sqBusy&&!SQ.length&&!ttsBusy())||Date.now()-t0>maxMs)return res();setTimeout(p,120)})()})}
 function renderVoiceSel(){const box=$('voiceSel'),vs=CLIPS.map?CLIPS.map.voices:[];box.hidden=vs.length<2;box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(curVoice()===b.dataset.voice)))}
 document.querySelectorAll('#voiceSel button').forEach(b=>b.onclick=()=>{S.voice=b.dataset.voice;save();renderVoiceSel();say('Aferin İpek!')});
@@ -499,7 +522,7 @@ function stepHunt(){
     `<div class="catch" id="catch">${Array.from({length:NEED},()=>'<i></i>').join('')}</div><div class="sea">${items.map((it,i)=>`<button class="fish" data-ok="${it.ok?1:0}" data-t="${it.t}" style="animation-delay:${-(i*0.37).toFixed(2)}s" aria-label="${it.t}">${fishSvg(FISHC[i%FISHC.length])}<b>${it.t}</b></button>`).join('')}</div>`;
   $('panel').querySelectorAll('.fish').forEach(b=>b.onclick=()=>{
     if(b.dataset.ok==='1'){b.classList.add('got');got++;const ci=$('catch').children[got-1];if(ci){ci.classList.add('on');ci.textContent='🐟'}pling(got);
-      if(got>=NEED){D.miss+=Math.min(2,Math.floor(wrong/2));harp();confetti(40);say([{t:'Hepsini yakaladın!'},pick(PRAISE)]);later(async()=>{await speechDone(5000);nextStep()},900)}
+      if(got>=NEED){D.miss+=Math.min(2,Math.floor(wrong/2));harp();confetti(40);say([{t:'Hepsini yakaladın!'},pick(PRAISE)]);later(async()=>{await speechDone(WAIT);nextStep()},550)}
       else say({t:nameOf(l),rate:.8})}
     else{wrong++;b.classList.remove('no');void b.offsetWidth;b.classList.add('no');boop();const x=b.dataset.t.toLocaleLowerCase('tr-TR');say({t:`Bu ${nameOf(x)}. Biz ${nameOf(l)} arıyoruz.`})}
   });
@@ -519,7 +542,7 @@ function stepTrain(){
       if(b.dataset.c===tail){const w=$('wag');w.textContent=tail;w.className='car fill';b.classList.add('used');$('panel').querySelectorAll('.tile').forEach(x=>x.disabled=true);
         $('eq').textContent=`${head} + ${tail} = ${syl}`;pling(round);tone(392,.12,.25,'square',.05);tone(392,.12,.45,'square',.05);
         say([{t:syl,rate:.7},pick(PRAISE)]);later(()=>{const t=$('train');if(t&&!reduce)t.classList.add('go')},500);
-        later(async()=>{await speechDone(5000);if(round>=ROUNDS)nextStep();else one()},1400)}
+        later(async()=>{await speechDone(WAIT);if(round>=ROUNDS)nextStep();else one()},1100)}
       else{if(first)D.miss++;first=false;b.classList.remove('no');void b.offsetWidth;b.classList.add('no');boop();say([{t:head+b.dataset.c,rate:.7},{t:'Bu değil. Dinle:'},{t:syl,rate:.7}])}
     });
     say([{t:'Hangi vagon?'},{t:syl,rate:.7}],true);
@@ -542,7 +565,7 @@ function stepSound(){
     $('panel').querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
       const w=b.dataset.w;
       if(isHit(w)){b.classList.add('ok');pling(round);say([{t:w,rate:.8},pick(PRAISE)]);$('panel').querySelectorAll('.choice').forEach(x=>x.disabled=true);
-        later(async()=>{await speechDone(6000);if(round>=ROUNDS)nextStep();else one()},700)}
+        later(async()=>{await speechDone(WAIT);if(round>=ROUNDS)nextStep();else one()},450)}
       else{if(first)D.miss++;first=false;b.classList.add('no');boop();say([{t:w,rate:.8},{t:l==='ğ'?'Bunda yumuşak ge yok. Bir daha dene!':`${w}, ${nameOf(w[0])} sesiyle başlıyor. Bir daha dene!`}])}
     });
     say([{t:q},...opts.map(([w])=>({t:w,rate:.8}))],true);
@@ -580,7 +603,7 @@ function stepWrite(){
     cv.addEventListener('pointermove',e=>{if(!cur)return;e.preventDefault();const p=toBox(e);cur.push(p);mark(p);drawInk()});
     const end=()=>{if(!cur)return;cur=null;
       if(active<strokes.length&&covRatio()>=.86){active++;pling(active);guide();
-        if(active>=strokes.length){D.lock=true;harp();confetti(40);say(pick(PRAISE));later(async()=>{await speechDone(4000);D.lock=false;if(pass>=PASSES)nextStep();else render()},900)}}
+        if(active>=strokes.length){D.lock=true;harp();confetti(40);say(pick(PRAISE));later(async()=>{await speechDone(WAIT);D.lock=false;if(pass>=PASSES)nextStep();else render()},550)}}
       else if(active<strokes.length&&offCount>=3&&offCount>(onCount+offCount)*.35){if(snap)cov[active]=snap;ink.pop();drawInk();boop();say({t:'Yeşil noktadan başla, çizginin üstünden git.'})}
     };
     cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('lostpointercapture',end);
@@ -595,7 +618,7 @@ function stepWrite(){
         if(pi>=s.length){si++;pi=0;setTimeout(stepD,260)}else setTimeout(stepD,22)})();
     }
     $('watch').onclick=()=>{if(D.lock)return;guide();demo()};
-    D.fit=fit;requestAnimationFrame(()=>{fit();guide();if(pass===1){const g0=D.gen;setTimeout(()=>{if(g0===D.gen&&!ink.length&&!cur)demo()},D.play?300:2600)}});
+    D.fit=fit;requestAnimationFrame(()=>{fit();guide();if(pass===1){const g0=D.gen;setTimeout(()=>{if(g0===D.gen&&!ink.length&&!cur)demo()},D.play?300:1200)}});
     window.__trace={strokes,get active(){return active},box:()=>cv.getBoundingClientRect()};
     say({t:pass===1?(D.play?`${nameOf(l)} harfini yaz.`:`${nameOf(l)} harfini yazalım. ${SHAPE[l]} Önce izle.`):faded?'Şimdi kendin yaz!':'Bir daha yazalım.'});
   }
@@ -617,7 +640,7 @@ function stepSyll(){
     $('again').onclick=()=>say({t:right,rate:.7});
     $('panel').querySelectorAll('.balloon').forEach(b=>b.onclick=()=>{
       if(b.dataset.s===right){b.classList.add('pop');pling(round);tone(1200,.08,0,'square',.06);say([{t:right,rate:.7},pick(PRAISE)]);$('panel').querySelectorAll('.balloon').forEach(x=>x.disabled=true);
-        later(async()=>{await speechDone(5000);if(round>=ROUNDS)nextStep();else one()},700)}
+        later(async()=>{await speechDone(WAIT);if(round>=ROUNDS)nextStep();else one()},450)}
       else{if(first)D.miss++;first=false;b.classList.add('no');boop();say([{t:b.dataset.s,rate:.7},'Bir daha dene İpek!'])}
     });
     /* hecenin nasıl oluştuğunu da söyle: l + a = la */
@@ -638,7 +661,7 @@ function stepWord(){
       $('panel').innerHTML=owlSay('Kelimeyi oku. Hangi resim?')+`<div class="word" id="wd">${w}</div><div class="choices">${opts.map(([x,ee],i)=>`<button class="choice" data-w="${x}" style="animation-delay:${i*90}ms"><span class="em">${ee}</span></button>`).join('')}</div>`;
       $('wd').onclick=()=>say({t:w,rate:.75});
       $('panel').querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
-        if(b.dataset.w===w){b.classList.add('ok');pling(round);say([{t:w,rate:.75},pick(PRAISE)]);$('panel').querySelectorAll('.choice').forEach(x=>x.disabled=true);later(async()=>{await speechDone(5000);if(round>=ROUNDS)nextStep();else one()},700)}
+        if(b.dataset.w===w){b.classList.add('ok');pling(round);say([{t:w,rate:.75},pick(PRAISE)]);$('panel').querySelectorAll('.choice').forEach(x=>x.disabled=true);later(async()=>{await speechDone(WAIT);if(round>=ROUNDS)nextStep();else one()},450)}
         else{if(first)D.miss++;first=false;b.classList.add('no');boop();say('Bir daha dene İpek!')}
       });
       say({t:'Bu kelimeyi okuyabilir misin?'},true);
@@ -649,7 +672,7 @@ function stepWord(){
       $('kw').onclick=()=>say({t:w,rate:.75});
       $('panel').querySelectorAll('.tile').forEach(b=>b.onclick=()=>{
         if(b.dataset.c===chars[pos]){const sl=$('sl'+pos);sl.textContent=chars[pos];sl.classList.add('fill');b.classList.add('used');pling(pos);say({t:nameOf(chars[pos]),rate:.8});pos++;
-          if(pos>=chars.length){$('panel').querySelectorAll('.tile').forEach(x=>x.disabled=true);harp();say([{t:w,rate:.75},pick(PRAISE)],true);later(async()=>{await speechDone(5000);if(round>=ROUNDS)nextStep();else one()},900)}}
+          if(pos>=chars.length){$('panel').querySelectorAll('.tile').forEach(x=>x.disabled=true);harp();say([{t:w,rate:.75},pick(PRAISE)],true);later(async()=>{await speechDone(WAIT);if(round>=ROUNDS)nextStep();else one()},550)}}
         else{if(first)D.miss++;first=false;b.classList.remove('no');void b.offsetWidth;b.classList.add('no');boop()}
       });
       say([{t:'Bu ne?'},{t:w,rate:.7}],true);
@@ -667,10 +690,10 @@ function stepSent(){
   $('panel').innerHTML=owlSay('Cümleyi birlikte okuyalım. Kelimelere dokunabilirsin.')+`<div class="sentence" id="sen">${words.map((w,i)=>`<span data-i="${i}">${w}</span>`).join('')}</div><button class="pill" id="readAll">${ICON.speaker} Dinle</button><p class="say">Bu cümlede ne var?</p><div class="choices">${opts.map((x,i)=>`<button class="choice" data-e="${x}" style="animation-delay:${i*90}ms"><span class="em">${x}</span></button>`).join('')}</div>`;
   const spans=[...$('sen').querySelectorAll('span')];
   spans.forEach(sp=>sp.onclick=()=>{spans.forEach(x=>x.classList.remove('hi'));sp.classList.add('hi');say({t:bare(sp.textContent),rate:.75})});
-  async function karaoke(){const g=D.gen;hush();for(let i=0;i<spans.length;i++){if(g!==D.gen)return;spans.forEach(x=>x.classList.remove('hi'));spans[i].classList.add('hi');say({t:bare(spans[i].textContent),rate:.75});await speechDone(4000);await new Promise(r=>setTimeout(r,180))}if(g===D.gen){spans.forEach(x=>x.classList.remove('hi'));say({t:s,rate:.85})}}
+  async function karaoke(){const g=D.gen;SQ=[];for(let i=0;i<spans.length;i++){if(g!==D.gen)return;spans.forEach(x=>x.classList.remove('hi'));spans[i].classList.add('hi');say({t:bare(spans[i].textContent),rate:.75},true);await speechDone(2200);await new Promise(r=>setTimeout(r,120))}if(g===D.gen){spans.forEach(x=>x.classList.remove('hi'));say({t:s,rate:.85})}}
   $('readAll').onclick=karaoke;
   $('panel').querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
-    if(b.dataset.e===e){b.classList.add('ok');pling(3);say(pick(PRAISE));$('panel').querySelectorAll('.choice').forEach(x=>x.disabled=true);later(async()=>{await speechDone(5000);if(words.length>=2)build();else{harp();confetti(50);nextStep()}},900)}
+    if(b.dataset.e===e){b.classList.add('ok');pling(3);say(pick(PRAISE));$('panel').querySelectorAll('.choice').forEach(x=>x.disabled=true);later(async()=>{await speechDone(WAIT);if(words.length>=2)build();else{harp();confetti(50);nextStep()}},550)}
     else{if(first)D.miss++;first=false;b.classList.add('no');boop();say('Bir daha dene İpek!')}
   });
   later(karaoke,400);
@@ -682,7 +705,7 @@ function stepSent(){
     $('again').onclick=()=>say({t:s,rate:.8});
     $('panel').querySelectorAll('.wchip').forEach(b=>b.onclick=()=>{
       if(+b.dataset.i===pos||words[+b.dataset.i]===words[pos]){const ws=$('ws'+pos);ws.textContent=words[pos];ws.classList.add('fill');b.classList.add('used');pling(pos);say({t:bare(words[pos]),rate:.8});pos++;
-        if(pos>=words.length){$('panel').querySelectorAll('.wchip').forEach(x=>x.disabled=true);harp();confetti(60);say([{t:s,rate:.85},pick(PRAISE)],true);later(async()=>{await speechDone(6000);nextStep()},900)}}
+        if(pos>=words.length){$('panel').querySelectorAll('.wchip').forEach(x=>x.disabled=true);harp();confetti(60);say([{t:s,rate:.85},pick(PRAISE)],true);later(async()=>{await speechDone(WAIT);nextStep()},550)}}
       else{if(first2)D.miss++;first2=false;b.classList.remove('no');void b.offsetWidth;b.classList.add('no');boop();say({t:'Önce hangisi? Dinle:'},false);say({t:s,rate:.8},true)}
     });
     say([{t:'Şimdi cümleyi sen kur!'},{t:s,rate:.8}]);
