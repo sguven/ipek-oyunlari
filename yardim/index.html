@@ -423,7 +423,7 @@ let clipGen=0,clipSrc=null,SQ=[],sqBusy=false;
 function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
 function hush(){SQ=[];sqBusy=false;stopClips();try{if(speechSynthesis.speaking||speechSynthesis.pending)speechSynthesis.cancel()}catch(e){}}
 function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);let done=false;const fin=()=>{if(done)return;done=true;if(clipSrc===s)clipSrc=null;res()};s.onended=fin;setTimeout(fin,buf.duration*1000+400);clipSrc=s;try{s.start()}catch(e){fin()}})}
-function speakTTS(text){return new Promise(res=>{const v=VOICE[S.lang];if(!hasTTS||!v)return res();let done=false;const fin=()=>{if(!done){done=true;res()}};try{const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.12;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}setTimeout(fin,1800+text.length*95)})}
+function speakTTS(text){return new Promise(res=>{const v=VOICE[S.lang];if(!hasTTS||!v)return res();let done=false;const fin=()=>{if(!done){done=true;res()}};try{const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.12;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}setTimeout(fin,2500+text.length*120)})}
 async function speakPart(p,gen){
   const has=ownVoice()&&CLIPS.map.clips[p];
   if(has){let b=null;try{b=await clipBuf(CLIPS.map.clips[p])}catch(e){}if(b&&gen===clipGen)await playBuf(b,gen);return}
@@ -461,7 +461,8 @@ function addHeart(n){S.hearts+=n||1;save()}
 function celebrateThenNext(title,sub,next,minMs){
   const b=document.createElement('div');b.className='banner';b.innerHTML=title+(sub?`<small>${sub}</small>`:'');$('stage').appendChild(b);
   const g=G.gen,t0=Date.now();
-  later(async()=>{await speechDone(4500);const wait=Math.max(0,(minMs||3200)-(Date.now()-t0));setTimeout(()=>{if(g===G.gen&&screen==='play')next()},wait)},600);
+  /* konuşma tamamen bitene kadar bekle (takılırsa en fazla 15 sn), sonra 1,5 sn daha kutlamayı göster */
+  later(async()=>{await speechDone(15000);const wait=Math.max(1500,(minMs||3200)-(Date.now()-t0));setTimeout(()=>{if(g===G.gen&&screen==='play')next()},wait)},800);
 }
 function showReward(title,text,art,onNext){
   $('rewardTitle').textContent=title;$('rewardText').textContent=text;$('rewardArt').innerHTML=art;
