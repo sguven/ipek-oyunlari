@@ -40,6 +40,13 @@ function check(ok, msg) { if (!ok) fails.push(msg); }
 async function tapAt(page, dev, x, y) {
   if (dev.mobile) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y);
 }
+// ağı elle tutup kelebeğe götür: ağı önce hedefin 70 px soluna koy (yolda başka kelebek süpürmesin), sonra çemberden tutup sürükle
+async function netTo(page, dev, x, y) {
+  const r = await page.evaluate(([x, y]) => { const f = document.getElementById('field').getBoundingClientRect(); const fx = x - f.left, fy = y - f.top; const sx = fx > 120 ? fx - 70 : fx + 70; placeNet(sx, fy, 0, true); return { x: f.left + sx, y: f.top + fy }; }, [x, y]);
+  await page.mouse.move(r.x, r.y); await page.mouse.down();
+  for (let k = 1; k <= 6; k++) await page.mouse.move(r.x + (x - r.x) * k / 6, r.y + (y - r.y) * k / 6);
+  await page.mouse.up();
+}
 async function dismissReward(page, dev) {
   if (await page.evaluate(() => !document.getElementById('rewardOv').hidden)) { await tapSel(page, dev, '#rewardGo'); await sleep(300); }
 }
@@ -71,7 +78,7 @@ async function catchOne(page, dev, filter) {
     if (list.length) {
       const before = await page.evaluate(() => S.caught);
       const b = list[0];
-      await tapAt(page, dev, b.x, b.y);
+      await netTo(page, dev, b.x, b.y);
       await sleep(60);
       if ((await page.evaluate(() => S.caught)) > before) return true;
     }
@@ -120,9 +127,14 @@ async function runCase(browser, base, dev, deep) {
   check(!(await overflow()), `${tag}: oyun ekranı yatay taşıyor`);
   await sleep(1500);
   await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-free.png`) });
-  const goal = deep ? 10 : 3;
-  for (let i = 0; i < goal; i++) check(await catchOne(page, dev), `${tag}: ${i + 1}. kelebek yakalanamadı`);
+  // kelebeğe doğrudan dokunmak yakalamamalı, ağ oraya kendiliğinden gelmemeli
+  { const bl = await butterflies(page); if (bl[0]) { const c0 = await page.evaluate(() => S.caught), n0 = await page.evaluate(() => ({ ...netPos })); await tapAt(page, dev, bl[0].x, bl[0].y); await sleep(150); check((await page.evaluate(() => S.caught)) === c0, `${tag}: dokununca yakaladı (ağ sürüklenmeden)`); const n1 = await page.evaluate(() => ({ ...netPos })); check(n0.x === n1.x && n0.y === n1.y, `${tag}: ağ dokunulan yere kendiliğinden gitti`); } }
+  const goal0 = deep ? 10 : 3, cStart = await page.evaluate(() => S.caught);
+  // ağ bir seferde birden çok kelebek yakalayabilir: hedef sayıya ulaşana kadar süpür
+  for (let i = 0; i < goal0 * 2 && (await page.evaluate(() => S.caught)) - cStart < goal0; i++) check(await catchOne(page, dev), `${tag}: ${i + 1}. kelebek yakalanamadı`);
   await sleep(1300); // kelebek önce ağa, sonra kavanoza uçar
+  const goal = await page.evaluate(() => S.jar.length);
+  check(goal >= goal0, `${tag}: yeterince yakalanmadı ${goal}`);
   const jarTxt = await page.locator('#jarLbl').textContent();
   check(jarTxt.includes(String(goal)), `${tag}: kavanoz sayacı yanlış: ${jarTxt}`);
   check(await page.locator('#emptyBtn').isVisible(), `${tag}: Boşalt düğmesi görünmüyor`);
@@ -155,17 +167,17 @@ async function runCase(browser, base, dev, deep) {
   for (let i = 0; i < 120 && !wrongTapped; i++) {
     const all = await butterflies(page), tg = all.filter(b => b.ci === target);
     const far = b => Math.min(1e9, ...tg.map(t => Math.hypot(t.x - b.x, t.y - b.y)));
-    const w = all.filter(b => b.ci !== target && far(b) > 90).sort((a, b) => far(b) - far(a))[0];
+    const w = all.filter(b => b.ci !== target && far(b) > 190).sort((a, b) => far(b) - far(a))[0];
     if (w) {
       const before = await page.evaluate(() => [S.caught, S.colorStats[1]]);
-      await tapAt(page, dev, w.x, w.y); await sleep(80);
+      await netTo(page, dev, w.x, w.y); await sleep(80);
       const after = await page.evaluate(() => [S.caught, S.colorStats[1]]);
       if (after[1] > before[1]) { wrongTapped = true; check(after[0] === before[0], `${tag}: yanlış renk yakalandı`); }
     } else await sleep(150);
   }
   check(wrongTapped, `${tag}: yanlış renge dokunma denenemedi`);
   await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-color.png`) });
-  for (let i = 0; i < 3; i++) check(await catchOne(page, dev, b => b.ci === target), `${tag}: hedef renk ${i + 1} yakalanamadı`);
+  for (let i = 0; i < 6 && !(await page.evaluate(() => CR.done)); i++) check(await catchOne(page, dev, b => b.ci === target), `${tag}: hedef renk ${i + 1} yakalanamadı`);
   check(await page.evaluate(() => CR.done || CR.hits === 0), `${tag}: renk turu bitmedi`);
   check(await waitFor(page, () => CR.hits === 0 && !CR.done, 6000), `${tag}: yeni renk turu başlamadı`);
   await tapSel(page, dev, '#backBtn');
@@ -177,11 +189,12 @@ async function runCase(browser, base, dev, deep) {
   const n = await page.evaluate(() => CN.n);
   check(n >= 2 && n <= 5, `${tag}: hedef sayı garip: ${n}`);
   check((await page.locator('.dot').count()) === n, `${tag}: nokta sayısı hedefle uyuşmuyor`);
-  for (let i = 0; i < n; i++) check(await catchOne(page, dev), `${tag}: sayma ${i + 1} yakalanamadı`);
+  for (let i = 0; i < n * 2 && !(await page.evaluate(() => CN.done)); i++) check(await catchOne(page, dev), `${tag}: sayma ${i + 1} yakalanamadı`);
+  check(await page.evaluate(() => CN.hits === CN.n), `${tag}: sayma fazla yakaladı`);
   check(await page.evaluate(() => CN.done), `${tag}: sayma turu bitmedi`);
   // tur bitince fazladan yakalama olmamalı
   const c0 = await page.evaluate(() => S.caught);
-  const bl = await butterflies(page); if (bl[0]) await tapAt(page, dev, bl[0].x, bl[0].y);
+  const bl = await butterflies(page); if (bl[0]) await netTo(page, dev, bl[0].x, bl[0].y);
   await sleep(100);
   check((await page.evaluate(() => S.caught)) === c0, `${tag}: tur bitince yine yakaladı`);
   await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-count.png`) });
