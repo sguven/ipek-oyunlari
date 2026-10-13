@@ -122,7 +122,7 @@ async function runCase(browser, base, dev, deep) {
   await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-free.png`) });
   const goal = deep ? 10 : 3;
   for (let i = 0; i < goal; i++) check(await catchOne(page, dev), `${tag}: ${i + 1}. kelebek yakalanamadı`);
-  await sleep(800);
+  await sleep(1300); // kelebek önce ağa, sonra kavanoza uçar
   const jarTxt = await page.locator('#jarLbl').textContent();
   check(jarTxt.includes(String(goal)), `${tag}: kavanoz sayacı yanlış: ${jarTxt}`);
   check(await page.locator('#emptyBtn').isVisible(), `${tag}: Boşalt düğmesi görünmüyor`);

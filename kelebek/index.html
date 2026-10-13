@@ -59,6 +59,9 @@ button{font-family:inherit}
 .bf .wl,.bf .wr,.jarbf .wl,.jarbf .wr,.flap .wl,.flap .wr{transform-box:view-box;transform-origin:50px 50px;animation:flap .28s ease-in-out infinite alternate}
 .bf.rest .wl,.bf.rest .wr{animation-duration:1.15s}
 .jarbf .wl,.jarbf .wr{animation-duration:1.4s}
+.net{position:absolute;left:0;top:0;pointer-events:none;z-index:6;will-change:transform;transform-origin:41.7% 22.5%;transition:transform .5s cubic-bezier(.3,.7,.4,1)}
+.net>svg{width:100%;height:auto;display:block;overflow:visible}
+.net.quick{transition:none}
 .bf.caught{z-index:4;transition:transform .62s cubic-bezier(.45,-.25,.6,1),opacity .62s ease-in}
 .bf.nope svg{animation:shake .45s}
 .bf.fly{z-index:5;transition:transform 1.7s cubic-bezier(.3,.1,.5,1),opacity 1.7s ease-in}
@@ -607,11 +610,29 @@ let CN={n:2,hits:0,done:false};       /* say ve yakala turu */
 
 function later(fn,ms){const g=playGen;setTimeout(function w(){if(g!==playGen||screen!=='play')return;if(paused){setTimeout(w,300);return}fn()},ms)}
 
+/* kelebek ağı: tahta sap + çember + file torba. Çemberin merkezi (50,45) dokunulan noktaya gelir. */
+const NET_SVG=`<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="mesh" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 H7 M0 0 V7" stroke="#8a7aa8" stroke-width="1.1" fill="none" opacity=".75"/></pattern></defs>
+<path d="M80 66 L114 192" stroke="#3b2a5c" stroke-width="11" stroke-linecap="round"/><path d="M80 66 L114 192" stroke="#c98a4b" stroke-width="6.5" stroke-linecap="round"/><path d="M104 152 L110 175" stroke="#e8b27a" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M12 46 C10 92 34 118 52 116 C72 114 90 90 88 46 Z" fill="#ffffff" fill-opacity=".55" stroke="#3b2a5c" stroke-width="3" stroke-linejoin="round"/><path d="M12 46 C10 92 34 118 52 116 C72 114 90 90 88 46 Z" fill="url(#mesh)"/>
+<ellipse cx="50" cy="45" rx="40" ry="20" fill="url(#mesh)"/><ellipse cx="50" cy="45" rx="40" ry="20" fill="none" stroke="#3b2a5c" stroke-width="7"/><ellipse cx="50" cy="45" rx="40" ry="20" fill="none" stroke="#ff7eb6" stroke-width="3.5"/></svg>`;
+let netPos={x:0,y:0,a:-18};
+function netSize(){return Math.round(SZ*1.45*120/80)}
+function placeNet(x,y,a,quick){const n=$('net');if(!n)return;const w=netSize();netPos={x,y,a};n.style.width=w+'px';n.classList.toggle('quick',!!quick);
+  n.style.transform=`translate3d(${(x-w*50/120).toFixed(1)}px,${(y-w*45/120).toFixed(1)}px,0) rotate(${a}deg)`}
+function restNet(quick){placeNet(Math.max(40,W*.13),H*.6,-24,quick)}
+function swoop(x,y){const n=$('net');if(!n)return;const w=netSize(),base=`translate3d(${(x-w*50/120).toFixed(1)}px,${(y-w*45/120).toFixed(1)}px,0)`;
+  placeNet(x,y,0,true);
+  if(!reduce&&n.animate)n.animate([{transform:base+' rotate(-38deg) scale(1.12)'},{transform:base+' rotate(10deg) scale(.96)'},{transform:base+' rotate(0deg) scale(1)'}],{duration:240,easing:'ease-out'});
+  whoosh()}
+function whoosh(){if(!S.sound)return;const a=audioCtx&&audioCtx();if(!a)return;try{const t=a.currentTime,o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(260,t+.16);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+.18);o.connect(g).connect(a.destination);o.start(t);o.stop(t+.2)}catch(e){}}
+let netIdle=0;
 function setupField(){
   const f=$('field');
-  f.innerHTML=meadowBase()+`<div class="starpill" id="starPill"></div><div class="jar" id="jar"><span class="lbl" id="jarLbl"></span></div>`;
+  f.innerHTML=meadowBase()+`<div class="starpill" id="starPill"></div><div class="jar" id="jar"><span class="lbl" id="jarLbl"></span></div><div class="net" id="net" aria-hidden="true">${NET_SVG}</div>`;
 
-  renderJar();measure();
+  renderJar();measure();restNet(true);
+  const f2=$('field');f2.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse'||screen!=='play'||paused)return;const r=f2.getBoundingClientRect();placeNet(e.clientX-r.left,e.clientY-r.top,-12,true)});
+  f2.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')restNet()});
 }
 function measure(){
   const f=$('field');W=f.clientWidth;H=f.clientHeight;
@@ -721,9 +742,10 @@ function onFieldDown(e){
   if(screen!=='play'||paused)return;
   e.preventDefault();
   const r=$('field').getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+  swoop(px,py);clearTimeout(netIdle);if(e.pointerType!=='mouse')netIdle=setTimeout(()=>{if(screen==='play')restNet()},1600);
   let best=null,bd=1e9;
   for(const b of BF){if(b.state==='leave')continue;const d=Math.hypot(b.x-px,b.y-py);if(d<bd){bd=d;best=b}}
-  if(!best||bd>Math.max(46,SZ*.72))return;
+  if(!best||bd>Math.max(52,SZ*.8))return;
   hit(best,px,py);
 }
 function hit(b,px,py){
@@ -750,8 +772,10 @@ function catchBf(b,px,py){
   const inJar=S.jar.length;
   sparkleAt(b.x,b.y);pling(inJar-1);
   const j=jarPoint();b.el.classList.remove('rest');b.el.classList.add('caught');
-  b.el.style.transform=`translate3d(${(j.x-SZ/2).toFixed(1)}px,${(j.y-SZ/2).toFixed(1)}px,0) scale(.3)`;b.el.style.opacity='.2';
-  setTimeout(()=>{b.el.remove();if(screen==='play')renderJar(inJar-1)},reduce?0:620);
+  /* önce ağın içine girer, sonra kavanoza uçar */
+  b.el.style.transition='transform .16s ease-out';b.el.style.transform=`translate3d(${(px-SZ/2).toFixed(1)}px,${(py+netSize()*.3-SZ/2).toFixed(1)}px,0) scale(.55)`;
+  setTimeout(()=>{b.el.style.transition='';b.el.style.transform=`translate3d(${(j.x-SZ/2).toFixed(1)}px,${(j.y-SZ/2).toFixed(1)}px,0) scale(.3)`;b.el.style.opacity='.2'},reduce?0:360);
+  setTimeout(()=>{b.el.remove();if(screen==='play')renderJar(inJar-1)},reduce?0:980);
   spawnCD=Math.max(spawnCD,.9);
   const l=L(),num=n=>n<=8?l.nums[n]:{t:numWord(n,S.lang)};
   if(mode==='free'){say(num(inJar));if(inJar===12||inJar===20)say(l.emptyHint,true)}
@@ -983,7 +1007,7 @@ document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{if(S.lang===
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{$(b.dataset.close).hidden=true});
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o&&o.id!=='rewardOv')o.hidden=true}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')['albumOv','parentOv'].forEach(id=>$(id).hidden=true)});
-let rsT=0;addEventListener('resize',()=>{if(ctx){fx.width=innerWidth;fx.height=innerHeight}clearTimeout(rsT);rsT=setTimeout(()=>{if(screen==='play')measure()},120)});
+let rsT=0;addEventListener('resize',()=>{if(ctx){fx.width=innerWidth;fx.height=innerHeight}clearTimeout(rsT);rsT=setTimeout(()=>{if(screen==='play'){measure();restNet(true)}},120)});
 
 renderAll();show('home');watchVoices();raf=requestAnimationFrame(loop);
 </script>
