@@ -1,4 +1,4 @@
-// İpek'in Boyama Kitabı testi: galeri, ipucu noktalarına dokunarak bir resmi tamamen boyama, fırça, damga, geri al, kaydet, kalıcılık, yerleşim.
+// Test for İpek's Coloring Book: gallery, fully painting a picture by tapping the hint dots, brush, stamp, undo, save, persistence, layout.
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..'), OUT = path.join(__dirname, 'out');
@@ -32,7 +32,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       check(!(await overflow()), `${tag}: galeri taşıyor`);
       await page.screenshot({ path: path.join(OUT, `boyama-${tag}-1-galeri.png`), fullPage: true });
 
-      // kelebeği ipuçlarıyla tamamen boya
+      // fully paint the butterfly using the hints
       await tap('.pcard[data-p="kelebek"]'); await sleep(400);
       check(!(await overflow()), `${tag}: boyama ekranı taşıyor`);
       const st = await page.locator('.stage').boundingBox();
@@ -42,14 +42,14 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       check(pts.every(Boolean), `${tag}: ipucu noktası bulunamayan bölge var (${pts.map((p, i) => p ? '' : i).filter(Boolean)})`);
       check(await page.locator('.hints circle').count() === regs.length * 2, `${tag}: ipucu noktaları eksik`);
       await page.screenshot({ path: path.join(OUT, `boyama-${tag}-2-bos.png`) });
-      // fırça: kanadın içinden başlayan çizgi kanatta kalmalı
+      // brush: a line starting inside the wing must stay on the wing
       await tap('.tool[data-t="brush"]'); await tap('.sw[data-c="blue"]');
       const wing = await page.evaluate(() => __boya.hintPoints()[8]);
       const [wx, wy] = await toScreen(wing[0], wing[1]); const [wx2, wy2] = await toScreen(wing[0] + 120, wing[1] + 60);
       await page.mouse.move(wx, wy); await page.mouse.down(); for (let k = 1; k <= 12; k++) await page.mouse.move(wx + (wx2 - wx) * k / 12, wy + (wy2 - wy) * k / 12); await page.mouse.up(); await sleep(150);
       const b = await page.evaluate(() => ({ n: __boya.cur.ps.b.length, r: __boya.cur.ps.b[0] && __boya.cur.ps.b[0].r, inG: document.querySelectorAll('[data-g="8"] .br path').length }));
       check(b.n === 1 && b.r === 8 && b.inG === 1, `${tag}: fırça çizgisi yanlış bölgede ${JSON.stringify(b)}`);
-      // boya kovası ile her bölgeyi önerilen renkle boya
+      // paint every region with its suggested colour using the paint bucket
       await tap('.tool[data-t="fill"]');
       let lastC = null;
       for (let i = 0; i < regs.length; i++) {
@@ -64,7 +64,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       await sleep(500);
       await page.screenshot({ path: path.join(OUT, `boyama-${tag}-4-bitti.png`) });
       check(await page.locator('.hints circle').count() === 0, `${tag}: doğru boyanınca ipuçları kalkmadı`);
-      // kaydet: indirme (ya da paylaşım) olmalı
+      // save: there must be a download (or share)
       const dl = page.waitForEvent('download', { timeout: 6000 }).catch(() => null);
       await tap('#saveBtn'); const d = await dl;
       if (d) { const fp = path.join(OUT, `boyama-${tag}-kayit.png`); await d.saveAs(fp); check(fs.statSync(fp).size > 20000, `${tag}: kaydedilen resim çok küçük`); }
@@ -81,7 +81,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       await page.screenshot({ path: path.join(OUT, `boyama-${tag}-5-damga.png`) });
       await tap('#backBtn'); await sleep(300);
       check(await page.locator('.pcard[data-p="kelebek"] .badge').count() === 1, `${tag}: galeride yıldız yok`);
-      // boş sayfa: fırça varsayılan
+      // empty page: brush is the default
       await tap('.pcard[data-p="serbest"]'); await sleep(300);
       check(await page.evaluate(() => __boya.S.tool) !== 'fill', `${tag}: boş sayfada fırça seçili değil`);
       await tap('.tool[data-t="brush"]'); await tap('.sub[data-s="thin"]');
@@ -89,7 +89,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       await page.mouse.move(fx, fy); await page.mouse.down(); for (let k = 1; k <= 10; k++) await page.mouse.move(fx + (fx2 - fx) * k / 10, fy + (fy2 - fy) * k / 10 + Math.sin(k) * 20); await page.mouse.up();
       await page.screenshot({ path: path.join(OUT, `boyama-${tag}-6-serbest.png`) });
       await tap('#backBtn'); await sleep(300);
-      // kalıcılık + dil
+      // persistence + language
       await page.reload(); await sleep(400);
       const S = await page.evaluate(() => ({ k: Object.keys(__boya.S.pics.kelebek.f).length, d: __boya.S.pics.kelebek.done, b: __boya.S.pics.serbest.b.length }));
       check(S.k === regs.length - 1 && S.d && S.b === 1, `${tag}: kaydedilmedi ${JSON.stringify(S)}`);
@@ -97,7 +97,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       check((await page.locator('.pcard b').first().textContent()) === 'Blank page', `${tag}: İngilizce olmadı`);
       check(clips.length >= 1, `${tag}: kayıtlı ses çalmadı`);
       if (tag === 'masaustu') console.log(`  ipucu hesaplama: ${ht} ms`);
-      // bütün resimler için ipucu noktası bulunmalı
+      // every picture must have hint dots
       if (tag === 'masaustu') for (const id of await page.evaluate(() => __boya.PICS.map(p => p.id))) {
         await page.evaluate(id => __boya.openPic(id), id); await sleep(100);
         const miss = await page.evaluate(() => __boya.hintPoints().map((p, i) => p ? -1 : i).filter(i => i >= 0));

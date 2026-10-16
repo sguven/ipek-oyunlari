@@ -1,9 +1,9 @@
-// İpek'in Araba Gezisi için otomatik test.
-// Çalıştırma:  cd tests && npm install && node araba-test.js   (--quick: otopilot turu atlanır)
-// - Tablet/telefon/masaüstü boyutlarında arayüz yerleşimi, düğmeler, dil, menü
-// - Kontroller: otomatik gaz, direksiyon, geri, korna, iki parmakla aynı anda gaz+direksiyon
-// - Suya giremez; rota boyunca hiçbir yıldız/durak suda değil
-// - Otopilot gerçek kontrollerle (ok tuşları) bütün turu sürer: 7 durak, bütün yıldızlar, kutlama
+// Automated test for İpek's Car Trip.
+// Run:  cd tests && npm install && node araba-test.js   (--quick: skips the autopilot tour)
+// - Interface layout, buttons, language and menu at tablet/phone/desktop sizes
+// - Controls: automatic gas, steering, reverse, horn, gas+steering at the same time with two fingers
+// - Can't drive into water; no star/stop along the route is in the water
+// - Autopilot drives the whole tour with the real controls (arrow keys): 7 stops, all stars, celebration
 const { chromium } = require('playwright');
 const http = require('http');
 const fs = require('fs');
@@ -41,7 +41,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const fails = [];
 const check = (ok, msg) => { if (!ok) fails.push(msg); };
 const G = (page, fn, arg) => page.evaluate(fn, arg);
-// oyun içi zamanla bekle (yazılımsal 3D yavaş olduğu için duvar saati yanıltır)
+// wait using in-game time (software 3D is slow, so wall-clock time is misleading)
 async function waitSim(page, sec, maxMs = 30000) { const t0 = await G(page, () => __game.simT); const s = Date.now(); while (Date.now() - s < maxMs) { await sleep(60); if ((await G(page, () => __game.simT)) - t0 >= sec) return; } }
 
 async function center(page, sel) {
@@ -54,7 +54,7 @@ async function tap(page, dev, sel) {
   const [x, y] = await center(page, sel);
   if (dev.mobile) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y);
 }
-// basılı tutma (pointerdown … pointerup), farklı pointerId ile çoklu dokunuş
+// press and hold (pointerdown … pointerup), multi-touch with different pointerIds
 async function hold(page, sel, ms, id = 1) {
   await page.evaluate(([s, id]) => { const el = document.querySelector(s); const r = el.getBoundingClientRect(); el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, pointerId: id, pointerType: 'touch', clientX: r.x + r.width / 2, clientY: r.y + r.height / 2, isPrimary: id === 1 })); }, [sel, id]);
   if (ms) { await waitSim(page, ms / 1000); await release(page, sel, id); }
@@ -77,7 +77,7 @@ async function runCase(browser, base, dev) {
   await page.waitForFunction(() => window.__game && document.getElementById('loading').hidden, null, { timeout: 30000 });
   check((await page.title()) === "İpek'in Araba Gezisi", `${tag}: başlık yanlış`);
 
-  // --- başlangıç ekranı: renk seç, başla
+  // --- start screen: pick a colour, start
   check(await page.locator('#startOv').isVisible(), `${tag}: başlangıç ekranı yok`);
   check((await page.locator('#startOv .col').count()) === 6, `${tag}: renk seçenekleri eksik`);
   await tap(page, dev, '#startOv .col[data-c="2"]');
@@ -87,7 +87,7 @@ async function runCase(browser, base, dev) {
   await sleep(300);
   check(await page.locator('#startOv').isHidden(), `${tag}: başla düğmesi çalışmadı`);
 
-  // --- yerleşim: kontroller ekranda, birbiriyle ve üst çubukla çakışmıyor, yatay taşma yok
+  // --- layout: controls are on screen, don't overlap each other or the top bar, no horizontal overflow
   const boxes = await G(page, () => ['#gamesLink', '#stars', '#stickers', '#menuBtn', '#radar', '#cLeft', '#cRight', '#cGas', '#cBack', '#cHorn'].map(s => { const r = document.querySelector(s).getBoundingClientRect(); return { s, x: r.x, y: r.y, w: r.width, h: r.height }; }));
   for (const b of boxes) check(b.x >= 0 && b.y >= 0 && b.x + b.w <= dev.width + 1 && b.y + b.h <= dev.height + 1 && b.w > 0, `${tag}: ${b.s} ekran dışında`);
   for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
@@ -105,7 +105,7 @@ async function runCase(browser, base, dev) {
   check(s1.sp > 3 && s1.x < 72, `${tag}: otomatik gaz çalışmıyor (hız ${s1.sp.toFixed(1)})`);
   await page.screenshot({ path: path.join(OUT, `araba-${tag}-2-surus.png`) });
 
-  // --- direksiyon + gaz aynı anda (iki parmak)
+  // --- steering + gas at the same time (two fingers)
   await hold(page, '#cGas', 0, 1); await hold(page, '#cLeft', 0, 2);
   await waitSim(page, 0.9);
   const s2 = await G(page, () => ({ sp: __game.speed, h: __game.heading, gasOn: document.getElementById('cGas').classList.contains('on'), leftOn: document.getElementById('cLeft').classList.contains('on') }));
@@ -113,7 +113,7 @@ async function runCase(browser, base, dev) {
   check(s2.gasOn && s2.leftOn, `${tag}: iki parmakla aynı anda basılamıyor`);
   check(s2.sp > s1.sp + 2, `${tag}: gaz hızlandırmıyor (${s1.sp.toFixed(1)} → ${s2.sp.toFixed(1)})`);
   check(Math.abs(s2.h - s1.h) > 0.3, `${tag}: direksiyon dönmüyor`);
-  // DUR: bir dokunuş durdurur, durmaya devam eder; gaz yeniden başlatır
+  // STOP: one tap stops, it stays stopped; gas starts it again
   await hold(page, '#cBack', 150, 3);
   await waitSim(page, 1.6);
   const sp1 = await G(page, () => Math.abs(__game.speed));
@@ -121,13 +121,13 @@ async function runCase(browser, base, dev) {
   await hold(page, '#cGas', 150, 1);
   await waitSim(page, 1.2);
   check((await G(page, () => __game.speed)) > 3, `${tag}: gaza dokununca araba yeniden gitmedi`);
-  // rota boyunca yol yüksekliğinde ani düşüş yok (köprü rampaları)
+  // no sudden drop in road height along the route (bridge ramps)
   const drop = await G(page, () => { let worst = 0, at = null; const R = __game.ROUTE; for (let i = 0; i < R.length - 1; i++) { const a = R[i], b = R[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])); let prev = null; for (let k = 0; k <= n; k++) { const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n, h = __game.groundInfo(x, z).h; if (prev !== null && Math.abs(h - prev) > worst) { worst = Math.abs(h - prev); at = [x.toFixed(0), z.toFixed(0)]; } prev = h; } } return { worst, at }; });
   check(drop.worst < 1.2, `${tag}: rotada ani yükseklik değişimi ${drop.worst.toFixed(2)} (${drop.at})`);
-  // rota hiçbir binaya/ağaca/kayaya değmiyor
+  // the route doesn't touch any building/tree/rock
   const blocked = await G(page, () => { const R = __game.ROUTE, bad = []; for (let i = 0; i < R.length - 1; i++) { const a = R[i], b = R[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])); for (let k = 0; k <= n; k++) { const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n; if (__game.hitObst(x, z, __game.groundInfo(x, z).h, 1.3)) { bad.push([x.toFixed(0), z.toFixed(0)]); break; } } } return bad; });
   check(!blocked.length, `${tag}: rota engelle kesişiyor: ${JSON.stringify(blocked)}`);
-  // binaya doğru gaz: içine girmemeli, kamera da binanın içine düşmemeli
+  // gas towards a building: must not go inside, and the camera must not end up inside the building
   await G(page, () => { __game.teleport(97, 55); __game.heading = 0; });
   await hold(page, '#cGas', 0, 1);
   let inside = false, camIn = false;
@@ -142,7 +142,7 @@ async function runCase(browser, base, dev) {
   check((await G(page, () => __game.speed)) < 0, `${tag}: geri gitmiyor`);
   await tap(page, dev, '#cHorn');
 
-  // --- su engeli: kıyıdan suya doğru sür; asla suya girmemeli
+  // --- water barrier: drive from the shore towards the water; must never go into the water
   await G(page, () => { __game.teleport(-62, 22); __game.heading = Math.atan2(40, -30); });
   await hold(page, '#cGas', 0, 1);
   let wet = false;
@@ -154,7 +154,7 @@ async function runCase(browser, base, dev) {
   check(toastSeen, `${tag}: su uyarısı çıkmadı`);
   await page.screenshot({ path: path.join(OUT, `araba-${tag}-3-su.png`) });
 
-  // --- menü: yola dön, İngilizce, kapat
+  // --- menu: back to the road, English, close
   await tap(page, dev, '#menuBtn'); await sleep(200);
   check(await page.locator('#menuOv').isVisible(), `${tag}: menü açılmadı`);
   check(await G(page, () => __game.paused), `${tag}: menü açıkken oyun durmuyor`);
@@ -169,7 +169,7 @@ async function runCase(browser, base, dev) {
   await tap(page, dev, '#menuClose'); await sleep(150);
   check(!(await G(page, () => __game.paused)), `${tag}: menü kapanınca oyun devam etmiyor`);
 
-  // --- durak: ilk durağa ışınla → çıkartma + konfeti + kayıtlı Türkçe övgü
+  // --- stop: teleport to the first stop → sticker + confetti + recorded Turkish praise
   const before = clips.length;
   await G(page, () => { const s = __game.items.find(i => i.type === 'stop'); __game.teleport(s.x + 1, s.z); });
   await waitSim(page, 0.5);
@@ -189,7 +189,7 @@ async function runCase(browser, base, dev) {
   console.log(`✓ ${tag}  (test ortamında ~${fps.toFixed(0)} kare/sn)`);
 }
 
-// Gerçek kontrollerle (ok tuşları) bütün turu sür
+// Drive the whole tour with the real controls (arrow keys)
 async function autopilot(page, tag) {
   await G(page, () => { __game.teleport(74, 0); __game.heading = -Math.PI / 2; });
   await page.evaluate(() => {

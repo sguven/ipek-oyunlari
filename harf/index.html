@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
 <style>
-/* layout: ana sayfada baykuş + İpek, altında 5 harf adası (her biri harf durakları); derste üstte çubuk + adım noktaları, ortada çalışma alanı. Tek tema, deniz pasteli. */
+/* layout: home page has the owl + İpek, with 5 letter islands below (each with letter stops); in a lesson there's a bar on top + step dots, workspace in the middle. Single sea-pastel theme. */
 :root{
   --bg:#e6f4ff;--ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;--tint:#f2f8ff;
   --pink:#ff7eb6;--gold:#ffcb3d;--ok:#1f9e66;--okbg:#dcf6e9;--bad:#ffd6d6;
@@ -42,7 +42,7 @@ button,a{font-family:inherit}
 .pill:active,.lt:active,.round:active,.choice:active,.tile:active,.balloon:active{transform:translateY(3px)}
 .seg{display:inline-flex;align-items:stretch;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card)}.seg span{font:800 13px var(--body);padding:6px 4px 6px 12px;align-self:center}.seg button{font:800 13px var(--body);border:0;background:none;color:var(--ink);padding:6px 11px;cursor:pointer;min-height:40px}.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
 
-/* ana sayfa */
+/* home page */
 .hero{display:flex;align-items:center;gap:12px;background:var(--card);border:4px solid var(--ink);border-radius:30px;box-shadow:0 7px 0 var(--ink);padding:12px 14px}
 .hero .owl{width:clamp(80px,20vw,120px);flex:none}
 .hero .owl svg{width:100%;height:auto}
@@ -104,7 +104,7 @@ button,a{font-family:inherit}
 .dots3{display:flex;gap:8px}
 .dots3 i{width:20px;height:20px;border-radius:50%;border:3px solid var(--ink);background:#fff}
 .dots3 i.on{background:var(--gold)}
-/* hece balonları */
+/* syllable balloons */
 .balloons{display:flex;justify-content:center;gap:clamp(8px,3vw,22px);flex-wrap:wrap;width:100%}
 .balloon{position:relative;width:clamp(96px,26vw,140px);aspect-ratio:.82;border:none;background:none;cursor:pointer;padding:0;animation:float 3s ease-in-out infinite}
 .balloon:nth-child(2){animation-delay:-1s}.balloon:nth-child(3){animation-delay:-2s}
@@ -113,7 +113,7 @@ button,a{font-family:inherit}
 .balloon{display:grid;place-items:center}
 .balloon.pop{animation:popout .45s forwards;pointer-events:none}
 .balloon.no{animation:shake .45s;opacity:.45;pointer-events:none}
-/* harf kutuları */
+/* letter boxes */
 .slots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .slot{width:clamp(46px,12vw,64px);height:clamp(56px,14vw,76px);border-bottom:5px solid var(--ink);display:grid;place-items:center;font:700 clamp(36px,9vw,52px)/1 var(--letter)}
 .slot.fill{color:var(--ok);animation:pop .3s}
@@ -121,7 +121,7 @@ button,a{font-family:inherit}
 .tile{width:clamp(56px,14vw,74px);height:clamp(56px,14vw,74px);background:#fff3c4;border:4px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 var(--ink);font:700 clamp(34px,9vw,46px)/1 var(--letter);color:var(--ink);cursor:pointer;display:grid;place-items:center;padding:0}
 .tile.used{visibility:hidden}
 .tile.no{animation:shake .45s;background:var(--bad)}
-/* cümle */
+/* sentence */
 .sentence{display:flex;flex-wrap:wrap;gap:8px 12px;justify-content:center;font:700 clamp(32px,8.5vw,52px)/1.2 var(--letter)}
 .sentence span{cursor:pointer;border-radius:12px;padding:2px 6px;transition:background .2s}
 .sentence span.hi{background:#fff3a0}
@@ -131,7 +131,7 @@ button,a{font-family:inherit}
 .wslots{display:flex;flex-wrap:wrap;gap:8px 12px;justify-content:center;min-height:60px}
 .wslot{min-width:clamp(60px,16vw,96px);border-bottom:5px solid var(--ink);font:700 clamp(28px,7.5vw,44px)/1.3 var(--letter);text-align:center;padding-inline:4px}
 .wslot.fill{color:var(--ok);animation:pop .3s}
-/* balık avı */
+/* fishing game */
 .sea{max-width:600px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:100%;box-sizing:border-box;background:linear-gradient(#cdeeff,#86ccf5);border:4px solid var(--ink);border-radius:26px;padding:12px 8px;position:relative;overflow:hidden}
 .fish{position:relative;aspect-ratio:1.25;border:0;background:none;padding:0;cursor:pointer;display:grid;place-items:center;animation:swim 2.6s ease-in-out infinite}
 .fish svg{position:absolute;inset:0;width:100%;height:100%}
@@ -152,7 +152,7 @@ button,a{font-family:inherit}
 .car.fill{background:#ffd93d;animation:pop .35s}
 .eq{font:700 clamp(24px,6.5vw,34px)/1 var(--letter);color:var(--ink2);min-height:1.2em}
 .train.go{animation:chug 1.1s ease-in forwards}
-/* oyun parkı */
+/* playground */
 .park{border:4px solid var(--ink);border-radius:30px;box-shadow:0 6px 0 var(--ink);padding:12px;background:#fff1e0}
 .park h3{margin:0 0 10px;font:700 20px var(--display);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .park h3 .shells{margin-left:auto;font:800 15px var(--body);background:var(--card);border:3px solid var(--ink);border-radius:999px;padding:3px 10px}
@@ -285,7 +285,7 @@ const ICON={
 };
 
 /* =====================================================================
-   İÇERİK — MEB ses temelli cümle yöntemi harf grupları ve sırası
+   CONTENT — letter groups and order of the MEB sound-based sentence method
    ===================================================================== */
 const GROUPS=[['e','l','a','k','i','n'],['o','m','u','t','ü','y'],['ö','r','ı','d','s','b'],['z','ç','g','ş','c','p'],['h','v','ğ','f','j']];
 const ISLAND=[{name:'Elma Adası',c:'#ffe1e6'},{name:'Muz Adası',c:'#fff3c4'},{name:'Balık Adası',c:'#d9efff'},{name:'Çiçek Adası',c:'#f1e3ff'},{name:'Fil Adası',c:'#dcf6e9'}];
@@ -293,11 +293,11 @@ const ORDER=GROUPS.flat();
 const VOWELS='aeıioöuü';
 const NAME={b:'be',c:'ce',ç:'çe',d:'de',f:'fe',g:'ge',ğ:'yumuşak ge',h:'he',j:'je',k:'ke',l:'le',m:'me',n:'ne',p:'pe',r:'re',s:'se',ş:'şe',t:'te',v:'ve',y:'ye',z:'ze'};
 const nameOf=l=>NAME[l]||l;
-/* anahtar kelime (tanışma + çıkartma) */
+/* key word (introduction + sticker) */
 const KEY={e:['elma','🍎'],l:['lale','🌷'],a:['arı','🐝'],k:['kedi','🐱'],i:['inek','🐄'],n:['nota','🎵'],o:['otobüs','🚌'],m:['muz','🍌'],u:['uçak','✈️'],t:['tavşan','🐰'],ü:['üzüm','🍇'],y:['yıldız','⭐'],
   ö:['ördek','🦆'],r:['roket','🚀'],ı:['ırmak','🏞️'],d:['dondurma','🍦'],s:['saat','⏰'],b:['balık','🐟'],z:['zürafa','🦒'],ç:['çilek','🍓'],g:['güneş','☀️'],ş:['şemsiye','☂️'],c:['civciv','🐥'],p:['pasta','🎂'],
   h:['horoz','🐓'],v:['vapur','⛴️'],ğ:['dağ','⛰️'],f:['fil','🐘'],j:['jöle','🍮']};
-/* resim bankası: sesi bulmak için (kelime, emoji) */
+/* picture bank: for finding the sound (word, emoji) */
 const PICS=[['elma','🍎'],['ekmek','🍞'],['ev','🏠'],['eldiven','🧤'],['lale','🌷'],['limon','🍋'],['lamba','💡'],['arı','🐝'],['araba','🚗'],['ayı','🐻'],['armut','🍐'],['ay','🌙'],['ananas','🍍'],['at','🐴'],
   ['kedi','🐱'],['kalem','✏️'],['kitap','📚'],['kek','🍰'],['kuş','🐦'],['köpek','🐶'],['kalp','❤️'],['kiraz','🍒'],['kale','🏰'],['inek','🐄'],['ip','🧵'],['nota','🎵'],['nane','🌿'],
   ['otobüs','🚌'],['ok','🏹'],['orman','🌲'],['muz','🍌'],['mum','🕯️'],['maymun','🐒'],['mantar','🍄'],['mektup','✉️'],['uçak','✈️'],['uğur böceği','🐞'],
@@ -308,34 +308,34 @@ const PICS=[['elma','🍎'],['ekmek','🍞'],['ev','🏠'],['eldiven','🧤'],['
   ['şemsiye','☂️'],['şapka','👒'],['şeker','🍬'],['civciv','🐥'],['ceket','🧥'],['cüzdan','👛'],['pasta','🎂'],['patates','🥔'],['peynir','🧀'],['penguen','🐧'],['pizza','🍕'],
   ['horoz','🐓'],['havuç','🥕'],['hediye','🎁'],['hamburger','🍔'],['vapur','⛴️'],['vazo','🏺'],['fil','🐘'],['fare','🐭'],['fırça','🖌️'],['jöle','🍮'],['jaguar','🐆'],
   ['dağ','⛰️'],['ağaç','🌳'],['yağmur','🌧️'],['kurbağa','🐸'],['papağan','🦜']];
-/* okuma bankası: harfler öğrenildikçe açılır */
+/* reading bank: unlocks as letters are learned */
 const READ=[['el','✋'],['anne','👩'],['nine','👵'],['kale','🏰'],['lale','🌷'],['kek','🍰'],['inek','🐄'],['nane','🌿'],['kalkan','🛡️'],['yelkenli','⛵'],['otel','🏨'],['kutu','📦'],['yumak','🧶'],['tilki','🦊'],['koyun','🐑'],['kol','💪'],['kütük','🪵'],['köy','🏘️'],['ay','🌙'],['mum','🕯️'],['elma','🍎'],['limon','🍋'],['kalem','✏️'],['maymun','🐒'],['nota','🎵'],['mektup','✉️'],
   ['kedi','🐱'],['armut','🍐'],['araba','🚗'],['balık','🐟'],['bebek','👶'],['bal','🍯'],['ördek','🦆'],['ayı','🐻'],['saat','⏰'],['simit','🥯'],['domates','🍅'],['bisiklet','🚲'],['tren','🚂'],['robot','🤖'],['balon','🎈'],['dondurma','🍦'],['bulut','☁️'],['dünya','🌍'],['taksi','🚕'],['kelebek','🦋'],['elbise','👗'],['süt','🥛'],['arı','🐝'],['davul','🥁'],['radyo','📻'],
   ['yıldız','⭐'],['kuş','🐦'],['çiçek','🌸'],['güneş','☀️'],['gözlük','👓'],['şapka','👒'],['pasta','🎂'],['patates','🥔'],['peynir','🧀'],['çanta','👜'],['çay','🍵'],['şeker','🍬'],['kiraz','🍒'],['üzüm','🍇'],['muz','🍌'],['zil','🔔'],['gemi','🚢'],['deniz','🌊'],['çorap','🧦'],['şemsiye','☂️'],['örümcek','🕷️'],['kalp','❤️'],['top','⚽'],['kitap','📚'],['uçak','✈️'],['civciv','🐥'],['zebra','🦓'],['penguen','🐧'],
   ['ağaç','🌳'],['havuç','🥕'],['tavşan','🐰'],['fil','🐘'],['horoz','🐓'],['hediye','🎁'],['ev','🏠'],['jöle','🍮'],['fare','🐭'],['kahve','☕'],['kurbağa','🐸'],['papağan','🦜'],['dağ','⛰️'],['yağmur','🌧️'],['zürafa','🦒'],['vapur','⛴️'],['tavuk','🐔']];
-/* okuldaki ilk cümlelere benzer kısa cümleler: [cümle, doğru resim, cümlede geçen kelime] */
+/* short sentences like the first ones at school: [sentence, correct picture, word used in the sentence] */
 const SENT=[['Lale al.','🌷'],['Anne, kek al.','🍰'],['Nine, nane al.','🌿'],['Ela, el ele.','✋'],['Lale, kale al.','🏰'],['Anne, lale al.','🌷'],
   ['Ela elma al.','🍎'],['Mumu yak.','🕯️'],['Annem limon al.','🍋'],['Tilki yumak al.','🧶'],['Oya, kek ye.','🍰'],['Koyun otla.','🐑'],['Mine, limon al.','🍋'],['Ela, kalemi tut.','✏️'],['Ümit, elma ye.','🍎'],
   ['Kalem kutuda mı?','✏️'],['Ayı bal ister.','🍯'],['Dede bisiklete bin.','🚲'],['Bebek balon tut.','🎈'],['Kedi süt ister.','🥛'],['Ördek suda.','🦆'],['Balıklar suda.','🐟'],['Robot dans eder.','🤖'],['Dede radyo dinler.','📻'],['Bebek uyudu.','👶'],['Simit ile süt.','🥯'],['Sarı limon al.','🍋'],
   ['Güneş sıcak.','☀️'],['Kuşlar uçar.','🐦'],['Çiçek topla.','🌸'],['Pasta çok güzel.','🎂'],['Şapkanı tak.','👒'],['Çay sıcak.','🍵'],['Bulut beyaz.','☁️'],['Civciv cik cik öter.','🐥'],['Zebra çizgili.','🦓'],['Gemi denizde.','🚢'],['Penguen buzda kayar.','🐧'],['Zürafa çok uzun.','🦒'],['Şemsiyeni al.','☂️'],['Kiraz kırmızı.','🍒'],
   ['Tavşan havuç yer.','🥕'],['Fil su içer.','🐘'],['Horoz öter.','🐓'],['Yağmur yağıyor.','🌧️'],['Hediyeni aç.','🎁'],['Vapur gidiyor.','⛴️'],['Fare peynir sever.','🐭'],['Ağaç yeşil.','🌳'],['Kurbağa zıplar.','🐸'],['Jöle titrer.','🍮'],['Davul çal.','🥁'],['Papağan konuşur.','🦜']];
-/* harfin şekli için akılda kalan benzetmeler (yazmadan önce) */
+/* memorable comparisons for the letter's shape (before writing) */
 const SHAPE={e:'Önce ortadan düz bir çizgi, sonra yuvarlak.',l:'Upuzun, dimdik bir çizgi. Tıpkı bir mum gibi!',a:'Yuvarlak bir top, yanında bir çubuk.',k:'Uzun bir çizgi ve iki kol.',i:'Kısa bir çizgi, üstünde bir nokta.',n:'Bir çizgi ve küçük bir köprü.',
   o:'Yuvarlak bir simit gibi.',m:'Bir çizgi ve iki küçük köprü.',u:'Bir fincan gibi, yanında bir çubuk.',t:'Bir artı gibi, altı kıvrık.',ü:'Fincanın üstünde iki nokta.',y:'İki kol, biri aşağı uzanır.',
   ö:'Simidin üstünde iki nokta.',r:'Bir çizgi ve küçük bir dal.',ı:'Noktasız kısa bir çizgi.',d:'Bir top ve uzun bir çubuk.',s:'Kıvrılan küçük bir yılan gibi.',b:'Uzun bir çubuk, altında bir top.',
   z:'Üstten git, çapraz in, alttan git: zikzak!',ç:'Ağzı açık bir yuvarlak, altında küçük bir kuyruk.',g:'Bir top, çubuğu aşağıda kıvrılır.',ş:'Yılanın altında küçük bir kuyruk.',c:'Ağzı açık bir yuvarlak, bir ay gibi.',p:'Aşağı inen bir çubuk ve bir top.',
   h:'Uzun bir çizgi ve bir köprü.',v:'Bir vadi gibi: in ve çık.',ğ:'Bir g, üstünde küçük bir şapka.',f:'Bir baston ve ortadan bir çizgi.',j:'Aşağıda kıvrılan bir kanca, üstünde nokta.'};
-/* birbirine benzeyen harfler: harf avında şaşırtmaca */
+/* letters that look alike: decoys in the letter hunt */
 const LOOK={a:'eo',b:'dp',c:'çe',ç:'cs',d:'bp',e:'ac',f:'tj',g:'ğy',ğ:'gy',h:'kn',ı:'il',i:'ıj',j:'iy',k:'hl',l:'ıt',m:'nu',n:'mh',o:'öa',ö:'oü',p:'bd',r:'nv',s:'şz',ş:'sç',t:'fl',u:'ün',ü:'uö',v:'yu',y:'vg',z:'sr'};
-/* her 10 deniz kabuğunda bir deniz çıkartması */
+/* a sea sticker for every 10 seashells */
 const SEA=['🐠','🐙','🦀','🐬','🐳','🐢','🦈','🐡','🦭','🐋','🦞','🐚'];
 const SEA_NAME={'🐠':'balık','🐙':'ahtapot','🦀':'yengeç','🐬':'yunus','🐳':'balina','🐢':'kaplumbağa','🦈':'köpek balığı','🐡':'balon balığı','🦭':'fok','🐋':'mavi balina','🦞':'ıstakoz','🐚':'deniz kabuğu'};
 const letters=w=>[...w.toLocaleLowerCase('tr-TR')].filter(ch=>/[a-zçğıöşü]/.test(ch));
 const fits=(w,set)=>letters(w).every(ch=>set.has(ch));
 
 /* =====================================================================
-   DİK TEMEL HARFLER: her harf, okuldaki sıra ve yönde çizgilerden oluşur
-   kutu: 100 x 112; üst çizgi 10, orta 45, taban 80, alt 102
+   UPRIGHT PRINT LETTERS: each letter is made of strokes in the order and direction taught at school
+   box: 100 x 112; top line 10, middle 45, baseline 80, bottom 102
    ===================================================================== */
 const Ln=(x1,y1,x2,y2)=>[[x1,y1],[x2,y2]];
 function Ar(cx,cy,rx,ry,a0,a1){const p=[],n=Math.max(6,Math.ceil(Math.abs(a1-a0)/10));for(let i=0;i<=n;i++){const a=(a0+(a1-a0)*i/n)*Math.PI/180;p.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a)])}return p}
@@ -367,10 +367,10 @@ function save(){try{localStorage.setItem(KEY_,JSON.stringify(S))}catch(e){}}
 const nextIdx=()=>{const i=ORDER.findIndex(l=>!S.done[l]);return i<0?ORDER.length:i};
 const isOpen=l=>S.unlockAll||ORDER.indexOf(l)<=nextIdx();
 
-/* ---------- ses (kayıtlı övgüler + cihazın Türkçe sesi; konuşmalar sıraya girer) ---------- */
+/* ---------- sound (recorded praise + the device's Turkish voice; speech is queued) ---------- */
 let TRV=null;const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function scoreVoice(v,l){
-  /* en doğal kadın sesi öne: iPad/Mac'te indirilen "Gelişmiş/Premium" sesler, Edge'in "Natural" sesleri, Android'de Google sesi */
+  /* put the most natural female voice first: downloaded "Enhanced/Premium" voices on iPad/Mac, Edge's "Natural" voices, the Google voice on Android */
   const n=(v.name||'').toLowerCase(),u=(v.voiceURI||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
   if(/premium|enhanced|gelişmiş|geliştirilmiş|yüksek kalite|natural|neural|online/.test(n)||/premium|enhanced|neural/.test(u))s+=8;
   if(/google/.test(n))s+=4;
@@ -401,8 +401,8 @@ const bufs={};
 function clipBuf(id){const a=audioCtx(),k=curVoice()+'/'+id;if(!a)return Promise.reject();if(!bufs[k]){bufs[k]=fetch(CLIPS.base+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>new Promise((res,rej)=>a.decodeAudioData(b,res,rej)));bufs[k].catch(()=>{delete bufs[k]})}return bufs[k]}
 let clipGen=0,clipSrc=null,SQ=[],sqBusy=false,cut=false;
 function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
-/* cihaz sesi: bazı tabletlerde "konuşuyor" bilgisi takılı kalır, onend gelmez ya da ses hiç başlamaz.
-   Bu yüzden kendi sayacımızı tutarız, süreyi metnin uzunluğundan tahmin ederiz ve başlamayan konuşmayı atlarız. */
+/* device voice: on some tablets the "speaking" flag gets stuck, onend never fires or the speech never starts.
+   So we keep our own counter, estimate the duration from the text length and skip speech that never starts. */
 let ttsOn=0;
 function ttsBusy(){return ttsOn>0}
 function hush(){SQ=[];sqBusy=false;cut=false;stopClips()}
@@ -411,7 +411,7 @@ function primeTTS(){if(ttsPrimed||!hasTTS)return;ttsPrimed=true;if(!TRV)loadVoic
 ['pointerdown','touchend','click'].forEach(ev=>document.addEventListener(ev,primeTTS,{capture:true,passive:true}));
 setInterval(()=>{if(ttsOn&&hasTTS){try{if(speechSynthesis.paused)speechSynthesis.resume()}catch(e){}}},500);
 function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);let done=false;const fin=()=>{if(done)return;done=true;if(clipSrc===s)clipSrc=null;res()};s.onended=fin;setTimeout(fin,buf.duration*1000+400);clipSrc=s;try{s.start()}catch(e){fin()}})}
-let liveUtt=0; /* başlamış ve henüz bitmemiş konuşmalar */
+let liveUtt=0; /* utterances that have started and not finished yet */
 function speakTTS(text,rate,retry){return new Promise(res=>{
   if(!hasTTS)return res();if(!TRV)loadVoices();
   const r=rate||.85;let done=false,started=false,live=false;ttsOn++;
@@ -421,7 +421,7 @@ function speakTTS(text,rate,retry){return new Promise(res=>{
     u.onstart=onStart;u.onboundary=onStart;u.onend=fin;u.onerror=fin;
     if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(u)}catch(e){return fin()}
   const est=500+text.length*85/r;
-  /* başlamadıysa ve bizden başka konuşan yoksa motor takılmıştır: temizle ve bir kez daha dene */
+  /* if it hasn't started and nobody else is speaking, the engine is stuck: clear it and try once more */
   setTimeout(()=>{if(started||done)return;if(liveUtt===0){try{speechSynthesis.cancel()}catch(e){}done=true;ttsOn=Math.max(0,ttsOn-1);
     if(!retry)speakTTS(text,rate,true).then(res);else res()}},1500);
   setTimeout(fin,est+900);
@@ -439,7 +439,7 @@ function say(t,queue){
   if(!queue){SQ=[];if(!ttsBusy()){sqBusy=false;stopClips()}else cut=true}
   SQ.push(parts);pump();
 }
-const WAIT=2400; /* doğru cevaptan sonra en fazla bu kadar konuşmanın bitmesi beklenir */
+const WAIT=2400; /* after a correct answer, wait at most this long for speech to finish */
 function speechDone(maxMs){return new Promise(res=>{const t0=Date.now();(function p(){if((!sqBusy&&!SQ.length&&!ttsBusy())||Date.now()-t0>maxMs)return res();setTimeout(p,120)})()})}
 function renderVoiceSel(){const box=$('voiceSel'),vs=CLIPS.map?CLIPS.map.voices:[];box.hidden=vs.length<2;box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(curVoice()===b.dataset.voice)))}
 document.querySelectorAll('#voiceSel button').forEach(b=>b.onclick=()=>{S.voice=b.dataset.voice;save();renderVoiceSel();say('Aferin İpek!')});
@@ -485,7 +485,7 @@ function startLesson(l){
   D.gen++;Object.assign(D,{letter:l,steps:buildSteps(l),si:0,miss:0,play:null});
   show('lesson');runStep();
 }
-/* ---------- oyun parkı: öğrenilen harflerle tekrar oyunları ---------- */
+/* ---------- playground: review games with the letters learned so far ---------- */
 function trainParts(set){const a=[...set];return{C:a.filter(x=>!isV(x)&&x!=='ğ'),V:a.filter(isV)}}
 const GAMES=[
   {id:'hunt',em:'🎣',name:'Balık Avı',sub:'Harfleri yakala',ok:()=>known().length>=2,need:'2 harf öğrenince açılır',
@@ -511,7 +511,7 @@ function nextStep(){D.si++;if(D.si>=D.steps.length)(D.play?finishPlay:finishLess
 const owlSay=t=>`<div class="owlrow"><div class="owl">${OWL}</div><div class="bub">${t}</div></div>`;
 function hl(word,l){return [...word].map(ch=>ch===l?`<mark>${ch}</mark>`:ch).join('')}
 
-/* 1) TANIŞ */
+/* 1) MEET */
 function stepMeet(){
   const l=D.letter,[kw,em]=KEY[l],nm=nameOf(l);
   $('title').textContent=`${l} harfi`;
@@ -523,7 +523,7 @@ function stepMeet(){
   say([{t:line},{t:nm,rate:.7},{t:kw,rate:.8}]);
 }
 
-/* 1b) HARF AVI: denizdeki balıklardan hedef harfi taşıyanları yakala (büyük ve küçük) */
+/* 1b) LETTER HUNT: catch the fish in the sea that carry the target letter (upper and lower case) */
 const FISHC=['#ffb3d1','#ffd98a','#a8e6cf','#c9b6ff','#ffc29b','#9fd8ff'];
 const fishSvg=c=>svg(`<path d="M6 50 L24 30 L22 50 L24 70 Z" fill="${c}" ${st(3)}/><ellipse cx="57" cy="50" rx="37" ry="27" fill="${c}" ${st(3)}/><path d="M48 24 Q58 12 70 25" fill="${c}" ${st(3)}/><circle cx="81" cy="44" r="4.5" fill="${INK}"/><circle cx="82.5" cy="42.5" r="1.4" fill="#fff"/><path d="M86 56 Q90 58 88 61" stroke="${INK}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,'0 0 100 80');
 function stepHunt(){
@@ -544,7 +544,7 @@ function stepHunt(){
   say({t:`${nameOf(l)} balıklarını yakala! Büyüğü de küçüğü de olur.`});
 }
 
-/* HECE TRENİ: lokomotifteki sese doğru vagonu ekle (l + a = la) */
+/* SYLLABLE TRAIN: add the right car for the sound on the engine (l + a = la) */
 function stepTrain(){
   const set=knownSet(),{C,V}=trainParts(set);let round=0;const ROUNDS=5;
   $('title').textContent='Hece treni';
@@ -565,7 +565,7 @@ function stepTrain(){
   one();
 }
 
-/* 2) SESİ BUL */
+/* 2) FIND THE SOUND */
 function stepSound(){
   const l=D.letter;let round=0;const ROUNDS=3,used=new Set();
   const isHit=w=>l==='ğ'?w.includes('ğ'):w[0]===l;
@@ -588,7 +588,7 @@ function stepSound(){
   one();
 }
 
-/* 3) YAZ — dik temel harf, doğru sıra ve yön */
+/* 3) WRITE — upright print letter, correct order and direction */
 function stepWrite(){
   const l=D.letter,strokes=STROKES[l].map(s=>densify(s,2.2));let pass=0;const PASSES=D.steps[D.si].passes||3;
   $('title').textContent=`${l} harfini yaz`;
@@ -623,7 +623,7 @@ function stepWrite(){
     };
     cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('lostpointercapture',end);
     $('clear').onclick=()=>{ink=[];cov=strokes.map(s=>new Array(s.length).fill(false));active=0;guide();drawInk()};
-    /* gösterim: kalem harfi yazar */
+    /* demo: the pencil writes the letter */
     let demoStop=null;
     function demo(){if(reduce)return;D.lock=true;const g=D.gen;let si=0,pi=0,dead=false;const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');dot.setAttribute('r','4');dot.setAttribute('fill','#ff9f43');dot.setAttribute('stroke','#fff');svgEl.appendChild(dot);
       const trail=document.createElementNS('http://www.w3.org/2000/svg','path');trail.setAttribute('stroke','#ff9f43');trail.setAttribute('stroke-width','4');trail.setAttribute('fill','none');trail.setAttribute('stroke-linecap','round');svgEl.appendChild(trail);let d='';
@@ -658,13 +658,13 @@ function stepSyll(){
         later(async()=>{await speechDone(WAIT);if(round>=ROUNDS)nextStep();else one()},450)}
       else{if(first)D.miss++;first=false;b.classList.add('no');boop();say([{t:b.dataset.s,rate:.7},'Bir daha dene İpek!'])}
     });
-    /* hecenin nasıl oluştuğunu da söyle: l + a = la */
+    /* also say how the syllable is formed: l + a = la */
     const [a,b2]=[...right];say([{t:'Dinle.'},{t:right,rate:.7}],true);
   }
   one();
 }
 
-/* 5) KELİME: oku ve resmi bul / harflerden kelime kur */
+/* 5) WORD: read and find the picture / build the word from letters */
 function stepWord(){
   const l=D.letter,{withL,all}=D.play?(()=>{const k=knownSet(),a=READ.filter(([w])=>fits(w,k));return{withL:a,all:a}})():readable(l);let round=0;const ROUNDS=D.play?4:Math.min(3,Math.max(2,withL.length));const used=new Set();
   $('title').textContent=D.play?'Kelime avı':'Kelime oku';
@@ -696,7 +696,7 @@ function stepWord(){
   one();
 }
 
-/* 6) CÜMLE: önce birlikte oku ve resmi bul, sonra kelimeleri sıraya dizip cümleyi kendin kur */
+/* 6) SENTENCE: first read together and find the picture, then put the words in order and build the sentence yourself */
 function stepSent(){
   const l=D.letter,list=sentences(l),withL=list.filter(([s])=>letters(s).includes(l)),[s,e]=pick(withL.length?withL:list);
   $('title').textContent='Cümle oku';D.gen++;D.ans=e;D.words=s.split(' ');
@@ -712,7 +712,7 @@ function stepSent(){
     else{if(first)D.miss++;first=false;b.classList.add('no');boop();say('Bir daha dene İpek!')}
   });
   later(karaoke,400);
-  /* cümleyi kur */
+  /* build the sentence */
   function build(){
     D.gen++;$('title').textContent='Cümleyi kur';let pos=0,first2=true;
     const chips=shuffle(words.map((w,i)=>({w,i})));

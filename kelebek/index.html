@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
 <style>
-/* layout: gökyüzü + çayır; oyun ekranında üstte görev çubuğu, altında tüm ekranı kaplayan çayır ve sağ altta kavanoz. Tek tema, bilinçli olarak pastel. */
+/* layout: sky + meadow; on the game screen a task bar on top, the meadow filling the whole screen below and the jar at the bottom right. Single theme, deliberately pastel. */
 :root{
   --sky:#e6f6ff;--ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;--tint:#f2f8ff;
   --pink:#ff7eb6;--gold:#ffcb3d;--ok:#1f9e66;--okbg:#dcf6e9;--warnbg:#fff3cc;
@@ -45,7 +45,7 @@ button{font-family:inherit}
 .lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
 .seg{display:inline-flex;align-items:stretch;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card)}.seg span{font:800 13px var(--body);padding:6px 4px 6px 12px;align-self:center}.seg button{font:800 13px var(--body);border:0;background:none;color:var(--ink);padding:6px 11px;cursor:pointer;min-height:40px}.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
 
-/* çayır (hem ana sayfa sahnesi hem oyun alanı) */
+/* meadow (both the home-page scene and the play area) */
 .meadow{position:relative;border:4px solid var(--ink);border-radius:32px;box-shadow:0 8px 0 var(--ink);overflow:hidden;background:linear-gradient(#a9dcff,#e3f4ff 70%);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .meadow.home{height:clamp(200px,42vw,280px)}
 .meadow.field{height:clamp(240px,calc(100vh - 136px),940px);height:clamp(240px,calc(100dvh - 136px),940px);touch-action:none;cursor:pointer}
@@ -103,7 +103,7 @@ button{font-family:inherit}
 .hello{margin:0;font:700 18px/1.5 var(--body);color:var(--ink2);text-align:center;text-wrap:balance}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
 .tile.ai{background:linear-gradient(#f3f0ff,#fff)}
-/* Robota öğret */
+/* Teach the robot */
 .rstage{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:10px;background:linear-gradient(#e9f4ff,#f6fbff);border:4px solid var(--ink);border-radius:28px;box-shadow:0 6px 0 var(--ink);padding:12px;min-height:190px}
 .robot{display:flex;flex-direction:column;align-items:center;gap:6px}
 .robot svg{width:min(100%,190px);height:auto;overflow:visible}
@@ -148,7 +148,7 @@ button{font-family:inherit}
 .tile span{font:700 12px var(--body);color:var(--ink2);letter-spacing:.06em;text-transform:uppercase}
 .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 
-/* oyun çubuğu */
+/* game bar */
 .bar{display:flex;align-items:center;gap:10px;background:var(--card);border:4px solid var(--ink);border-radius:26px;box-shadow:0 6px 0 var(--ink);padding:7px 9px;min-height:64px;box-sizing:border-box}
 .goal{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
 .goal .gi{width:50px;height:50px;flex:none;display:grid;place-items:center}
@@ -297,10 +297,10 @@ const pick=a=>a[rnd(a.length)];
 const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cap=(s,l)=>s?s[0].toLocaleUpperCase(l==='tr'?'tr-TR':'en-US')+s.slice(1):s;
 
-/* renkler: gökkuşağı sırası (oyunun Türkçe ses kayıtlarındaki renklerle aynı) */
+/* colours: rainbow order (same as the colours in the game's Turkish voice recordings) */
 const RB=['#ff5a5a','#ff9f43','#ffd93d','#4cd17a','#4aa8ff','#5a63e0','#a66bff'];
 const RBL=['#ffc2c2','#ffd4a8','#fff1a6','#bdeecd','#c4e3ff','#c3c5f7','#e1cfff'];
-const HUNT=[0,1,2,3,4,6]; /* renk avında lacivert yok: mavi/mor ile karışmasın */
+const HUNT=[0,1,2,3,4,6]; /* no navy in the colour hunt: so it isn't confused with blue/purple */
 
 function numWord(n,lang){
   if(lang==='en'){const o=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'],t=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];if(n<20)return o[n];if(n<100)return t[Math.floor(n/10)]+(n%10?'-'+o[n%10]:'');return String(n)}
@@ -423,13 +423,13 @@ const GUIDE={
 };
 function platform(){const u=navigator.userAgent||'';if(/iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return'ios';if(/Android/.test(u))return'android';if(/Macintosh|Mac OS X/.test(u))return'mac';if(/Windows/.test(u))return'win';return'other'}
 
-/* ---------- çizimler ---------- */
+/* ---------- drawings ---------- */
 const svg=(inner,vb='0 0 100 100')=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`;
 function starPts(cx,cy,R,r){const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r:R;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1))}return p.join(' ')}
 const st=(w=4)=>`stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
 const heart=(cx,cy,s,c)=>`<path d="M${cx} ${cy+s} C${cx-s*1.7} ${cy} ${cx-s} ${cy-s*1.3} ${cx} ${cy-s*.4} C${cx+s} ${cy-s*1.3} ${cx+s*1.7} ${cy} ${cx} ${cy+s}Z" fill="${c}" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/>`;
 
-/* kanadın sol yarısı; sağ yarı aynası. sp=true: albüm kelebeğinin özel deseni */
+/* left half of the wing; the right half mirrors it. sp=true: special pattern for the album butterfly */
 const UPW='M50 46 C40 16 14 4 7 18 C1 32 14 50 50 52 Z';
 const LOW='M50 52 C30 52 14 62 18 78 C22 92 42 88 50 60 Z';
 function wingHalf(ci,sp){
@@ -491,12 +491,12 @@ const L=()=>T[S.lang];
 const level=()=>Math.min(3,1+Math.floor(S.released/16));
 const unlocked=()=>Math.min(7,Math.floor(S.stars/8));
 
-/* ---------- ses: her dil için o dile ait sesi seç; yoksa asla başka aksanla okuma ---------- */
+/* ---------- sound: for each language pick a voice for that language; otherwise never read with another accent ---------- */
 const VOICE={tr:null,en:null};let voicesChecked=false;
 const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function normLang(l){return String(l||'').toLowerCase().replace('_','-')}
 function scoreVoice(v,l){
-  /* en doğal kadın sesi öne: iPad/Mac'te indirilen "Gelişmiş/Premium" sesler, Edge'in "Natural" sesleri, Android'de Google sesi */
+  /* put the most natural female voice first: downloaded "Enhanced/Premium" voices on iPad/Mac, Edge's "Natural" voices, the Google voice on Android */
   const n=(v.name||'').toLowerCase(),u=(v.voiceURI||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
   if(/premium|enhanced|gelişmiş|geliştirilmiş|yüksek kalite|natural|neural|online/.test(n)||/premium|enhanced|neural/.test(u))s+=8;
   if(/google/.test(n))s+=4;
@@ -531,7 +531,7 @@ function renderVoiceNote(){
   $('retryVoice').onclick=watchVoices;
 }
 
-/* ---------- kayıtlı Türkçe ses: cihazın sesine bağlı kalmadan doğal Türkçe (kadın) ---------- */
+/* ---------- recorded Turkish voice: natural Turkish without depending on the device voice (female) ---------- */
 let AC=null;
 const CLIPS={base:'audio/',map:null};
 try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips&&m.voices&&m.voices.length){CLIPS.map=m;renderVoiceNote();renderVoiceSel()}}).catch(()=>{})}catch(e){}
@@ -554,7 +554,7 @@ function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=nul
 function hush(){SQ=[];sqBusy=false;stopClips();try{speechSynthesis.cancel()}catch(e){}}
 function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);let done=false;const fin=()=>{if(done)return;done=true;if(clipSrc===s)clipSrc=null;res()};s.onended=fin;setTimeout(fin,buf.duration*1000+400);clipSrc=s;try{s.start()}catch(e){fin()}})}
 function speakTTS(text){return new Promise(res=>{const v=VOICE[S.lang];if(!hasTTS||!v)return res();let done=false;const fin=()=>{if(!done){done=true;res()}};try{const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.12;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}setTimeout(fin,1800+text.length*95)})}
-/* parça: düz metin ya da {t:cümle, alt:kaydı olan kısa yedek} — Türkçe kayıt varsa onu, yoksa cihazın sesini kullanır */
+/* part: plain text or {t:sentence, alt:short fallback that has a recording} — uses the Turkish recording if there is one, otherwise the device voice */
 async function speakPart(p,gen){
   const txt=typeof p==='object'?p.t:p,alt=typeof p==='object'?p.alt:null;
   const clipOf=t=>ownVoice()&&t&&CLIPS.map.clips[t];
@@ -568,11 +568,11 @@ async function pump(){
   while(SQ.length&&gen===clipGen){const parts=SQ.shift();for(let i=0;i<parts.length;i++){if(gen!==clipGen)break;await speakPart(parts[i],gen);if(i<parts.length-1)await new Promise(r=>setTimeout(r,140))}if(SQ.length)await new Promise(r=>setTimeout(r,200))}
   if(gen===clipGen)sqBusy=false;
 }
-/* queue=false: o anki konuşmayı keser (çocuğun yeni dokunuşu); queue=true: sıraya girer */
+/* queue=false: interrupts the current speech (the child's new tap); queue=true: waits in line */
 function say(t,queue){
   if(!S.sound)return;
   const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!parts.length)return;
-  /* cihaz sesi konuşurken kesmek (speechSynthesis.cancel) iPad'de ekranı dondurabiliyor: o cümleyi bitirtip sonra konuş */
+  /* interrupting the device voice while it speaks (speechSynthesis.cancel) can freeze the screen on iPad: let that sentence finish, then speak */
   if(!queue){let tts=false;try{tts=speechSynthesis.speaking||speechSynthesis.pending}catch(e){}if(tts)SQ=[];else{SQ=[];sqBusy=false;stopClips()}}
   SQ.push(parts);pump();
 }
@@ -583,7 +583,7 @@ function renderVoiceSel(){
 }
 document.querySelectorAll('#voiceSel button').forEach(b=>b.onclick=()=>{S.voice=b.dataset.voice;save();renderVoiceSel();say(L().voiceTestSay)});
 
-/* kısa efekt sesleri (müzik yok) */
+/* short sound effects (no music) */
 function tone(f,d,t0,type,vol){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime+(t0||0),o=AC.createOscillator(),g=AC.createGain();o.type=type||'triangle';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.15,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+d+.05)}catch(e){}}
 const pling=n=>{const f=[523,587,659,698,784,880,988,1047][n%8];tone(f,.22);tone(f*1.5,.25,.07)};
 const boop=()=>{tone(330,.16,0,'sine',.12);tone(262,.22,.12,'sine',.12)};
@@ -593,7 +593,7 @@ let parts=[],fxOn=false;
 function confetti(n){if(reduce||!ctx)return;fx.width=innerWidth;fx.height=innerHeight;for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*innerWidth*.5,y:innerHeight*.4,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:5+Math.random()*7,c:RB[i%7],a:Math.random()*6,va:(Math.random()-.5)*.3,life:1,star:Math.random()<.5});if(!fxOn){fxOn=true;requestAnimationFrame(tick)}}
 function tick(){if(!ctx)return;ctx.clearRect(0,0,fx.width,fx.height);parts.forEach(p=>{p.vy+=.42;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;p.life-=.011;ctx.save();ctx.globalAlpha=Math.max(0,p.life);ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;if(p.star){ctx.beginPath();for(let i=0;i<10;i++){const r=i%2?p.r*.45:p.r,an=-Math.PI/2+i*Math.PI/5;ctx.lineTo(r*Math.cos(an),r*Math.sin(an))}ctx.fill()}else ctx.fillRect(-p.r/2,-p.r/3,p.r,p.r*.66);ctx.restore()});parts=parts.filter(p=>p.life>0&&p.y<fx.height+40);if(parts.length)requestAnimationFrame(tick);else{fxOn=false;ctx.clearRect(0,0,fx.width,fx.height)}}
 
-/* ---------- çayır sahnesi ---------- */
+/* ---------- meadow scene ---------- */
 const FLX=[7,23,41,59];
 function meadowBase(){
   return `<div class="sun">${SUN}</div><div class="cloudd" style="left:30%;top:6%;width:22%">${CLOUD}</div><div class="cloudd" style="left:66%;top:16%;width:16%">${CLOUD}</div>${GRASS}`+
@@ -606,15 +606,15 @@ function renderHomeMeadow(){
   m.querySelectorAll('.hbf').forEach(b=>b.onclick=()=>{const ci=+b.dataset.ci;say([L().isBf,L().colorSay[ci]]);pling(ci)});
 }
 
-/* ---------- oyun ---------- */
+/* ---------- game ---------- */
 let screen='home',mode='free',paused=false,locked=false,playGen=0;
 let BF=[],FLW=[],W=0,H=0,SZ=80,raf=0,lastT=0,spawnCD=0,lastTry=0,catchSeq=0;
-let CR={target:2,hits:0,done:false};  /* renk avı turu */
-let CN={n:2,hits:0,done:false};       /* say ve yakala turu */
+let CR={target:2,hits:0,done:false};  /* colour hunt round */
+let CN={n:2,hits:0,done:false};       /* count and catch round */
 
 function later(fn,ms){const g=playGen;setTimeout(function w(){if(g!==playGen||screen!=='play')return;if(paused){setTimeout(w,300);return}fn()},ms)}
 
-/* kelebek ağı: tahta sap + çember + file torba. Çemberin merkezi (50,45) dokunulan noktaya gelir. */
+/* butterfly net: wooden handle + hoop + mesh bag. The centre of the hoop (50,45) goes to the tapped point. */
 const NET_SVG=`<svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="mesh" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 H7 M0 0 V7" stroke="#8a7aa8" stroke-width="1.1" fill="none" opacity=".75"/></pattern></defs>
 <path d="M80 66 L114 192" stroke="#3b2a5c" stroke-width="11" stroke-linecap="round"/><path d="M80 66 L114 192" stroke="#c98a4b" stroke-width="6.5" stroke-linecap="round"/><path d="M104 152 L110 175" stroke="#e8b27a" stroke-width="2.4" stroke-linecap="round"/>
 <path d="M12 46 C10 92 34 118 52 116 C72 114 90 90 88 46 Z" fill="#ffffff" fill-opacity=".55" stroke="#3b2a5c" stroke-width="3" stroke-linejoin="round"/><path d="M12 46 C10 92 34 118 52 116 C72 114 90 90 88 46 Z" fill="url(#mesh)"/>
@@ -631,7 +631,7 @@ function setupField(){
 
   renderJar();measure();restNet(true);$('net').classList.add('idle');
 }
-/* ağı parmakla tutup sürükle: çember kelebeğin üstünden geçince yakalar */
+/* hold the net with a finger and drag: it catches a butterfly when the hoop passes over it */
 let netDrag=null,lastNetHint=0;
 function netGrab(e,px,py){
   const f=$('field'),n=$('net');try{f.setPointerCapture(e.pointerId)}catch(_){}
@@ -649,7 +649,7 @@ function netMove(e){
   netDrag.lx=x;netDrag.ly=y;netDrag.t=now;
 }
 function netRelease(e){if(!netDrag||(e&&e.pointerId!==netDrag.id))return;netDrag=null;const n=$('net');if(n)n.classList.remove('grab');$('field').classList.remove('nethold');placeNet(netPos.x,netPos.y,0)}
-/* çemberin geçtiği yol üzerindeki kelebekleri yakala */
+/* catch the butterflies on the path the hoop passed through */
 function netSweep(x0,y0,x1,y1){
   if(locked||paused)return;const R=netSize()*.26+SZ*.15,now=Date.now(),dx=x1-x0,dy=y1-y0,L2=dx*dx+dy*dy||1;
   for(const b of BF.slice()){if(b.state==='leave')continue;
@@ -717,7 +717,7 @@ function update(dt){
       if(d<5){b.x=tx;b.y=ty;b.state='rest';b.rt=[3.2,2.4,1.6][level()-1]+Math.random();b.el.classList.add('rest');b.vx=0;b.vy=0;place(b);continue}
       const v=Math.min(s*.9,d*2.2+20);b.vx=dx/d*v;b.vy=dy/d*v;b.x+=b.vx*dt;b.y+=b.vy*dt;place(b);continue;
     }
-    /* uçuş: yumuşak gezinme + kenarlardan içeri itme */
+    /* flight: gentle wandering + pushing back in from the edges */
     b.landCD-=dt;
     b.wa+=(Math.random()-.5)*4*dt;
     let fxx=0,fyy=0;
@@ -736,7 +736,7 @@ function update(dt){
     }
     place(b);
   }
-  /* eksik kelebekleri tek tek getir */
+  /* bring in the missing butterflies one by one */
   spawnCD-=dt;
   if(!locked&&spawnCD<=0){
     const active=BF.filter(b=>b.state!=='leave');
@@ -766,7 +766,7 @@ function onFieldDown(e){
   e.preventDefault();
   const r=$('field').getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
   if(e.target&&e.target.closest&&e.target.closest('.net')){netGrab(e,px,py);return}
-  /* ağ dışına dokunmak bir şey yakalamaz: ağı göster ve hatırlat */
+  /* tapping outside the net catches nothing: show the net and remind */
   const n=$('net');if(n){n.classList.remove('idle');void n.offsetWidth;n.classList.add('idle')}
   const now=Date.now();if(now-lastNetHint>4000){lastNetHint=now;say({t:L().netHint})}
 }
@@ -794,7 +794,7 @@ function catchBf(b,px,py){
   const inJar=S.jar.length;
   sparkleAt(b.x,b.y);pling(inJar-1);
   const j=jarPoint();b.el.classList.remove('rest');b.el.classList.add('caught');
-  /* önce ağın içine girer, sonra kavanoza uçar */
+  /* first goes into the net, then flies to the jar */
   b.el.style.transition='transform .16s ease-out';b.el.style.transform=`translate3d(${(px-SZ/2).toFixed(1)}px,${(py+netSize()*.3-SZ/2).toFixed(1)}px,0) scale(.55)`;
   setTimeout(()=>{b.el.style.transition='';b.el.style.transform=`translate3d(${(j.x-SZ/2).toFixed(1)}px,${(j.y-SZ/2).toFixed(1)}px,0) scale(.3)`;b.el.style.opacity='.2'},reduce?0:360);
   setTimeout(()=>{b.el.remove();if(screen==='play')renderJar(inJar-1)},reduce?0:980);
@@ -809,7 +809,7 @@ function catchBf(b,px,py){
     if(CN.hits>=CN.n){CN.done=true;S.countRounds++;save();say(pick(l.praise),true);confetti(50);later(newCountRound,1600)}
   }
 }
-/* İpek istediği zaman kavanozu boşaltır: uçan her kelebek = 1 yıldız; her 8 yıldızda albüme yeni kelebek */
+/* İpek empties the jar whenever she wants: each butterfly that flies away = 1 star; a new butterfly in the album every 8 stars */
 function emptyJar(){
   const n=S.jar.length;if(!n||screen!=='play')return;
   const f=$('field'),j=jarPoint(),list=S.jar.slice(),l=L();
@@ -866,8 +866,8 @@ function startPlay(m){
 }
 
 /* =====================================================================
-   ROBOTA ÖĞRET — yapay zekâya ilk adım: robot örneklerden öğrenir
-   (en yakın komşu: aynı renk için İpek'in gösterdiği çiçek; görmediği renk = "bilmiyorum")
+   TEACH THE ROBOT — a first step into AI: the robot learns from examples
+   (nearest neighbour: for the same colour, the flower İpek showed; a colour it hasn't seen = "I don't know")
    ===================================================================== */
 function robotSvg(small,mood){
   const m=mood||'ok',eyesY=small?0:0;
@@ -878,7 +878,7 @@ function robotSvg(small,mood){
   <rect x="6" y="44" width="8" height="22" rx="4" fill="#a9b6f0" ${st(3)}/><rect x="86" y="44" width="8" height="22" rx="4" fill="#a9b6f0" ${st(3)}/>
   ${small?'':`<rect x="28" y="86" width="44" height="10" rx="4" fill="#a9b6f0" ${st(3)}/>`}`,small?'0 0 100 90':'0 0 100 100');
 }
-const AI_COLORS=[0,2,4,6]; /* kırmızı, sarı, mavi, mor */
+const AI_COLORS=[0,2,4,6]; /* red, yellow, blue, purple */
 const AI={gen:0,ex:[],phase:'intro',cur:null,streak:0,turns:0,guess:null,busy:false};
 function aiPredict(ci){
   const same=AI.ex.filter(e=>e.ci===ci);if(!same.length)return null;
@@ -908,7 +908,7 @@ function aiRobot(mood,bubble,scan){
   $('rNote').textContent=L().ai.note(n);
 }
 function aiPickColor(){
-  /* öğretme: önce iki farklı renk; robot sırası: çoğunlukla gördüğü renkler, arada bir hiç görmediği renk */
+  /* teaching: two different colours first; robot's turn: mostly colours it has seen, now and then a colour it has never seen */
   const seen=[...new Set(AI.ex.map(e=>e.ci))];
   if(AI.phase==='teach'){const unseen=AI_COLORS.filter(c=>!seen.includes(c));return AI.ex.length<3&&unseen.length?pick(unseen):pick(seen.length?seen:AI_COLORS)}
   const unseen=AI_COLORS.filter(c=>!seen.includes(c));
@@ -922,7 +922,7 @@ function aiNext(){
   if(AI.phase==='teach'){
     $('rPrompt').textContent=l.teachT;aiRobot('ok',null);aiRenderHomes(true);say({t:l.teach},true);return;
   }
-  /* robotun sırası */
+  /* robot's turn */
   AI.turns++;AI.guess=aiPredict(AI.cur);
   $('rPrompt').textContent=l.think;aiRobot('think',l.think,true);aiRenderHomes(false);tone(660,.1);tone(880,.1,.15);
   aiLater(()=>{

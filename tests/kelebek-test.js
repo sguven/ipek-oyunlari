@@ -1,7 +1,7 @@
-// İpek'in Kelebek Bahçesi için otomatik test.
-// Çalıştırma:  cd tests && npm install && node kelebek-test.js
-// Oyun birkaç telefon/tablet/masaüstü boyutunda dokunarak oynanır: üç mod, kavanoz dolumu,
-// ödül ve serbest bırakma, albüm, dil değişimi, Türkçe konuşmaların hepsinin kayıtlı sesten gelmesi.
+// Automated test for İpek's Butterfly Garden.
+// Run:  cd tests && npm install && node kelebek-test.js
+// The game is played by touch at several phone/tablet/desktop sizes: three modes, filling the jar,
+// reward and release, album, switching language, and every Turkish line coming from recorded audio.
 const { chromium } = require('playwright');
 const http = require('http');
 const fs = require('fs');
@@ -40,7 +40,7 @@ function check(ok, msg) { if (!ok) fails.push(msg); }
 async function tapAt(page, dev, x, y) {
   if (dev.mobile) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y);
 }
-// ağı elle tutup kelebeğe götür: ağı önce hedefin 70 px soluna koy (yolda başka kelebek süpürmesin), sonra çemberden tutup sürükle
+// carry the net to the butterfly by hand: first place the net 70 px left of the target (so it doesn't sweep up other butterflies on the way), then grab the hoop and drag
 async function netTo(page, dev, x, y) {
   const r = await page.evaluate(([x, y]) => { const f = document.getElementById('field').getBoundingClientRect(); const fx = x - f.left, fy = y - f.top; const sx = fx > 120 ? fx - 70 : fx + 70; placeNet(sx, fy, 0, true); return { x: f.left + sx, y: f.top + fy }; }, [x, y]);
   await page.mouse.move(r.x, r.y); await page.mouse.down();
@@ -63,7 +63,7 @@ async function tapSel(page, dev, sel) {
   }
   await tapAt(page, dev, b.x + b.width / 2, b.y + b.height / 2);
 }
-// Kelebeğin ekrandaki merkezi (oyunun kendi konum bilgisinden)
+// The butterfly's centre on screen (from the game's own position data)
 async function butterflies(page) {
   return page.evaluate(() => {
     const r = document.getElementById('field').getBoundingClientRect();
@@ -108,7 +108,7 @@ async function runCase(browser, base, dev, deep) {
   });
   await page.goto(base + '/kelebek/', { waitUntil: 'load' });
   await waitFor(page, () => !!CLIPS.map);
-  // Türkçe her konuşma kayıtlı klipten mi? say() sarmalayıp kontrol et
+  // Is every Turkish line from a recorded clip? Wrap say() and check
   await page.evaluate(() => {
     const orig = window.say;
     window.say = function (t, q) { const p = (Array.isArray(t) ? t : [t]).filter(Boolean); if (S.lang === 'tr') p.forEach(x => { if (!CLIPS.map.clips[x]) window.__missing.push(x); }); return orig(t, q); };
@@ -118,7 +118,7 @@ async function runCase(browser, base, dev, deep) {
   check((await page.title()).includes('Kelebek'), `${tag}: başlık yanlış`);
   await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-home.png`), fullPage: true });
 
-  // --- Kelebek yakala: kavanozu doldur, ödül, serbest bırak
+  // --- Catch butterflies: fill the jar, reward, release
   await tapSel(page, dev, '.tile[data-mode="free"]');
   await sleep(500);
   check(await page.locator('#field').isVisible(), `${tag}: çayır görünmüyor`);
@@ -127,12 +127,12 @@ async function runCase(browser, base, dev, deep) {
   check(!(await overflow()), `${tag}: oyun ekranı yatay taşıyor`);
   await sleep(1500);
   await page.screenshot({ path: path.join(OUT, `kelebek-${tag}-free.png`) });
-  // kelebeğe doğrudan dokunmak yakalamamalı, ağ oraya kendiliğinden gelmemeli
+  // tapping a butterfly directly must not catch it, and the net must not move there by itself
   { const bl = await butterflies(page); if (bl[0]) { const c0 = await page.evaluate(() => S.caught), n0 = await page.evaluate(() => ({ ...netPos })); await tapAt(page, dev, bl[0].x, bl[0].y); await sleep(150); check((await page.evaluate(() => S.caught)) === c0, `${tag}: dokununca yakaladı (ağ sürüklenmeden)`); const n1 = await page.evaluate(() => ({ ...netPos })); check(n0.x === n1.x && n0.y === n1.y, `${tag}: ağ dokunulan yere kendiliğinden gitti`); } }
   const goal0 = deep ? 10 : 3, cStart = await page.evaluate(() => S.caught);
-  // ağ bir seferde birden çok kelebek yakalayabilir: hedef sayıya ulaşana kadar süpür
+  // the net can catch several butterflies at once: sweep until the target count is reached
   for (let i = 0; i < goal0 * 2 && (await page.evaluate(() => S.caught)) - cStart < goal0; i++) check(await catchOne(page, dev), `${tag}: ${i + 1}. kelebek yakalanamadı`);
-  await sleep(1300); // kelebek önce ağa, sonra kavanoza uçar
+  await sleep(1300); // the butterfly flies into the net first, then to the jar
   const goal = await page.evaluate(() => S.jar.length);
   check(goal >= goal0, `${tag}: yeterince yakalanmadı ${goal}`);
   const jarTxt = await page.locator('#jarLbl').textContent();
@@ -157,7 +157,7 @@ async function runCase(browser, base, dev, deep) {
   await tapSel(page, dev, '#backBtn');
   await sleep(300);
 
-  // --- Renk avı: önce yanlış renk, sonra 3 doğru
+  // --- Colour hunt: a wrong colour first, then 3 correct ones
   await tapSel(page, dev, '.tile[data-mode="color"]');
   await sleep(1500);
   const target = await page.evaluate(() => CR.target);
@@ -183,7 +183,7 @@ async function runCase(browser, base, dev, deep) {
   await tapSel(page, dev, '#backBtn');
   await sleep(300);
 
-  // --- Say ve yakala
+  // --- Count and catch
   await tapSel(page, dev, '.tile[data-mode="count"]');
   await sleep(1200);
   const n = await page.evaluate(() => CN.n);
@@ -192,7 +192,7 @@ async function runCase(browser, base, dev, deep) {
   for (let i = 0; i < n * 2 && !(await page.evaluate(() => CN.done)); i++) check(await catchOne(page, dev), `${tag}: sayma ${i + 1} yakalanamadı`);
   check(await page.evaluate(() => CN.hits === CN.n), `${tag}: sayma fazla yakaladı`);
   check(await page.evaluate(() => CN.done), `${tag}: sayma turu bitmedi`);
-  // tur bitince fazladan yakalama olmamalı
+  // no extra catches after the round ends
   const c0 = await page.evaluate(() => S.caught);
   const bl = await butterflies(page); if (bl[0]) await netTo(page, dev, bl[0].x, bl[0].y);
   await sleep(100);
@@ -201,7 +201,7 @@ async function runCase(browser, base, dev, deep) {
   await tapSel(page, dev, '#backBtn');
   await sleep(300);
 
-  // --- Albüm, ebeveyn paneli, dil
+  // --- Album, parent panel, language
   await tapSel(page, dev, '#albumBtn'); await sleep(300);
   check(!(await page.locator('#albumOv').isHidden()), `${tag}: albüm açılmadı`);
   check((await page.locator('.alb.got').count()) === (await page.evaluate(() => Math.min(7, Math.floor(S.stars / 8)))), `${tag}: albümde açılan kelebek sayısı yanlış`);
@@ -217,7 +217,7 @@ async function runCase(browser, base, dev, deep) {
   await tapSel(page, dev, '#backBtn'); await sleep(200);
   await tapSel(page, dev, '#lang-tr'); await sleep(200);
 
-  // --- yenileyince ilerleme kalıyor mu
+  // --- does progress survive a reload
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')));
   await page.reload(); await sleep(500);
   check((await page.evaluate(() => S.caught)) === saved.caught, `${tag}: ilerleme kaydedilmedi`);

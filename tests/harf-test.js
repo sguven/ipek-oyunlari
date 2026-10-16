@@ -1,5 +1,5 @@
-// İpek'in Harf Adaları testi: içerik denetimi, harf çizgileri sayfası, dersler baştan sona (yazma dahil), oyun parkı, yerleşim.
-// node harf-test.js [--only=cihaz] [--letters=N]  (masaüstünde 29 harfin hepsi sessiz oynanır; diğer cihazlarda ilk N harf sesli)
+// Test for İpek's Letter Islands: content checks, letter-strokes page, lessons from start to finish (including writing), playground, layout.
+// node harf-test.js [--only=device] [--letters=N]  (on desktop all 29 letters are played silently; on other devices the first N letters with sound)
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..'), OUT = path.join(__dirname, 'out');
@@ -18,7 +18,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
   const base = 'http://127.0.0.1:' + srv.address().port;
   const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 
-  /* 1) içerik denetimi + harf çizgileri sayfası */
+  /* 1) content checks + letter-strokes page */
   {
     const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
     await page.goto(base + '/harf/'); await sleep(300);
@@ -35,15 +35,15 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
         const st = H.buildSteps(l).map(s => s.k);
         per[l] = { steps: st.join(','), sy: H.syllables(l).length, rd: H.readable(l).withL.length, se: H.sentences(l).length };
       }
-      // her kelime/cümle emojisi boş olmasın, kelimeler tekrar etmesin
+      // no word/sentence emoji may be empty, and words must not repeat
       const seen = new Set(); H.READ.forEach(([w, e]) => { if (!e) out.push('emoji yok ' + w); if (seen.has(w)) out.push('tekrar kelime ' + w); seen.add(w) });
-      // her grup sonunda en az bir cümle okunabilmeli
+      // at least one sentence must be readable at the end of each group
       H.GROUPS.forEach(g => { const l = g[g.length - 1]; if (!H.sentences(l).length) out.push('grup sonunda cümle yok: ' + l) });
       return { out, per };
     });
     audit.out.forEach(m => fails.push('içerik: ' + m));
     console.log('Ders adımları:'); for (const [l, v] of Object.entries(audit.per)) console.log(`  ${l}: ${v.steps}  (hece ${v.sy}, kelime ${v.rd}, cümle ${v.se})`);
-    // bütün harflerin dik temel harf çizgileri tek sayfada (gözle kontrol)
+    // the upright print strokes of all letters on one page (visual check)
     await page.evaluate(() => {
       const H = __harf; const cols = ['#ff5a8a', '#4aa8ff', '#1f9e66', '#ff9f43'];
       document.body.innerHTML = '<div id="sheet" style="display:grid;grid-template-columns:repeat(8,130px);gap:6px;padding:10px;background:#fff">' + H.ORDER.map(l => {
@@ -78,7 +78,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       const [x1, y1] = P(pts[pts.length - 1]); await page.mouse.move(x1, y1); await page.mouse.up();
     }
 
-    // bir dersi ya da oyunu doneOv görünene kadar oynar; wrongOnce: her adım türünde bir kez yanlış dener
+    // plays a lesson or game until doneOv appears; wrongOnce: tries one wrong answer for each step type
     async function playThrough(label, wrongKinds) {
       const t0 = Date.now(); let lastGen = -1, acted = 0;
       while (Date.now() - t0 < 240000) {
@@ -117,7 +117,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
           return true;
         }
         case 'sound': case 'word': case 'sent': {
-          if (await page.locator('.wchip').count()) { // cümle kurma
+          if (await page.locator('.wchip').count()) { // building a sentence
             await shot('7-cumle-kur');
             const words = await page.evaluate(() => __harf.D.words);
             if (wrong && words.length > 1) { await tapL(page.locator('.wchip:not(.used)', { hasText: words[words.length - 1] }).last()); await sleep(150); }
@@ -167,7 +167,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       check((await page.title()) === "İpek'in Harf Adaları", `${tag}: başlık`);
       check(!(await overflow()), `${tag}: ana sayfa taşıyor`);
       await page.screenshot({ path: path.join(OUT, `harf-${tag}-0-ana.png`), fullPage: true });
-      // kilitli harfe dokunmak ders açmamalı
+      // tapping a locked letter must not open a lesson
       await tap('.lt[data-l="l"]'); await sleep(200);
       check(await page.locator('#lesson').isHidden(), `${tag}: kilitli harf açıldı`);
       if (dev.all) await page.evaluate(() => { __harf.S.sound = false });
@@ -187,7 +187,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       const learned = await page.evaluate(() => Object.keys(__harf.S.done).length);
       check(learned === nLetters, `${tag}: öğrenilen ${learned}/${nLetters}`);
       await page.screenshot({ path: path.join(OUT, `harf-${tag}-9-harita.png`), fullPage: true });
-      // oyun parkı
+      // playground
       for (const g of ['hunt', 'train', 'read', 'write']) {
         const ok = await page.evaluate(g => __harf.GAMES.find(x => x.id === g).ok(), g);
         if (!ok) continue;

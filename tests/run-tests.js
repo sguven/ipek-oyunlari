@@ -1,7 +1,7 @@
-// Minik Kâşif ve Pırıl'ın Gökkuşağı için otomatik testler.
-// Çalıştırma:  cd tests && npm install && npm test
-// Her oyun birkaç telefon/tablet/masaüstü boyutunda, dokunmatik olarak oynanır;
-// görünüm, ses, ödüller, diller ve hatalar kontrol edilir.
+// Automated tests for Little Explorer and Sparkle's Rainbow.
+// Run:  cd tests && npm install && npm test
+// Each game is played by touch at several phone/tablet/desktop sizes;
+// layout, sound, rewards, languages and errors are checked.
 const { chromium } = require('playwright');
 const http = require('http');
 const fs = require('fs');
@@ -38,7 +38,7 @@ const GAMES = {
   },
 };
 
-/* ---------- küçük statik sunucu ---------- */
+/* ---------- small static server ---------- */
 const TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mp3': 'audio/mpeg', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 function serve() {
   return new Promise(res => {
@@ -54,7 +54,7 @@ function serve() {
   });
 }
 
-/* ---------- sayfaya enjekte edilen ölçüm kodu ---------- */
+/* ---------- measurement code injected into the page ---------- */
 const PROBE = () => {
   window.__probe = { starts: [], tones: 0, speech: [], audioEls: [] };
   const P = window.__probe;
@@ -76,7 +76,7 @@ const PROBE = () => {
   }
 };
 
-/* ---------- görünüm kontrolleri (sayfada çalışır) ---------- */
+/* ---------- layout checks (run in the page) ---------- */
 const LAYOUT = () => {
   const W = innerWidth, H = innerHeight, issues = [];
   const vis = el => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' && !el.closest('[hidden]'); };
@@ -123,11 +123,11 @@ const LAYOUT = () => {
   return issues;
 };
 
-/* ---------- yardımcılar ---------- */
+/* ---------- helpers ---------- */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 async function tap(page, dev, sel) {
   const el = typeof sel === 'string' ? page.locator(sel).first() : sel;
-  // ödül penceresi geç açıldıysa önce onu kapat (çocuk da önce onu görür)
+  // if the reward window opened late, close it first (the child sees it first too)
   if (sel !== '#rewardGo' && await page.locator('#rewardOv').isVisible() && !(await el.evaluate(n => !!n.closest('#rewardOv')).catch(() => false))) {
     await page.locator('#rewardGo').click({ timeout: 5000 }); await page.clock.runFor(600);
   }
@@ -163,14 +163,14 @@ async function answerRound(page, dev, wrongFirst) {
   await tap(page, dev, btns.nth(ci));
   const cls = await btns.nth(ci).getAttribute('class');
   if (!/\bok\b/.test(cls)) problems.push('doğru cevap işaretlenmedi');
-  // sonraki soru, önceki konuşma bitince gelir (sesler üst üste binmesin); en fazla ~9 sn bekle
+  // the next question comes after the previous speech ends (so sounds don't overlap); wait at most ~9 s
   await page.evaluate(() => { window.__lastQ = Q; });
   for (let i = 0; i < 18; i++) { await advance(page, 500); if (await page.evaluate(() => Q !== window.__lastQ || !document.getElementById('rewardOv').hidden)) break; await sleep(150); }
   await advance(page, 400);
   return { problems, cat: q.cat };
 }
 
-/* ---------- tek oyun + tek cihaz ---------- */
+/* ---------- one game + one device ---------- */
 async function runCase(browser, base, gameKey, dev) {
   const G = GAMES[gameKey];
   const res = { game: gameKey, device: dev.name, fails: [], warns: [], notes: [] };
@@ -208,7 +208,7 @@ async function runCase(browser, base, gameKey, dev) {
   if (!/İpek/.test(homeText)) fail('ana sayfada İpek adı yok');
   await layout('ana sayfa'); await shot('1-ana');
 
-  // ilk dokunuş: ses motoru açılmalı ve soru kayıttan okunmalı
+  // first tap: the sound engine must start and the question must be read from a recording
   await tap(page, dev, '.tile[data-mode="mix"]');
   await advance(page, 900); await sleep(400); await advance(page, 300);
   const p1 = await page.evaluate(() => ({ starts: __probe.starts.slice(), speech: __probe.speech.slice(), ctx: typeof AC !== 'undefined' && AC ? AC.state : 'yok' }));
@@ -222,7 +222,7 @@ async function runCase(browser, base, gameKey, dev) {
   else if ((await page.evaluate(() => __probe.starts.filter(s => s.dur > 0.2).length)) < 2) fail('karşılamadan sonra soru okunmadı');
   await layout('soru ekranı'); await shot('2-soru');
 
-  // oyun turları
+  // game rounds
   const rounds = QUICK ? 6 : dev.deep ? 45 : 12;
   const cats = {}; let rewards = 0;
   for (let r = 0; r < rounds; r++) {
@@ -255,11 +255,11 @@ async function runCase(browser, base, gameKey, dev) {
   if (!new RegExp(String(rounds)).test(panel)) fail('ebeveyn panelinde toplam doğru sayısı yok');
   await tap(page, dev, '[data-close="parentOv"]'); await advance(page, 200);
 
-  // ses seçimi: Erkek
+  // voice choice: Erkek
   await tap(page, dev, '#voiceSel [data-voice="erkek"]'); await advance(page, 1500); await sleep(300);
   if (!mp3.some(u => u.includes('/erkek/'))) fail('Erkek seçilince Erkek kaydı çalınmadı');
 
-  // ses kapalı: hiçbir kayıt çalmamalı
+  // sound off: no recording may play
   await tap(page, dev, '#soundBtn'); await advance(page, 200);
   const before = await page.evaluate(() => __probe.starts.length);
   await tap(page, dev, '.tile[data-mode="mix"]'); await advance(page, 1500);
@@ -268,7 +268,7 @@ async function runCase(browser, base, gameKey, dev) {
   await tap(page, dev, '#backBtn'); await advance(page, 200);
   await tap(page, dev, '#soundBtn'); await advance(page, 200);
 
-  // İngilizce
+  // English
   await tap(page, dev, '#lang-en'); await advance(page, 400);
   if ((await page.title()) !== G.title.en) fail('İngilizceye geçince başlık değişmedi');
   if (await page.locator('#voiceSel').isVisible()) fail('İngilizcede Türkçe ses seçimi görünmemeli');
@@ -277,7 +277,7 @@ async function runCase(browser, base, gameKey, dev) {
   await layout('İngilizce ana sayfa'); await shot('6-en');
   await tap(page, dev, '#lang-tr'); await advance(page, 300);
 
-  // sıfırlama (iki dokunuş)
+  // reset (two taps)
   await tap(page, dev, '#parentBtn'); await advance(page, 200);
   await tap(page, dev, '#resetBtn'); await advance(page, 100); await tap(page, dev, '#resetBtn'); await advance(page, 200);
   const st2 = await page.evaluate(k => JSON.parse(localStorage.getItem(k) || '{}'), G.stateKey);

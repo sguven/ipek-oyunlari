@@ -1,5 +1,5 @@
-// Kelebek oyunu "Robota öğret" modu testi: tutarlı bir kuralla öğret, robotun tahminlerini dürüstçe değerlendir,
-// robot öğrenip bitirmeli; yerleşim taşmamalı; hata olmamalı.
+// Test for the butterfly game's "Teach the robot" mode: teach with a consistent rule, judge the robot's guesses honestly,
+// the robot must learn and finish; layout must not overflow; no errors.
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..'), OUT = path.join(__dirname, 'out');
@@ -8,7 +8,7 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.json': 'application/json'
 const DEVICES = [{ name: 'iphone-se', width: 375, height: 667, mobile: true }, { name: 'ipad', width: 820, height: 1180, mobile: true }, { name: 'telefon-yatay', width: 844, height: 390, mobile: true }, { name: 'masaustu', width: 1280, height: 800, mobile: false }];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
-const rule = ci => (ci <= 2 ? 0 : 1); // kırmızı/sarı → pembe, mavi/mor → mavi
+const rule = ci => (ci <= 2 ? 0 : 1); // red/yellow → pink, blue/purple → blue
 (async () => {
   const srv = http.createServer((q, r) => { let p = decodeURIComponent(new URL(q.url, 'http://x').pathname); if (p.endsWith('/')) p += 'index.html'; const f = path.join(ROOT, p); if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); return r.end(); } r.writeHead(200, { 'content-type': TYPES[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(r); });
   await new Promise(r => srv.listen(0, '127.0.0.1', r));

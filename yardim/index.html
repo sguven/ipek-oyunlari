@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
 <style>
-/* layout: ana sayfada yardım ağacı sahnesi + 3 mod kutusu; oyunda üstte görev çubuğu, ortada sahne (arkadaş / tabaklar / park), altta seçenekler. Tek tema, sıcak pastel. */
+/* layout: helping-tree scene + 3 mode boxes on the home page; in the game a task bar on top, the scene in the middle (friend / plates / park), choices at the bottom. Single warm pastel theme. */
 :root{
   --bg:#fff1dc;--ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;--tint:#fff7ec;
   --pink:#ff7eb6;--gold:#ffcb3d;--ok:#1f9e66;--okbg:#dcf6e9;
@@ -44,7 +44,7 @@ button,a{font-family:inherit}
 .lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
 .seg{display:inline-flex;align-items:stretch;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card)}.seg span{font:800 13px var(--body);padding:6px 4px 6px 12px;align-self:center}.seg button{font:800 13px var(--body);border:0;background:none;color:var(--ink);padding:6px 11px;cursor:pointer;min-height:40px}.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
 
-/* ana sayfa sahnesi: yardım ağacı */
+/* home page scene: helping tree */
 .treebox{position:relative;border:4px solid var(--ink);border-radius:32px;box-shadow:0 8px 0 var(--ink);overflow:hidden;background:linear-gradient(#cfeaff,#eef8ff 62%,#bfe6a0 62%,#a6d987);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:end;gap:8px;padding:12px 14px 0}
 .treebox .tree svg{width:100%;height:auto;display:block;max-height:260px;min-height:150px}
 .treebox .friends{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-self:end;padding-bottom:10px}
@@ -60,7 +60,7 @@ button,a{font-family:inherit}
 .tile span{font:700 12px var(--body);color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;text-align:center}
 .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 
-/* oyun çubuğu */
+/* game bar */
 .bar{display:flex;align-items:center;gap:10px;background:var(--card);border:4px solid var(--ink);border-radius:26px;box-shadow:0 6px 0 var(--ink);padding:7px 9px;min-height:64px;box-sizing:border-box}
 .bar h2{flex:1;min-width:0;margin:0;font:700 clamp(18px,4.4vw,28px)/1.15 var(--display);text-wrap:balance}
 .round{width:52px;height:52px;border-radius:50%;border:4px solid var(--ink);cursor:pointer;flex:none;display:grid;place-items:center;padding:0;box-shadow:0 4px 0 var(--ink);background:var(--card)}
@@ -87,7 +87,7 @@ button,a{font-family:inherit}
 .hearts{display:flex;gap:4px;justify-content:center;min-height:26px}
 .hearts svg{width:26px;height:26px}
 
-/* paylaş */
+/* share */
 .share{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
 .basket{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;background:#fff7e6;border:4px solid var(--ink);border-radius:20px 20px 40px 40px;padding:8px 12px;min-height:58px;min-width:160px;box-shadow:0 4px 0 var(--ink)}
 .basket svg,.plate .cookies svg{width:clamp(30px,7vw,44px);height:auto}
@@ -213,14 +213,14 @@ const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[
 const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cap=(s,l)=>s?s[0].toLocaleUpperCase(l==='tr'?'tr-TR':'en-US')+s.slice(1):s;
 
-/* ---------- çizimler ---------- */
+/* ---------- drawings ---------- */
 const svg=(inner,vb='0 0 100 100')=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`;
 const st=(w=4)=>`stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
 function starPts(cx,cy,R,r){const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r:R;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1))}return p.join(' ')}
 const heartPath=(cx,cy,s)=>`M${cx} ${cy+s} C${cx-s*1.7} ${cy} ${cx-s} ${cy-s*1.3} ${cx} ${cy-s*.4} C${cx+s} ${cy-s*1.3} ${cx+s*1.7} ${cy} ${cx} ${cy+s}Z`;
 const HEART=svg(`<path d="${heartPath(50,50,34)}" fill="#ff5a8a" ${st(5)}/><ellipse cx="34" cy="38" rx="6" ry="9" fill="#fff" opacity=".5"/>`);
 
-/* hayvan arkadaşlar: tek çizim fonksiyonu, tür + ruh hali */
+/* animal friends: one drawing function, species + mood */
 const KIND={
   cat:{c:'#f6b26b',d:'#d98a3d',ears:'tri'},rabbit:{c:'#f1ecf7',d:'#c9bedc',ears:'long'},bear:{c:'#c8915a',d:'#9a6a3a',ears:'round'},
   frog:{c:'#7ccf6a',d:'#4f9d42',ears:'frog'},dog:{c:'#e3c39d',d:'#a7774c',ears:'flop'},chick:{c:'#ffd93d',d:'#e0a800',ears:'none',beak:true},
@@ -231,7 +231,7 @@ function animal(kind,mood,extra){
   const k=KIND[kind],c=k.c,d=k.d,s=st(4);let g='';
   const happy=mood==='happy';
   if(k.tail)g+=`<path d="M86 104 C118 96 118 50 96 52 C108 66 100 84 86 88 Z" fill="${d}" ${s}/>`;
-  /* gövde */
+  /* body */
   g+=`<ellipse cx="60" cy="104" rx="30" ry="18" fill="${c}" ${s}/>`;
   if(k.beak)g+=`<path d="M30 104 Q24 92 34 90 M90 104 Q96 92 86 90" stroke="${INK}" stroke-width="4" fill="${d}"/>`;
   /* kulaklar */
@@ -244,7 +244,7 @@ function animal(kind,mood,extra){
   g+=`<circle cx="60" cy="58" r="30" fill="${c}" ${s}/>`;
   if(k.ears==='frog')g+=`<circle cx="44" cy="32" r="11" fill="${c}" ${s}/><circle cx="76" cy="32" r="11" fill="${c}" ${s}/>`;
   if(k.panda)g+=`<ellipse cx="47" cy="56" rx="9" ry="11" fill="${d}" transform="rotate(-20 47 56)"/><ellipse cx="73" cy="56" rx="9" ry="11" fill="${d}" transform="rotate(20 73 56)"/>`;
-  /* gözler */
+  /* eyes */
   const ey=k.ears==='frog'?32:54,ex=k.ears==='frog'?16:12;
   if(happy)g+=`<path d="M${60-ex-6} ${ey+2} Q${60-ex} ${ey-6} ${60-ex+6} ${ey+2} M${60+ex-6} ${ey+2} Q${60+ex} ${ey-6} ${60+ex+6} ${ey+2}" stroke="${k.panda?'#fff':INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
   else g+=`<circle cx="${60-ex}" cy="${ey}" r="5" fill="${k.panda?'#fff':INK}"/><circle cx="${60+ex}" cy="${ey}" r="5" fill="${k.panda?'#fff':INK}"/><circle cx="${60-ex+1.5}" cy="${ey-1.5}" r="1.6" fill="${k.panda?INK:'#fff'}"/><circle cx="${60+ex+1.5}" cy="${ey-1.5}" r="1.6" fill="${k.panda?INK:'#fff'}"/>`+
@@ -253,7 +253,7 @@ function animal(kind,mood,extra){
   if(k.beak)g+=`<path d="M52 64 L68 64 L60 74 Z" fill="#ff9f43" ${st(3)}/>`;
   else if(k.trunk)g+=`<path d="M54 64 C52 84 60 94 70 92 C64 88 62 80 66 64 Z" fill="${c}" ${st(3.5)}/>`;
   else g+=`<ellipse cx="60" cy="64" rx="5" ry="3.6" fill="${kind==='frog'?d:INK}"/>`;
-  /* ağız */
+  /* mouth */
   if(!k.beak&&!k.trunk){
     if(happy)g+=`<path d="M48 70 Q60 84 72 70" stroke="${INK}" stroke-width="4" fill="#ff8fa8" stroke-linejoin="round"/>`;
     else if(mood==='sad')g+=`<path d="M50 78 Q60 70 70 78" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
@@ -261,7 +261,7 @@ function animal(kind,mood,extra){
   }else if(k.trunk&&happy)g+=`<path d="M44 76 Q50 82 56 78" stroke="${INK}" stroke-width="3.5" fill="none" stroke-linecap="round"/>`;
   if(happy)g+=`<circle cx="38" cy="68" r="6" fill="#ff8fa8" opacity=".5"/><circle cx="82" cy="68" r="6" fill="#ff8fa8" opacity=".5"/>`;
   if(mood==='sad')g+=`<path d="M${60-ex-2} ${ey+8} Q${60-ex-6} ${ey+16} ${60-ex-2} ${ey+18} Q${60-ex+2} ${ey+16} ${60-ex-2} ${ey+8}Z" fill="#7cc6f0" stroke="${INK}" stroke-width="1.5"/>`;
-  /* sorun işaretleri */
+  /* problem signs */
   if(extra==='cold'&&!happy)g+=`<g stroke="#9fd6ff" stroke-width="3" stroke-linecap="round"><path d="M18 50 L10 50 M20 62 L8 64 M100 50 L110 50 M100 62 L112 64"/></g>${[[16,24],[102,22],[108,86],[12,90]].map(([x,y])=>`<g transform="translate(${x} ${y})" stroke="#bfe6ff" stroke-width="2.5" stroke-linecap="round"><path d="M-6 0 H6 M0 -6 V6 M-4 -4 L4 4 M4 -4 L-4 4"/></g>`).join('')}`;
   if(extra==='cold'&&happy)g+=`<path d="M34 84 Q60 96 86 84 L88 92 Q60 104 32 92 Z" fill="#ff5a5a" ${st(3)}/><rect x="74" y="88" width="10" height="20" rx="3" fill="#ff5a5a" ${st(3)}/><path d="M40 88 L44 94 M50 90 L54 96 M66 90 L70 96" stroke="#fff" stroke-width="2.5"/>`;
   if(extra==='hungry'&&!happy)g+=`<path d="M48 104 q4 -4 8 0 q4 4 8 0 q4 -4 8 0" stroke="${INK}" stroke-width="3" fill="none"/><text x="96" y="100" font-family="Fredoka,sans-serif" font-weight="700" font-size="14" fill="${INK}">gur</text>`;
@@ -280,7 +280,7 @@ function animal(kind,mood,extra){
   return svg(`<g class="${extra==='cold'&&!happy?'shiver':''}">${g}</g>`,'0 0 120 130');
 }
 
-/* yardım eşyaları */
+/* helping items */
 const ITEM={
   scarf:svg(`<path d="M14 34 Q50 52 86 34 L88 48 Q50 66 12 48 Z" fill="#ff5a5a" ${st(4)}/><rect x="60" y="44" width="16" height="40" rx="5" fill="#ff5a5a" ${st(4)}/><path d="M22 40 L28 50 M38 44 L44 54 M54 46 L58 56 M62 64 H74 M62 74 H74" stroke="#fff" stroke-width="4"/>`),
   carrot:svg(`<path d="M30 30 L78 80 Q84 88 76 90 L26 40 Q20 30 30 30 Z" fill="#ff9f43" ${st(4)}/><path d="M28 30 Q16 12 30 18 Q30 6 40 16 Q48 8 44 26" fill="#4cd17a" ${st(4)}/><path d="M44 50 l8 -4 M56 62 l8 -4 M66 74 l7 -3" stroke="${INK}" stroke-width="3"/>`),
@@ -296,7 +296,7 @@ const ITEM={
   ball:svg(`<circle cx="50" cy="52" r="34" fill="#4aa8ff" ${st(4)}/><path d="M16 52 H84 M50 18 Q30 52 50 86 M50 18 Q70 52 50 86" stroke="#ffd93d" stroke-width="5" fill="none"/><circle cx="50" cy="52" r="34" fill="none" ${st(4)}/>`),
   cookie:svg(`<circle cx="50" cy="50" r="38" fill="#e2a560" ${st(4)}/>${[[36,38],[60,34],[50,56],[34,62],[66,62]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5" fill="#6b3f1f"/>`).join('')}`)
 };
-/* park: çöpler ve çiçekler */
+/* park: litter and flowers */
 const TRASH={
   bottle:svg(`<rect x="36" y="30" width="28" height="56" rx="8" fill="#9fe0d0" ${st(4)}/><rect x="42" y="14" width="16" height="18" rx="3" fill="#9fe0d0" ${st(4)}/><rect x="40" y="10" width="20" height="8" rx="2" fill="#4aa8ff" ${st(3)}/><rect x="36" y="48" width="28" height="14" fill="#fff" opacity=".7"/>`,'0 0 100 100'),
   paper:svg(`<path d="M20 30 L46 20 L70 32 L82 58 L60 80 L30 76 L16 54 Z" fill="#f4f4f4" ${st(4)}/><path d="M30 40 L60 36 M28 52 L66 50 M32 64 L58 64" stroke="#b9b9c9" stroke-width="3"/>`),
@@ -308,7 +308,7 @@ const TRASH={
 const FLOWER=c=>svg(`<path d="M50 50 V96" stroke="#3f9a4a" stroke-width="6"/><path d="M50 78 Q34 66 28 74 Q38 86 50 84 Z" fill="#6ccf6a" ${st(3)}/>${[0,72,144,216,288].map(a=>`<circle cx="${(50+15*Math.cos((a-90)*Math.PI/180)).toFixed(1)}" cy="${(38+15*Math.sin((a-90)*Math.PI/180)).toFixed(1)}" r="12" fill="${c}" ${st(3)}/>`).join('')}<circle cx="50" cy="38" r="9" fill="#ffd93d" ${st(3)}/>`);
 const BIN=svg(`<path d="M22 34 H78 L72 96 H28 Z" fill="#5fd3b5" ${st(4)}/><rect x="16" y="24" width="68" height="12" rx="5" fill="#3fb093" ${st(4)}/><path d="M40 46 V86 M50 46 V86 M60 46 V86" stroke="#3b8f78" stroke-width="4"/><path d="M42 14 H58 V24 H42 Z" fill="#3fb093" ${st(3)}/>`);
 function treeSvg(n){
-  /* yardım ağacı: kalpler meyve gibi; en fazla 24 görünür */
+  /* helping tree: hearts like fruit; at most 24 visible */
   const spots=[[100,40],[70,52],[130,52],[86,70],[116,72],[56,78],[146,80],[100,92],[74,98],[128,100],[48,104],[152,108],[96,116],[66,122],[134,124],[110,62],[82,44],[120,40],[60,64],[142,64],[90,104],[112,104],[78,82],[124,86]];
   let hs='';for(let i=0;i<Math.min(n,spots.length);i++){const[x,y]=spots[i];hs+=`<path d="${heartPath(x,y,8)}" fill="${['#ff5a8a','#ff7eb6','#ff4d6d'][i%3]}" ${st(2)}/>`}
   return svg(`<rect x="90" y="120" width="22" height="70" rx="6" fill="#9a6a3a" ${st(4)}/><path d="M100 150 L80 132 M104 160 L126 140" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><circle cx="100" cy="80" r="62" fill="#6cc46a" ${st(4)}/><circle cx="62" cy="96" r="32" fill="#7fd07c" ${st(4)}/><circle cx="140" cy="96" r="32" fill="#7fd07c" ${st(4)}/><circle cx="100" cy="62" r="40" fill="#86d883"/>${hs}`,'0 0 200 195');
@@ -323,7 +323,7 @@ const ICON={
 
 /* ---------- metinler ---------- */
 const SCENES=['cat','rabbit','bear','frog','dog','chick','bird','elephant','squirrel'];
-const SC={ /* tür → ihtiyaç, doğru eşya, çeldiriciler (hiçbiri de doğru sayılamayacak şekilde seçildi), sahne */
+const SC={ /* species → need, correct item, distractors (chosen so none of them could also count as correct), scene */
   cat:{extra:'cold',item:'scarf',not:['icecream','sunglasses','ball'],bg:''},
   rabbit:{extra:'hungry',item:'carrot',not:['umbrella','lantern','ball'],bg:''},
   bear:{extra:'hurt',item:'bandage',not:['icecream','sunglasses','umbrella'],bg:''},
@@ -401,10 +401,10 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 const level=()=>S.helps>=5?2:1;
 
-/* ---------- ses: kayıtlı Türkçe klipler + cihaz sesi; konuşmalar sıraya girer, üst üste binmez ---------- */
+/* ---------- sound: recorded Turkish clips + device voice; speech is queued and never overlaps ---------- */
 const VOICE={tr:null,en:null};const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function scoreVoice(v,l){
-  /* en doğal kadın sesi öne: iPad/Mac'te indirilen "Gelişmiş/Premium" sesler, Edge'in "Natural" sesleri, Android'de Google sesi */
+  /* put the most natural female voice first: downloaded "Enhanced/Premium" voices on iPad/Mac, Edge's "Natural" voices, the Google voice on Android */
   const n=(v.name||'').toLowerCase(),u=(v.voiceURI||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
   if(/premium|enhanced|gelişmiş|geliştirilmiş|yüksek kalite|natural|neural|online/.test(n)||/premium|enhanced|neural/.test(u))s+=8;
   if(/google/.test(n))s+=4;
@@ -447,7 +447,7 @@ async function speakPart(p,gen){
 async function pump(){if(sqBusy)return;sqBusy=true;const gen=clipGen;
   while(SQ.length&&gen===clipGen){const parts=SQ.shift();for(let i=0;i<parts.length;i++){if(gen!==clipGen)break;await speakPart(parts[i],gen);if(i<parts.length-1)await new Promise(r=>setTimeout(r,140))}if(SQ.length)await new Promise(r=>setTimeout(r,200))}
   if(gen===clipGen)sqBusy=false}
-/* queue=false: sırayı temizler; cihaz sesi konuşuyorsa kesmez (iPad'de donmasın), bitince söyler */
+/* queue=false: clears the queue; doesn't interrupt the device voice if it is speaking (so the iPad doesn't freeze), says it when it finishes */
 function say(t,queue){
   if(!S.sound)return;const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!parts.length)return;
   if(!queue){let tts=false;try{tts=speechSynthesis.speaking||speechSynthesis.pending}catch(e){}SQ=[];if(!tts){sqBusy=false;stopClips()}}
@@ -468,15 +468,15 @@ let parts=[],fxOn=false;const FXC=['#ff5a8a','#ff9f43','#ffd93d','#4cd17a','#4aa
 function confetti(n){if(reduce||!fctx)return;fx.width=innerWidth;fx.height=innerHeight;for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*innerWidth*.5,y:innerHeight*.4,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:6+Math.random()*7,c:FXC[i%6],a:Math.random()*6,va:(Math.random()-.5)*.3,life:1,h:Math.random()<.5});if(!fxOn){fxOn=true;requestAnimationFrame(fxTick)}}
 function fxTick(){fctx.clearRect(0,0,fx.width,fx.height);parts.forEach(p=>{p.vy+=.42;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;p.life-=.012;fctx.save();fctx.globalAlpha=Math.max(0,p.life);fctx.translate(p.x,p.y);fctx.rotate(p.a);fctx.fillStyle=p.c;if(p.h){const s=p.r*.6;fctx.beginPath();fctx.moveTo(0,s);fctx.bezierCurveTo(-s*1.7,0,-s,-s*1.3,0,-s*.4);fctx.bezierCurveTo(s,-s*1.3,s*1.7,0,0,s);fctx.fill()}else fctx.fillRect(-p.r/2,-p.r/3,p.r,p.r*.66);fctx.restore()});parts=parts.filter(p=>p.life>0&&p.y<fx.height+40);if(parts.length)requestAnimationFrame(fxTick);else{fxOn=false;fctx.clearRect(0,0,fx.width,fx.height)}}
 
-/* ---------- oyun ---------- */
+/* ---------- game ---------- */
 let screen='home',mode='help',G={gen:0},lastScene=null;
 const later=(fn,ms)=>{const g=G.gen;setTimeout(()=>{if(g===G.gen&&screen==='play')fn()},ms)};
 function addHeart(n){S.hearts+=n||1;save()}
-/* başarıdan sonra: sahnede kısa kutlama yazısı, sonra kendiliğinden sıradaki tur (düğmeye basmak gerekmez, ses takılsa da devam eder) */
+/* after a success: a short celebration message on the scene, then the next round starts by itself (no button needed, and it continues even if the sound gets stuck) */
 function celebrateThenNext(title,sub,next,minMs){
   const b=document.createElement('div');b.className='banner';b.innerHTML=title+(sub?`<small>${sub}</small>`:'');$('stage').appendChild(b);
   const g=G.gen,t0=Date.now();
-  /* konuşma tamamen bitene kadar bekle (takılırsa en fazla 15 sn), sonra 1,5 sn daha kutlamayı göster */
+  /* wait until the speech has completely finished (at most 15 s if it gets stuck), then show the celebration for 1.5 s more */
   later(async()=>{await speechDone(15000);const wait=Math.max(1500,(minMs||3200)-(Date.now()-t0));setTimeout(()=>{if(g===G.gen&&screen==='play')next()},wait)},800);
 }
 function showReward(title,text,art,onNext){
@@ -504,7 +504,7 @@ function helpPick(b){
   if(G.done)return;const l=L(),k=b.dataset.k,kind=G.kind,sc=SC[kind];
   if(k!==sc.item){G.tries++;b.classList.add('nope');boop();const f=$('friend');f.classList.remove('no');void f.offsetWidth;f.classList.add('no');say(G.tries>=2?l.wrong(l.items[k]):l.tryAgain);return}
   G.done=true;b.classList.add('ok');pling(3);
-  /* eşya arkadaşa uçar */
+  /* the item flies to the friend */
   const br=b.getBoundingClientRect(),fr=$('friend').getBoundingClientRect(),gift=document.createElement('div');gift.className='gift';gift.innerHTML=ITEM[k];
   gift.style.left=(br.left+br.width/2-40)+'px';gift.style.top=(br.top+br.height/2-40)+'px';gift.style.position='fixed';document.body.appendChild(gift);
   requestAnimationFrame(()=>{gift.style.transform=`translate(${fr.left+fr.width/2-br.left-br.width/2}px,${fr.top+fr.height/2-br.top-br.height/2}px) scale(.6)`;gift.style.opacity='0'});
@@ -518,7 +518,7 @@ function helpPick(b){
   },520);
 }
 
-/* PAYLAŞ */
+/* SHARE */
 const PAIRS=[['bear','rabbit'],['cat','dog'],['frog','chick'],['panda','elephant'],['squirrel','bird']];
 function shareRound(){
   G.gen++;const l=L(),three=S.shares>=3;
@@ -561,7 +561,7 @@ function cleanRound(){
   G.gen++;const l=L();G.done=false;
   $('prompt').textContent=l.cleanT;$('stage').className='stage';$('below').innerHTML='';
   const kinds=shuffle(Object.keys(TRASH)).slice(0,level()===1?5:6),flowers=['#ff7eb6','#c79bff','#ff9f43','#ffd93d'];
-  /* çöp kutusunun (sağ alt) önüne/arkasına hiçbir şey konmaz; hepsi çimende */
+  /* nothing is placed in front of/behind the bin (bottom right); everything is on the grass */
   const spots=shuffle([[12,50],[28,46],[46,52],[62,48],[84,46],[16,68],[34,70],[52,66],[64,76],[14,88],[34,88],[52,88]]);
   let h='';
   kinds.forEach((k,i)=>{const[x,y]=spots[i];h+=`<button class="thing" data-t="trash" style="left:${x}%;top:${y}%" aria-label="${k}">${TRASH[k]}</button>`});

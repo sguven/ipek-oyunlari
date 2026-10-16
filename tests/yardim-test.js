@@ -1,4 +1,4 @@
-// İpek'in Yardım Köyü testi: üç mod da baştan sona oynanır (yanlış seçimler dahil), yerleşim/taşma ve hata kontrolü.
+// Test for İpek's Helping Village: all three modes played from start to finish (including wrong choices), layout/overflow and error checks.
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..'), OUT = path.join(__dirname, 'out');
@@ -31,7 +31,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       check(!(await overflow()), `${tag}: ana sayfa taşıyor`);
       await page.screenshot({ path: path.join(OUT, `yardim-${tag}-1-ana.png`), fullPage: true });
 
-      // YARDIM ET: 3 tur, her turda önce yanlış eşya
+      // HELP: 3 rounds, a wrong item first in each round
       await tap('.tile[data-mode="help"]'); await sleep(500);
       for (let r = 0; r < 3; r++) { step = 'yardım ' + r;
         const st = await page.evaluate(() => ({ kind: __yardim.G.kind, item: __yardim.SC[__yardim.G.kind].item }));
@@ -46,7 +46,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
         await sleep(1500);
         if (r === 0) await page.screenshot({ path: path.join(OUT, `yardim-${tag}-3-tesekkur.png`) });
         check(!(await overflow()), `${tag}: yardım ekranı taşıyor`);
-        // düğmeye basmadan sıradaki arkadaş gelmeli
+        // the next friend must come without pressing a button
         await page.waitForFunction(k => __yardim.G.kind !== k && !__yardim.G.done && document.querySelectorAll('.opt').length > 1, st.kind, { timeout: 12000 }).catch(() => fails.push(`${tag}: yardım ${r}: sıradaki arkadaş kendiliğinden gelmedi`));
         check(await page.locator('#rewardOv').isHidden(), `${tag}: araya pencere girdi`);
       }
@@ -55,7 +55,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       await tap('#backBtn'); await sleep(300);
 
       step = 'paylaş';
-      // PAYLAŞ: önce hepsini ilk tabağa ver (eşitsiz), sonra düzelt
+      // SHARE: first give everything to the first plate (unequal), then fix it
       await tap('.tile[data-mode="share"]'); await sleep(400);
       let total = await page.evaluate(() => __yardim.G.basket);
       for (let i = 0; i < total; i++) { await tap('.plate', 0); await sleep(80); }
@@ -67,7 +67,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       await tap('#backBtn'); await sleep(300);
 
       step = 'topla';
-      // TOPLA: önce çiçeğe dokun (kalmalı), sonra bütün çöpler
+      // TIDY UP: tap the flower first (it must stay), then all the litter
       await tap('.tile[data-mode="clean"]'); await sleep(500);
       await page.screenshot({ path: path.join(OUT, `yardim-${tag}-5-park.png`) });
       await tap('.thing[data-t="flower"]'); await sleep(200);
@@ -85,7 +85,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       await page.screenshot({ path: path.join(OUT, `yardim-${tag}-7-album.png`) });
       await tap('#albumClose');
       check(clips.length > 3, `${tag}: kayıtlı ses çalmadı`);
-      // ilerleme kalıcı
+      // progress persists
       await page.reload(); await sleep(400);
       check((await page.evaluate(() => __yardim.S.hearts)) === 6, `${tag}: ilerleme kaydedilmedi`);
     } catch (e) { fails.push(`${tag}: ${e.message.split('\n')[0]}`); }

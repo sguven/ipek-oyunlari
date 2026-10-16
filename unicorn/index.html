@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
 <style>
-/* layout: lavanta gökyüzü; üstte Pırıl'ın sahnesi ve gökkuşağı, altında soru kartı. Tek tema, bilinçli olarak pastel. */
+/* layout: lavender sky; Sparkle's scene and the rainbow on top, the question card below. Single theme, deliberately pastel. */
 :root{
   --sky:#efe6ff;--sky2:#e0d2ff;--ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;--tint:#f6f0ff;
   --pink:#ff7eb6;--mint:#5fd3b5;--gold:#ffcb3d;--ok:#1f9e66;--okbg:#dcf6e9;--warnbg:#fff3cc;
@@ -304,7 +304,7 @@ const GUIDE={
 };
 function platform(){const u=navigator.userAgent||'';if(/iPhone|iPad|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))return'ios';if(/Android/.test(u))return'android';if(/Macintosh|Mac OS X/.test(u))return'mac';if(/Windows/.test(u))return'win';return'other'}
 
-/* ---------- çizimler ---------- */
+/* ---------- drawings ---------- */
 const svg=(inner,vb='0 0 100 100')=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`;
 function starPts(cx,cy,R,r){const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r:R;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1))}return p.join(' ')}
 const st=(w=4)=>`stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
@@ -319,7 +319,7 @@ const TOKSHAPES={
 const TOKCOLORS=['#ff7eb6','#4aa8ff','#ffd93d','#5fd3b5','#a66bff','#ff9f43'];
 const token=(s,c)=>svg(TOKSHAPES[s](c));
 
-/* sh = gölge rengi; verilirse her şey o renge boyanır */
+/* sh = shadow colour; if given, everything is painted in that colour */
 const OBJ={
   star:sh=>`<polygon points="${starPts(50,54,44,19)}" fill="${sh||'#ffd93d'}" ${sh?'':st()}/>${sh?'':'<circle cx="40" cy="52" r="3.5" fill="#3b2a5c"/><circle cx="60" cy="52" r="3.5" fill="#3b2a5c"/><path d="M43 62 Q50 68 57 62" stroke="#3b2a5c" stroke-width="3" fill="none" stroke-linecap="round"/>'}`,
   moon:sh=>`<path d="M60 8 A42 42 0 1 0 92 66 A34 34 0 1 1 60 8 Z" fill="${sh||'#ffe58a'}" ${sh?'':st()}/>${sh?'':'<circle cx="36" cy="46" r="3.5" fill="#3b2a5c"/>'}`,
@@ -379,12 +379,12 @@ const L=()=>T[S.lang];
 const level=()=>Math.min(3,1+S.rainbows);
 const unlocked=()=>Math.min(ACC.length,S.rainbows);
 
-/* ---------- ses: her dil için o dile ait sesi seç; yoksa asla başka aksanla okuma ---------- */
+/* ---------- sound: for each language pick a voice for that language; otherwise never read with another accent ---------- */
 const VOICE={tr:null,en:null};let voicesChecked=false;
 const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function normLang(l){return String(l||'').toLowerCase().replace('_','-')}
 function scoreVoice(v,l){
-  /* en doğal kadın sesi öne: iPad/Mac'te indirilen "Gelişmiş/Premium" sesler, Edge'in "Natural" sesleri, Android'de Google sesi */
+  /* put the most natural female voice first: downloaded "Enhanced/Premium" voices on iPad/Mac, Edge's "Natural" voices, the Google voice on Android */
   const n=(v.name||'').toLowerCase(),u=(v.voiceURI||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
   if(/premium|enhanced|gelişmiş|geliştirilmiş|yüksek kalite|natural|neural|online/.test(n)||/premium|enhanced|neural/.test(u))s+=8;
   if(/google/.test(n))s+=4;
@@ -421,7 +421,7 @@ function renderVoiceNote(){
 
 /* ---------- efektler ---------- */
 let AC=null;
-/* ---------- kayıtlı Türkçe ses: cihazın sesine bağlı kalmadan doğal Türkçe (kadın) ---------- */
+/* ---------- recorded Turkish voice: natural Turkish without depending on the device voice (female) ---------- */
 const CLIPS={base:'audio/',map:null};
 try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips&&m.voices&&m.voices.length){CLIPS.map=m;renderVoiceNote();renderVoiceSel()}}).catch(()=>{})}catch(e){}
 function curVoice(){const vs=CLIPS.map?CLIPS.map.voices:[];return vs.includes(S.voice)?S.voice:vs[0]}
@@ -439,7 +439,7 @@ function clipBuf(id){
   return clipBufs[key];
 }
 let clipGen=0,clipSrc=null,clipChain=Promise.resolve(),clipBusy=0;
-/* konuşma bitene kadar bekle (en fazla maxMs): geçişlerde sesler üst üste binmesin */
+/* wait until the speech finishes (at most maxMs): so sounds don't overlap at transitions */
 function speechDone(maxMs){return new Promise(res=>{const t0=Date.now();(function poll(){let tts=false;try{tts=speechSynthesis.speaking||speechSynthesis.pending}catch(e){}if((!clipBusy&&!tts)||Date.now()-t0>maxMs)return res();setTimeout(poll,120)})()})}
 function stopClips(){clipGen++;clipBusy=0;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
 function hush(){stopClips();try{speechSynthesis.cancel()}catch(e){}}

@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@700;800&display=swap">
 <script src="three.min.js"></script>
 <style>
-/* layout: tam ekran 3B sahne; üstte ince çubuk (Oyunlar · yıldızlar · ses · dil), altta büyük direksiyon/git/korna düğmeleri. Başlangıç ve ödül kartları ortada. */
+/* layout: full-screen 3D scene; thin bar on top (Games · stars · sound · language), big steering/go/horn buttons at the bottom. Start and reward cards in the middle. */
 :root{
   --ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;--tint:#f2f8ff;--gold:#ffcb3d;--ok:#1f9e66;--pink:#ff7eb6;
   --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
@@ -48,7 +48,7 @@ button{font-family:inherit;color:var(--ink)}
 .lang button{font:800 14px var(--body);border:0;background:none;padding:7px 11px;cursor:pointer;min-height:42px}
 .lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
 
-/* sürüş düğmeleri */
+/* driving buttons */
 .ctl{position:fixed;z-index:10;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:flex-end}
 .ctl.l{left:calc(16px + env(safe-area-inset-left))}
 .ctl.r{right:calc(16px + env(safe-area-inset-right))}
@@ -194,7 +194,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 const unlocked=()=>Math.min(CARS.length,1+S.rounds);
 
-/* ---------- ses (kayıtlı Türkçe klipler, yoksa cihaz sesi; yanlış aksanla asla) ---------- */
+/* ---------- sound (recorded Turkish clips, otherwise the device voice; never with the wrong accent) ---------- */
 const VOICE={tr:null,en:null};
 const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function loadVoices(){if(!hasTTS)return;let vs=[];try{vs=speechSynthesis.getVoices()||[]}catch(e){}
@@ -236,7 +236,7 @@ const harp=()=>[523,587,659,698,784,880,988,1047].forEach((f,i)=>tone(f,.32,i*.0
 function honk(){tone(392,.32,0,'square',.07);tone(494,.32,0,'square',.06);tone(392,.36,.4,'square',.07);tone(494,.36,.4,'square',.06)}
 function splash(){if(!S.sound)return;const a=audioCtx();if(!a)return;try{const n=a.sampleRate*.45,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();f.type='lowpass';f.frequency.value=900;g.gain.value=.25;s.buffer=b;s.connect(f).connect(g).connect(a.destination);s.start()}catch(e){}}
 
-/* ---------- arayüz çizimleri ---------- */
+/* ---------- interface drawings ---------- */
 const svg=(inner,vb='0 0 100 100')=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`;
 function starPts(cx,cy,R,r){const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r:R;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1))}return p.join(' ')}
 const hex=n=>'#'+n.toString(16).padStart(6,'0');
@@ -276,12 +276,12 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 const rnd=mulberry32(1289);
 const shadows=o=>{if(!LOW){o.castShadow=true;o.receiveShadow=true}};
 
-/* gökyüzü: parlak, çocuk dostu */
+/* sky: bright, child-friendly */
 (function(){const c=document.createElement('canvas');c.width=2;c.height=512;const g=c.getContext('2d');const gr=g.createLinearGradient(0,0,0,512);
   gr.addColorStop(0,'#3d8be0');gr.addColorStop(.55,'#8cc4ef');gr.addColorStop(1,'#e2f1f6');g.fillStyle=gr;g.fillRect(0,0,2,512);scene.background=new THREE.CanvasTexture(c)})();
 scene.fog=new THREE.Fog(0xc4e0ee,LOW?190:280,LOW?640:820);
 
-/* taş dokusu */
+/* stone texture */
 function stoneTexture(){const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');g.fillStyle='#d8ccb0';g.fillRect(0,0,256,256);
   for(let r=0;r<8;r++){const off=(r%2)*20;for(let col=-1;col<=6;col++){const x=col*(256/6)+off,y=r*32;const l=198+Math.floor(rnd()*42);g.fillStyle=`rgb(${l},${Math.floor(l*.94)},${Math.floor(l*.8)})`;g.fillRect(x+1,y+1,256/6-2,30)}}
   g.strokeStyle='rgba(110,96,72,0.5)';g.lineWidth=2;for(let r=0;r<=8;r++){g.beginPath();g.moveTo(0,r*32);g.lineTo(256,r*32);g.stroke()}
@@ -292,7 +292,7 @@ const copingMat=new THREE.MeshStandardMaterial({color:0xe3d8be,roughness:0.85});
 const ringPink=new THREE.MeshStandardMaterial({color:0xb87461,roughness:0.85});
 const ringCream=new THREE.MeshStandardMaterial({color:0xcbbc9c,roughness:0.85});
 
-/* ===== ÇEŞNİGİR KÖPRÜSÜ (asıl oyundaki ölçülerle) ===== */
+/* ===== ÇEŞNİGİR BRIDGE (with the dimensions from the original game) ===== */
 const BR_LEN=110,BR_W=6,WATER_Y=2.4;
 function deckY(x){return 7+4.6*Math.pow(Math.max(Math.cos(Math.PI*x/118),0),1.3)}
 function pointedArch(cx,halfW,springY,apexY,baseY){const p=new THREE.Path();p.moveTo(cx-halfW,baseY);p.lineTo(cx-halfW,springY);
@@ -316,14 +316,14 @@ const reliefArches=[[-12.9,1.3,8.0,10.1],[12.9,1.3,8.0,10.1],[20.8,1.1,6.6,8.5]]
   function parapetShape(h0,h1){const s=new THREE.Shape();s.moveTo(-BR_LEN/2,deckY(-BR_LEN/2)+h0);for(let x=-BR_LEN/2;x<=BR_LEN/2;x+=2.5)s.lineTo(x,deckY(x)+h0);for(let x=BR_LEN/2;x>=-BR_LEN/2;x-=2.5)s.lineTo(x,deckY(x)+h1);s.closePath();return s}
   [-BR_W/2,BR_W/2-0.42].forEach(zPos=>{const m=new THREE.Mesh(new THREE.ExtrudeGeometry(parapetShape(0,0.75),{depth:0.42,bevelEnabled:false}),stoneMat);m.position.z=zPos;shadows(m);scene.add(m);
     const cap=new THREE.Mesh(new THREE.ExtrudeGeometry(parapetShape(0.75,0.95),{depth:0.6,bevelEnabled:false}),copingMat);cap.position.z=zPos-0.09;shadows(cap);scene.add(cap)});
-  /* mahmuzlar (tek parça) */
+  /* buttresses (single piece) */
   const geos=[];
   [11.2,20.85,29.35,37.95].forEach(x=>{[x,-x].forEach(px=>{[[3.6,1],[2.0,-1]].forEach(([len,dir])=>{const tri=new THREE.Shape();tri.moveTo(-1.9,0);tri.lineTo(1.9,0);tri.lineTo(0,len*dir);tri.closePath();
     const g=new THREE.ExtrudeGeometry(tri,{depth:8,bevelEnabled:false});g.rotateX(-Math.PI/2);g.translate(px,-3,dir>0?-BR_W/2:BR_W/2);geos.push(g)})})});
   geos.forEach(g=>{const m=new THREE.Mesh(g,stoneMat);shadows(m);scene.add(m)});
 })();
 
-/* ===== ARAZİ ===== */
+/* ===== TERRAIN ===== */
 function channelCenter(z){return -22*ss(z,40,230)+7*ss(-z,30,170)}
 function channelHalf(z){return 48+26*ss(z,20,150)-17*ss(-z,10,90)}
 function rockNoise(x,z){return Math.sin(x*0.05+1)*Math.cos(z*0.06)*1.6+Math.sin(x*0.017+3)*Math.sin(z*0.021+1)*3.4}
@@ -347,7 +347,7 @@ function terrainH(x,z){const xc=channelCenter(z),hw=channelHalf(z);const d=x-xc,
   const terrain=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1}));if(!LOW)terrain.receiveShadow=true;scene.add(terrain);
 })();
 
-/* örnekli (tek çizimli) nesneler */
+/* instanced (drawn once) objects */
 const dummy=new THREE.Object3D();
 function instanced(geo,mat,items,setup){const m=new THREE.InstancedMesh(geo,mat,items.length);items.forEach((it,i)=>{setup(dummy,it);dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);if(it.color!=null)m.setColorAt(i,new THREE.Color(it.color))});
   m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;shadows(m);scene.add(m);return m}
@@ -392,7 +392,7 @@ mosque(88,-28,1.0);mosque(112,32,1.05);mosque(97,66,0.85);
   const roof=new THREE.Mesh(new THREE.BoxGeometry(15.8,0.5,6.8),roofMat);roof.position.y=4.85;
   const yard=new THREE.Mesh(new THREE.PlaneGeometry(20,13),new THREE.MeshStandardMaterial({color:0xa79e94,roughness:1}));yard.rotation.x=-Math.PI/2;yard.position.set(0,0.06,9);
   g.add(body,roof,yard);g.traverse(shadows);g.position.set(x,y,z);g.rotation.y=gridRot;scene.add(g)})();
-/* Çeşnigir Kültür Derneği */
+/* Çeşnigir Culture Association */
 (function dernek(){const x=118,z=14,y=terrainH(x,z),g=new THREE.Group();
   const wallMat=new THREE.MeshStandardMaterial({color:0xefe6d0,roughness:0.9}),baseMat=new THREE.MeshStandardMaterial({color:0xb9a888,roughness:0.95});
   const body=new THREE.Mesh(new THREE.BoxGeometry(9,5.4,7),wallMat);body.position.y=2.7;
@@ -409,7 +409,7 @@ mosque(88,-28,1.0);mosque(112,32,1.05);mosque(97,66,0.85);
   const flag=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1.0),new THREE.MeshStandardMaterial({color:0xc8102e,side:THREE.DoubleSide,roughness:0.8}));flag.position.set(6.0,4.9,3);
   g.add(pole,flag);g.traverse(shadows);g.position.set(x,y,z);g.rotation.y=-Math.PI/2-0.35;scene.add(g)})();
 
-/* toprak yollar: her yol tek parça şerit */
+/* dirt roads: each road is a single strip */
 const roadMat=new THREE.MeshStandardMaterial({color:0x9c8459,roughness:1,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
 function ribbon(points,w){
   const pts=[];for(let i=0;i<points.length-1;i++){const[x1,z1]=points[i],[x2,z2]=points[i+1];const n=Math.ceil(Math.hypot(x2-x1,z2-z1)/2);for(let s=0;s<n;s++)pts.push([lerp(x1,x2,s/n),lerp(z1,z2,s/n)])}pts.push(points[points.length-1]);
@@ -421,7 +421,7 @@ ribbon([[68,0],[78,-8],[86,-18],[92,-26]],3.6);
 ribbon([[92,-26],[102,0],[110,30],[104,60],[118,90]],3.6);
 ribbon([[-68,0],[-85,4],[-110,10],[-140,12]],3.4);
 
-/* karayolu köprüsü */
+/* highway bridge */
 const HW_P1=new THREE.Vector2(-165,10),HW_P2=new THREE.Vector2(70,140);
 const HW_DIR=HW_P2.clone().sub(HW_P1),HW_LEN=HW_DIR.length(),HW_ANG=Math.atan2(HW_DIR.y,HW_DIR.x),HW_DECK=9.2;
 (function(){const grey=new THREE.MeshStandardMaterial({color:0x9a9aa0,roughness:0.85});const mx=(HW_P1.x+HW_P2.x)/2,mz=(HW_P1.y+HW_P2.y)/2;
@@ -442,7 +442,7 @@ function rampEndH(sign){return terrainH(sign*68,0)}
   instanced(new THREE.CylinderGeometry(0.14,0.22,1.6,7),new THREE.MeshStandardMaterial({color:0x5a4530,roughness:1}),trees,(d,t)=>{d.position.set(t.x,t.y+0.8*t.s,t.z);d.rotation.set(0,0,0);d.scale.set(t.s,t.s,t.s)});
   instanced(new THREE.SphereGeometry(1,8,8),new THREE.MeshStandardMaterial({color:0x4f7a35,roughness:0.95}),trees,(d,t)=>{d.position.set(t.x,t.y+4.1*t.s,t.z);d.rotation.set(0,0,0);d.scale.set(t.s,3.1*t.s,t.s)})})();
 
-/* ---------- yazılar (sprite) ---------- */
+/* ---------- text (sprites) ---------- */
 function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);g.quadraticCurveTo(x+w,y,x+w,y+r);g.lineTo(x+w,y+h-r);g.quadraticCurveTo(x+w,y+h,x+w-r,y+h);g.lineTo(x+r,y+h);g.quadraticCurveTo(x,y+h,x,y+h-r);g.lineTo(x,y+r);g.quadraticCurveTo(x,y,x+r,y);g.closePath()}
 function textTexture(text,style){
   const c=document.createElement('canvas');c.width=1024;c.height=256;const g=c.getContext('2d');
@@ -459,7 +459,7 @@ function setSpriteText(sp,text,style){if(sp.material.map)sp.material.map.dispose
 const labelDefs=[[0,22,0,30],[110,32,30,28],[-30,12,160,24],[0,26,-85,22]];
 const labels=labelDefs.map(([x,y,z,w])=>{const sp=makeSprite(w);sp.position.set(x,y,z);scene.add(sp);return sp});
 
-/* ---------- ZEMİN ---------- */
+/* ---------- GROUND ---------- */
 function groundInfo(x,z){let h=terrainH(x,z),surf='zemin';
   if(Math.abs(z)<=3.4){const ax=Math.abs(x);if(ax<=55){const d=deckY(x)+0.04;if(d>h){h=d;surf='tas'}}else if(ax<=68){const d=lerp(deckY(Math.sign(x)*55),rampEndH(Math.sign(x)),ss(ax,55,68))+0.04;if(d>h){h=d;surf='tas'}}}
   const hc=highwayCoords(x,z);
@@ -467,7 +467,7 @@ function groundInfo(x,z){let h=terrainH(x,z),surf='zemin';
   return{h,surf,hc}}
 const isWet=gi=>gi.surf==='zemin'&&gi.h<WATER_Y+0.6;
 
-/* ---------- KÖYLÜLER ---------- */
+/* ---------- VILLAGERS ---------- */
 const skinMat=new THREE.MeshStandardMaterial({color:0xe0b088,roughness:0.8}),pantsMat=new THREE.MeshStandardMaterial({color:0x3a3f4a,roughness:0.95});
 const villagers=[];
 function makePerson(x,z,shirtHex,gi_,chubby){const gi=groundInfo(x,z),g=new THREE.Group();const shirt=new THREE.MeshStandardMaterial({color:shirtHex,roughness:0.9});const armX=chubby?0.52:0.36;
@@ -486,7 +486,7 @@ function makePerson(x,z,shirtHex,gi_,chubby){const gi=groundInfo(x,z),g=new THRE
 makePerson(8,1.4,0x7a4a3a,0);makePerson(61,-1.6,0x3f6a5a,1);makePerson(90,-22,0x8a6a9a,2);makePerson(110,34,0xb08a3a,3);
 makePerson(37,-69,0x4a6a9a,4);makePerson(-86,5,0x6a7a3a,5);makePerson(111.5,11.5,0x7a3a2e,6,true);
 
-/* ---------- ARABA (yuvarlak hatlı, gözlü) ---------- */
+/* ---------- CAR (rounded, with eyes) ---------- */
 const car=new THREE.Group();
 const carMat=new THREE.MeshStandardMaterial({color:CARS[S.car]||CARS[0],roughness:0.35,metalness:0.2});
 const body=new THREE.Mesh(new THREE.BoxGeometry(2.1,0.7,4.0),carMat);body.position.y=0.8;
@@ -506,7 +506,7 @@ const wheels=[];[[-1.02,1.3],[1.02,1.3],[-1.02,-1.35],[1.02,-1.35]].forEach(([wx
 car.traverse(o=>{if(o.isMesh&&!LOW)o.castShadow=true});
 scene.add(car);
 
-/* yön oku */
+/* direction arrow */
 const arrow=new THREE.Group();
 (function(){const m=new THREE.MeshStandardMaterial({color:0xffd23d,emissive:0x7a5a00,emissiveIntensity:0.6,roughness:0.4});
   const head=new THREE.Mesh(new THREE.ConeGeometry(0.85,1.5,4),m);head.rotation.x=Math.PI/2;head.position.z=1.0;
@@ -523,7 +523,7 @@ const beamGeo=new THREE.CylinderGeometry(0.9,1.4,34,14,1,true);
 const stars=STAR_POS.map(([x,z],i)=>{const gi=groundInfo(x,z);const m=new THREE.Mesh(starGeo,starMat);const y=gi.h+2.6;m.position.set(x,y,z);
   const beam=new THREE.Mesh(beamGeo,beamMat);beam.position.set(x,gi.h+17,z);scene.add(m,beam);return{m,beam,x,z,y,base:gi.h,got:false,i}});
 
-/* ---------- IŞIK ---------- */
+/* ---------- LIGHT ---------- */
 scene.add(new THREE.HemisphereLight(0xfff4e0,0x6b5a3a,0.95));
 const sun=new THREE.DirectionalLight(0xfff6e6,1.55);
 if(!LOW){sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-90,right:90,top:90,bottom:-90,far:600})}
@@ -532,7 +532,7 @@ scene.add(sun,sun.target);
 /* ---------- metinleri sahneye yaz ---------- */
 function refreshTexts(){const l=L();labels.forEach((sp,i)=>setSpriteText(sp,l.labels[i],'label'));villagers.forEach(v=>setSpriteText(v.bubble,l.greet[v.gi],'bubble'))}
 
-/* ---------- oyun durumu ---------- */
+/* ---------- game state ---------- */
 let heading=-Math.PI/2,speed=0,pos=new THREE.Vector3(74,0,0),started=false,paused=true,driving=false,steerL=false,steerR=false;
 pos.y=groundInfo(pos.x,pos.z).h;
 let got=0,lastSay=0,toastT=0,wetCd=0,camInit=false;
@@ -582,7 +582,7 @@ const RB=['#ff5a5a','#ff9f43','#ffd93d','#4cd17a','#4aa8ff','#5a63e0','#a66bff']
 function confetti(n){if(reduce||!fctx)return;fx.width=innerWidth;fx.height=innerHeight;for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*innerWidth*.5,y:innerHeight*.4,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:5+Math.random()*7,c:RB[i%7],a:Math.random()*6,va:(Math.random()-.5)*.3,life:1,star:Math.random()<.5});if(!fxOn){fxOn=true;requestAnimationFrame(ftick)}}
 function ftick(){fctx.clearRect(0,0,fx.width,fx.height);parts.forEach(p=>{p.vy+=.42;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;p.life-=.011;fctx.save();fctx.globalAlpha=Math.max(0,p.life);fctx.translate(p.x,p.y);fctx.rotate(p.a);fctx.fillStyle=p.c;if(p.star){fctx.beginPath();for(let i=0;i<10;i++){const r=i%2?p.r*.45:p.r,an=-Math.PI/2+i*Math.PI/5;fctx.lineTo(r*Math.cos(an),r*Math.sin(an))}fctx.fill()}else fctx.fillRect(-p.r/2,-p.r/3,p.r,p.r*.66);fctx.restore()});parts=parts.filter(p=>p.life>0&&p.y<fx.height+40);if(parts.length)requestAnimationFrame(ftick);else{fxOn=false;fctx.clearRect(0,0,fx.width,fx.height)}}
 
-/* ---------- yıldız toplama ---------- */
+/* ---------- collecting stars ---------- */
 function collect(s){s.got=true;s.m.visible=false;s.beam.visible=false;got++;S.stars++;save();renderStars();pling(got-1);confetti(36);toast(L().star(got));
   say(L().nums[got]);lastSay=clock.elapsedTime;
   if(got>=stars.length)setTimeout(allDone,900)}
@@ -592,7 +592,7 @@ function allDone(){paused=true;setDriving(false);S.rounds++;save();const l=L();h
   $('rewardText').textContent=nu?l.newColor(l.colors[S.car]):l.allText;$('rewardOv').hidden=false;
   say(['Muhteşemsin İpek!'].map(x=>S.lang==='tr'?x:l.praise[5]));renderGarage()}
 
-/* ---------- döngü ---------- */
+/* ---------- loop ---------- */
 function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=w<h?66:56;camera.updateProjectionMatrix()}
 window.addEventListener('resize',resize);if(window.visualViewport)visualViewport.addEventListener('resize',resize);resize();
 const clock=new THREE.Clock();
@@ -600,11 +600,11 @@ const fwd=new THREE.Vector3(),camPos=new THREE.Vector3(),look=new THREE.Vector3(
 const CRUISE=11;
 let frames=0;
 function step(dt,t){
-  /* su dalgası (tablette daha seyrek) */
+  /* water ripples (less often on tablets) */
   if(!LOW||(frames&1)===0){for(let i=0;i<wPos.count;i++){const x=wBase[i*3],y=wBase[i*3+1];wPos.setZ(i,Math.sin(x*0.3+t*1.3)*0.13+Math.sin(y*0.1-t*0.85)*0.18)}wPos.needsUpdate=true}
   stars.forEach(s=>{if(s.got)return;s.m.rotation.y=t*1.8+s.i;s.m.position.y=s.y+Math.sin(t*2.2+s.i)*0.35});
   if(!started||paused){
-    /* tanıtım: kamera arabanın etrafında yavaşça döner */
+    /* intro: the camera slowly circles the car */
     const a=t*0.15;camPos.set(pos.x+Math.sin(a)*26,pos.y+11,pos.z+Math.cos(a)*26);camera.position.lerp(camPos,camInit?Math.min(1,dt*2):1);camInit=true;
     camera.lookAt(pos.x-20,pos.y+2,pos.z);place(dt,t);return}
   let inS=(steerL||keys.ArrowLeft||keys.KeyA?1:0)-(steerR||keys.ArrowRight||keys.KeyD?1:0);
@@ -619,7 +619,7 @@ function step(dt,t){
   const ahead=groundInfo(nx+fwd.x*1.8*Math.sign(speed||1),nz+fwd.z*1.8*Math.sign(speed||1));
   const out=Math.abs(nx)>380||Math.abs(nz)>380;
   if(isWet(ahead)||out){
-    /* suya girmez: kıyıdan kuru tarafa doğru döner */
+    /* doesn't go into the water: turns from the shore towards dry land */
     nx=pos.x;nz=pos.z;speed=Math.min(speed,2);
     const lx=pos.x+Math.cos(heading)*5,lz=pos.z-Math.sin(heading)*5,rx=pos.x-Math.cos(heading)*5,rz=pos.z+Math.sin(heading)*5;
     const hl=out?-Math.hypot(lx,lz):groundInfo(lx,lz).h,hr=out?-Math.hypot(rx,rz):groundInfo(rx,rz).h;
@@ -632,10 +632,10 @@ function step(dt,t){
   const gi=groundInfo(pos.x,pos.z);
   if(gi.surf==='asfalt'&&Math.abs(gi.hc.perp)>2.9){const over=Math.abs(gi.hc.perp)-2.9,px=-HW_DIR.y/HW_LEN,pz=HW_DIR.x/HW_LEN;pos.x-=Math.sign(gi.hc.perp)*px*over;pos.z-=Math.sign(gi.hc.perp)*pz*over}
   const g2=groundInfo(pos.x,pos.z);pos.y+=(g2.h-pos.y)*Math.min(1,dt*12);
-  /* yıldızlar */
+  /* stars */
   stars.forEach(s=>{if(s.got)return;const dx=pos.x-s.x,dz=pos.z-s.z;if(dx*dx+dz*dz<3.4*3.4&&Math.abs(pos.y-s.base)<4.5)collect(s)});
   place(dt,t,gA,gB);
-  /* kamera: arkadan, biraz yüksekten */
+  /* camera: from behind, a little above */
   const dist=camera.aspect<1?17:14.5;
   const ca=heading+Math.PI;camPos.set(pos.x+Math.sin(ca)*dist,pos.y+6.4+dist*0.1,pos.z+Math.cos(ca)*dist);
   const cg=groundInfo(camPos.x,camPos.z).h+2;if(camPos.y<cg)camPos.y=cg;
@@ -647,11 +647,11 @@ function place(dt,t,gA,gB){
   const hL=groundInfo(pos.x+Math.cos(heading),pos.z-Math.sin(heading)).h,hR=groundInfo(pos.x-Math.cos(heading),pos.z+Math.sin(heading)).h;
   eul.set(Math.atan2(gB-gA,3.2),heading,Math.atan2(hR-hL,2)+(started&&!paused?Math.sin(t*9)*0.008*Math.min(1,speed/5):0));car.quaternion.setFromEuler(eul);
   wheels.forEach(w=>w.rotation.x+=speed*dt*2.2);
-  /* ok: en yakın yıldız */
+  /* arrow: nearest star */
   let best=null,bd=1e9;stars.forEach(s=>{if(s.got)return;const d=(s.x-pos.x)**2+(s.z-pos.z)**2;if(d<bd){bd=d;best=s}});
   arrow.visible=!!best&&started&&!paused&&bd>14*14;
   if(best){arrow.position.set(pos.x,pos.y+4.4+Math.sin(t*3)*0.25,pos.z);arrow.rotation.y=Math.atan2(best.x-pos.x,best.z-pos.z)}
-  /* köylüler */
+  /* villagers */
   villagers.forEach(v=>{const dx=pos.x-v.g.position.x,dz=pos.z-v.g.position.z,d2=dx*dx+dz*dz;const near=d2<26*26&&started;
     if(v.honk>0)v.honk-=dt;const act=near||v.honk>0;
     if(near&&!v.near&&!paused&&t-lastSay>2.5){lastSay=t;say(L().greet[v.gi])}
@@ -669,7 +669,7 @@ function animate(){
   step(dt,t);
   renderer.render(scene,camera);
 }
-/* test kancası */
+/* test hook */
 window.__cg={groundInfo,stars,isWet,WATER_Y,get pos(){return pos},get state(){return{got,started,paused,driving,speed,heading,rounds:S.rounds,car:S.car}},
   tp(x,z,h){pos.set(x,groundInfo(x,z).h,z);if(h!=null)heading=h},collect:i=>collect(stars[i])};
 

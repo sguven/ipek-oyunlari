@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
 <style>
-/* layout: galeri = resim kartları ızgarası; boyama = üst çubuk + resim (kare) + araçlar + palet. Yatay ekranda resim solda, araçlar sağda. */
+/* layout: gallery = grid of picture cards; coloring = top bar + picture (square) + tools + palette. In landscape the picture is on the left, tools on the right. */
 :root{
   --bg:#fff4e6;--ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;--tint:#fff8ef;--ok:#1f9e66;--gold:#ffcb3d;--pink:#ff7eb6;
   --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;--body:'Nunito',system-ui,-apple-system,sans-serif;
@@ -53,7 +53,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .pcard .bar{height:8px;border-radius:9px;background:#efe3d3;overflow:hidden}.pcard .bar i{display:block;height:100%;background:linear-gradient(90deg,#ff7eb6,#ffcb3d,#5fd3b5,#4aa8ff)}
 .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
 
-/* boyama ekranı */
+/* coloring screen */
 body.editing .wrap{padding-block:8px 14px;gap:10px;max-width:1200px}
 body.editing header{display:none}
 .topbar{display:flex;align-items:center;gap:8px;background:var(--card);border:4px solid var(--ink);border-radius:24px;box-shadow:0 5px 0 var(--ink);padding:6px 8px;box-sizing:border-box}
@@ -201,9 +201,9 @@ const fillOf=k=>(CMAP[k]||CMAP.white).h;
 const DEFS=`<linearGradient id="g-rainbow" x1="0" y1="0" x2="1" y2="1">${RB.map((c,i)=>`<stop offset="${(i/(RB.length-1)).toFixed(2)}" stop-color="${c}"/>`).join('')}</linearGradient>
 <linearGradient id="g-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset=".35" stop-color="#f5c542"/><stop offset=".55" stop-color="#fff6c8"/><stop offset=".8" stop-color="#e0a92a"/><stop offset="1" stop-color="#fff2a8"/></linearGradient>`;
 
-/* ===================== RESİMLER =====================
-   Her resim: bölgeler (sırayla çizilir, sonrakiler öncekilerin üstünde) + süs çizgileri.
-   Bölge: [tür, öznitelikler, önerilen renk]. Tuval 400 x 400. */
+/* ===================== PICTURES =====================
+   Each picture: regions (drawn in order, later ones on top of earlier ones) + decorative lines.
+   Region: [type, attributes, suggested colour]. Canvas 400 x 400. */
 const R=(x,y,w,h,rx,c)=>['rect',{x,y,width:w,height:h,rx:rx||0},c];
 const C=(cx,cy,r,c)=>['circle',{cx,cy,r},c];
 const E=(cx,cy,rx,ry,c)=>['ellipse',{cx,cy,rx,ry},c];
@@ -327,7 +327,7 @@ const STAMPS={
   sparkle:c=>`<path d="M0 -24 Q4 -4 24 0 Q4 4 0 24 Q-4 4 -24 0 Q-4 -4 0 -24 Z" fill="${c}" ${st(3)}/>`
 };
 
-/* ===================== METİNLER ===================== */
+/* ===================== TEXTS ===================== */
 const T={
   tr:{name:"İpek'in Boyama Kitabı",games:'Oyunlar',heroT:'Merhaba İpek!',heroP:n=>n?`${n} resmi bitirdin. Hangisini boyamak istersin?`:'Bir resim seç, rengini seç, dokun ve boya!',
     sound:'Ses açık',mute:'Ses kapalı',parent:'Ebeveyn bilgisi',close:'Kapat',reset:'Bütün resimleri sil',resetSure:'Emin misin? Tekrar dokun',
@@ -358,11 +358,11 @@ const picState=id=>S.pics[id]||(S.pics[id]={f:{},b:[],s:[],done:false});
 const cname=k=>CMAP[k][S.lang];
 const pname=p=>p[S.lang];
 
-/* ===================== SES =====================
-   Türkçe övgü ve renk adları kayıtlı seslerden; diğerleri cihazın sesinden. Cihaz sesi takılırsa beklemeyiz. */
+/* ===================== SOUND =====================
+   Turkish praise and colour names come from recorded clips; everything else from the device voice. If the device voice stalls we don't wait. */
 const VOICE={tr:null,en:null};const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function scoreVoice(v,l){
-  /* en doğal kadın sesi öne: iPad/Mac'te indirilen "Gelişmiş/Premium" sesler, Edge'in "Natural" sesleri, Android'de Google sesi */
+  /* put the most natural female voice first: downloaded "Enhanced/Premium" voices on iPad/Mac, Edge's "Natural" voices, the Google voice on Android */
   const n=(v.name||'').toLowerCase(),u=(v.voiceURI||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
   if(/premium|enhanced|gelişmiş|geliştirilmiş|yüksek kalite|natural|neural|online/.test(n)||/premium|enhanced|neural/.test(u))s+=8;
   if(/google/.test(n))s+=4;
@@ -428,12 +428,12 @@ let parts=[],fxOn=false;const FXC=['#ff5a8a','#ff9f43','#ffd93d','#4cd17a','#4aa
 function confetti(n){if(reduce||!fctx)return;fx.width=innerWidth;fx.height=innerHeight;for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*innerWidth*.5,y:innerHeight*.4,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:6+Math.random()*7,c:FXC[i%6],a:Math.random()*6,va:(Math.random()-.5)*.3,life:1});if(!fxOn){fxOn=true;requestAnimationFrame(fxTick)}}
 function fxTick(){fctx.clearRect(0,0,fx.width,fx.height);parts.forEach(p=>{p.vy+=.42;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;p.life-=.012;fctx.save();fctx.globalAlpha=Math.max(0,p.life);fctx.translate(p.x,p.y);fctx.rotate(p.a);fctx.fillStyle=p.c;fctx.fillRect(-p.r/2,-p.r/3,p.r,p.r*.66);fctx.restore()});parts=parts.filter(p=>p.life>0&&p.y<fx.height+40);if(parts.length)requestAnimationFrame(fxTick);else{fxOn=false;fctx.clearRect(0,0,fx.width,fx.height)}}
 
-/* ===================== ÇİZİM ===================== */
+/* ===================== DRAWING ===================== */
 const attrs=o=>Object.entries(o).map(([k,v])=>`${k}="${v}"`).join(' ');
 const strokeD=p=>{let d='M'+p[0]+' '+p[1];for(let i=2;i<p.length;i+=2)d+=' L'+p[i]+' '+p[i+1];if(p.length===2)d+=' L'+(p[0]+.1)+' '+p[1];return d};
 const strokeEl=s=>`<path d="${strokeD(s.p)}" stroke="${s.c}" stroke-width="${s.w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
 const stampEl=s=>`<g transform="translate(${s.x} ${s.y}) scale(${s.z||1})">${STAMPS[s.t](fillOf(s.c))}</g>`;
-/* bir resmi (kaydedilmiş boyalarıyla) SVG olarak çizer; pre: kimlik öneki (aynı sayfada birden çok resim olabilir) */
+/* draws a picture (with its saved colours) as SVG; pre: id prefix (there can be several pictures on the same page) */
 function artSVG(p,ps,pre,interactive){
   let out=`<svg viewBox="0 0 400 400" xmlns="${NS}"${interactive?' id="art"':''}><defs>`;
   const brushOf={};(ps.b||[]).forEach(s=>{(brushOf[s.r]=brushOf[s.r]||[]).push(s)});
@@ -447,7 +447,7 @@ function artSVG(p,ps,pre,interactive){
   if(interactive)out+='<g class="hints" pointer-events="none"></g><g class="fxl" pointer-events="none"></g>';
   return out+'</svg>';
 }
-/* gökkuşağı/altın kalıpları küçük resimler için de lazım: sayfada bir kez tanımla */
+/* rainbow/gold patterns are also needed for thumbnails: define them once on the page */
 document.body.insertAdjacentHTML('afterbegin',`<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${DEFS}</defs></svg>`);
 
 /* ===================== EKRANLAR ===================== */
@@ -458,7 +458,7 @@ function renderHome(){
   const l=L(),nDone=PICS.filter(p=>S.pics[p.id]&&S.pics[p.id].done).length;
   $('heroT').textContent=l.heroT;$('heroP').textContent=l.heroP(nDone);
   $('gallery').innerHTML=PICS.map(p=>{const ps=S.pics[p.id]||{f:{},b:[],s:[]},pr=progressOf(p,ps),blank=!Object.keys(ps.f).length&&!(ps.b||[]).length&&!(ps.s||[]).length;
-    /* boş resimde önerilen renklerin silik hali yerine çizgileri göster */
+    /* on an empty picture show the outlines instead of faded suggested colours */
     return`<button class="pcard" data-p="${p.id}" aria-label="${pname(p)}">${artSVG(p,ps,'th-'+p.id,false)}${S.pics[p.id]&&S.pics[p.id].done?`<span class="badge">${STAR(true)}</span>`:''}<b>${pname(p)}</b>${p.free?'':`<span class="bar"><i style="width:${blank?0:Math.round(pr*100)}%"></i></span>`}</button>`}).join('');
   $('gallery').querySelectorAll('.pcard').forEach(b=>b.onclick=()=>openPic(b.dataset.p));
 }
@@ -530,7 +530,7 @@ function fillRegion(r,col,pt){
   const prev=cur.ps.f[r]||null;if(prev===col){boop();return}
   push({t:'f',r,prev});
   const p=cur.p,hintC=p.regions[r][2];
-  /* boya damlası: dokunulan yerden yayılan daire, sonra bölge renklenir */
+  /* paint drop: a circle spreading from the tapped point, then the region gets coloured */
   if(!reduce&&pt){const g=$('art').querySelector('.fxl'),c=document.createElementNS(NS,'circle'),clip=document.createElementNS(NS,'g');
     clip.setAttribute('clip-path',`url(#ed-${p.id}-c${r})`);c.setAttribute('cx',pt[0]);c.setAttribute('cy',pt[1]);c.setAttribute('r','4');c.setAttribute('fill',fillOf(col));
     const host=$('art').querySelector(`[data-g="${r}"]`);host.insertBefore(clip,host.querySelector('.br'));clip.appendChild(c);
@@ -548,13 +548,13 @@ $('undoBtn').onclick=()=>{const h=hist.pop();if(!h)return;boop();
   else if(h.t==='s'){cur.ps.s.pop();const g=$('art').querySelector('.stamps');g.lastElementChild&&g.lastElementChild.remove()}
   save();renderHints();updUndo()};
 
-/* renk ipuçları: her bölgenin görünen bir iç noktasında önerilen rengin küçük noktası */
+/* colour hints: a small dot of the suggested colour at a visible inner point of each region */
 const hintCache={};
 function hintPoints(){
   const p=cur.p;if(hintCache[p.id])return hintCache[p.id];
   const els=[...$('art').querySelectorAll('.rf')],boxes=els.map(e=>{try{return e.getBBox()}catch(_){return null}});
   const inside=(i,x,y)=>{const b=boxes[i];if(!b||x<b.x||y<b.y||x>b.x+b.width||y>b.y+b.height)return false;try{return els[i].isPointInFill(new DOMPoint(x,y))}catch(_){return true}};
-  const out=els.map((el,i)=>{if(i===0&&p.regions.length>1){/* arka plan: sol üst boş bir köşe */}
+  const out=els.map((el,i)=>{if(i===0&&p.regions.length>1){/* background: an empty top-left corner */}
     const b=boxes[i];if(!b)return null;const N=9,cand=[];
     for(let gx=1;gx<N;gx++)for(let gy=1;gy<N;gy++){const x=b.x+b.width*gx/N,y=b.y+b.height*gy/N;if(!inside(i,x,y))continue;let hid=false;for(let j=i+1;j<els.length;j++){if(inside(j,x,y)){hid=true;break}}if(!hid)cand.push([x,y])}
     if(!cand.length)return null;const mx=cand.reduce((s,c)=>s+c[0],0)/cand.length,my=cand.reduce((s,c)=>s+c[1],0)/cand.length;
@@ -586,7 +586,7 @@ $('doneBtn').onclick=()=>celebrate(false);
 $('moreBtn').onclick=()=>{$('doneOv').hidden=true};
 $('galBtn').onclick=()=>{$('doneOv').hidden=true;hush();show('home')};
 $('backBtn').onclick=()=>{hush();save(true);show('home')};
-/* resmi PNG olarak kaydet / paylaş */
+/* save / share the picture as PNG */
 $('saveBtn').onclick=async()=>{
   try{
     const src=artSVG(cur.p,cur.ps,'ex',false).replace('<defs>','<defs>'+DEFS),img=new Image(),W=1200;

@@ -2,7 +2,7 @@ import streamlit as st
 
 st.text('Welcome')
 st.text('Please upload your Amazon data')
-st.sidebar.subheader("yan kol")
+st.sidebar.subheader("sidebar")
 uploaded_file = st.sidebar.file_uploader(label = 'upload your file', type = ['csv', 'xlsx'])
 
 
@@ -17,5 +17,5 @@ class calculation:
         df['Sessions'] = pd.to_numeric(df['Sessions'], errors='coerce')
         return df['Sessions']
 
-st.text('asagidaki ASIN''ler bayagi problemli, gorunuyorlar ama satilmiyorlar')
+st.text('The ASINs below are a real problem: they get views but don''t sell')
 st.text(calculation.csv_calculation(uploaded_file))

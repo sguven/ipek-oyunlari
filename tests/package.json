@@ -1,7 +1,7 @@
 {
-  "name": "oyun-testleri",
+  "name": "game-tests",
   "private": true,
-  "description": "Minik Kâşif, Pırıl'ın Gökkuşağı ve Kelebek Bahçesi için otomatik testler",
+  "description": "Automated tests for Ipek's games",
   "scripts": {
     "test": "node run-tests.js && node kelebek-test.js",
     "test:kelebek": "node kelebek-test.js"

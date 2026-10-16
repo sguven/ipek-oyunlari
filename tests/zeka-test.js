@@ -1,5 +1,5 @@
-// İpek'in Zekâ Oyunları testi: beş oyunun bölümleri baştan sona (yanlış denemeler dahil), sürükle-bırak, robot çözümü, yerleşim, kalıcılık.
-// node zeka-test.js [--only=cihaz]  (masaüstünde bütün bölümler sessiz; diğer cihazlarda her oyunun ilk iki bölümü sesli)
+// Test for İpek's Brain Games: the levels of all five games from start to finish (including wrong attempts), drag and drop, robot solutions, layout, persistence.
+// node zeka-test.js [--only=device]  (on desktop all levels silently; on other devices the first two levels of each game with sound)
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = path.resolve(__dirname, '..'), OUT = path.join(__dirname, 'out');
@@ -16,7 +16,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
   const base = 'http://127.0.0.1:' + srv.address().port;
   const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 
-  // robot bölümleri çözülebilir mi
+  // are the robot levels solvable
   { const p = await browser.newPage(); await p.goto(base + '/zeka/'); const r = await p.evaluate(() => __zeka.ROB.map((c, i) => { const s = __zeka.robSolve(c); return s ? s.length : -1 })); r.forEach((n, i) => check(n > 0, `robot bölüm ${i + 1} çözülemiyor`)); console.log('robot en kısa yollar:', r.join(' ')); await p.close(); }
 
   for (const dev of DEVICES) {
@@ -45,7 +45,7 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
       async yapboz(lv, wrong) {
         await sleep(200); await shot('yapboz');
         const t = (await G()).test;
-        // sürükle-bırak: ilk parça (önce yanlış hücreye)
+        // drag and drop: the first piece (into a wrong cell first)
         const drag = async (p, c) => { const pb = await page.locator(`.pc[data-p="${p}"]`).boundingBox(); const cb = await page.locator(`.cellj[data-c="${c}"]`).boundingBox(); await page.mouse.move(pb.x + pb.width / 2, pb.y + pb.height / 2); await page.mouse.down(); for (let k = 1; k <= 8; k++) await page.mouse.move(pb.x + pb.width / 2 + (cb.x + cb.width / 2 - pb.x - pb.width / 2) * k / 8, pb.y + pb.height / 2 + (cb.y + cb.height / 2 - pb.y - pb.height / 2) * k / 8); await page.mouse.up(); await sleep(150); };
         await page.locator('.pc[data-p="0"]').evaluate(e => e.scrollIntoView({ block: 'center' }));
         if (wrong) { await drag(0, 1); check(await page.locator('.cellj.f').count() === 0, `${tag}: yanlış yere parça kondu`); }

@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
 <style>
-/* layout: ana sayfa = baykuş + 5 oyun kartı; oyun = üst çubuk (geri, ad, bölüm noktaları, dinle) + oyun alanı. */
+/* layout: home page = owl + 5 game cards; game = top bar (back, name, level dots, listen) + play area. */
 :root{
   --bg:#eef3ff;--ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;--tint:#f4f7ff;--ok:#1f9e66;--okbg:#dcf6e9;--bad:#ffd6d6;--gold:#ffcb3d;--pink:#ff7eb6;
   --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;--body:'Nunito',system-ui,-apple-system,sans-serif;color-scheme:light;
@@ -53,7 +53,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .gcard small{display:block;font:700 14px/1.3 var(--body);color:var(--ink2);margin-top:3px}
 .gcard .sb{display:flex;gap:2px;margin-top:6px;flex-wrap:wrap}.gcard .sb svg{width:16px;height:16px}
 .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
-/* oyun ekranı */
+/* game screen */
 .topbar{display:flex;align-items:center;gap:8px;background:var(--card);border:4px solid var(--ink);border-radius:24px;box-shadow:0 5px 0 var(--ink);padding:6px 8px}
 .topbar h2{flex:1;min-width:0;margin:0;font:700 clamp(18px,4.5vw,25px)/1.1 var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .round{width:50px;height:50px;border-radius:50%;border:4px solid var(--ink);cursor:pointer;flex:none;display:grid;place-items:center;padding:0;box-shadow:0 4px 0 var(--ink);background:var(--card)}
@@ -71,7 +71,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 @keyframes bounce{0%,100%{transform:scale(1)}40%{transform:scale(1.14)}70%{transform:scale(.95)}}
 @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(255,203,61,.0)}50%{box-shadow:0 0 0 12px rgba(255,203,61,.55)}}
 .shake{animation:shake .45s}
-/* hafıza */
+/* memory */
 .mem{display:grid;gap:clamp(8px,2vw,14px);width:100%;max-width:560px}
 .mc{display:block;width:100%;aspect-ratio:.82;border:0;padding:0;background:none;cursor:pointer;perspective:700px}
 .mc .in{display:block;position:relative;width:100%;height:100%;transition:transform .4s;transform-style:preserve-3d}
@@ -103,13 +103,13 @@ header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-betw
 .arrow svg{width:42px;height:42px}
 .arrow.del{background:#ffd6d6;width:56px}
 .arrow:disabled{opacity:.45}
-/* hangisi farklı */
+/* odd one out */
 .choices{display:grid;gap:12px;width:100%;max-width:620px}
 .ch{background:#fff;border:4px solid var(--ink);border-radius:24px;box-shadow:0 6px 0 var(--ink);aspect-ratio:1;cursor:pointer;display:grid;place-items:center;font-size:clamp(48px,14vw,84px);line-height:1;padding:0;animation:pop .4s backwards}
 .ch.ok{background:var(--okbg);border-color:var(--ok);box-shadow:0 6px 0 var(--ok);animation:bounce .5s}
 .ch.no{background:var(--bad);opacity:.6;pointer-events:none}
 .ch.dim{opacity:.55}
-/* sırala */
+/* put in order */
 .slots{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
 .sl{width:clamp(62px,18vw,104px);aspect-ratio:1;border:4px dashed #9fb6d4;border-radius:20px;display:grid;place-items:center;background:var(--tint);position:relative}
 .sl b{position:absolute;top:-12px;left:-10px;width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;font:700 15px/28px var(--display);text-align:center}
@@ -217,7 +217,7 @@ const ICON={
   brain:svg(`<path d="M30 78 C14 74 10 54 20 44 C16 28 32 16 46 22 C54 10 76 14 78 30 C92 34 92 56 80 62 C82 78 64 86 54 78 C46 88 34 86 30 78 Z" fill="#ff9fc8" ${st(5)}/><path d="M38 40 Q46 34 52 42 Q58 50 66 44 M34 60 Q44 52 52 60 Q60 68 70 60" fill="none" ${st(4)}/>`)
 };
 
-/* ===================== YAPBOZ RESİMLERİ (Boyama Kitabı'ndan, önerilen renklerle) ===================== */
+/* ===================== JIGSAW PICTURES (from the Coloring Book, with the suggested colours) ===================== */
 const COLHEX={red:'#ff4d4d',orange:'#ff9a3c',yellow:'#ffd93d',lgreen:'#9be36b',green:'#33b56b',lblue:'#9fd8ff',blue:'#3d8bff',navy:'#2d3f9e',purple:'#a66bff',pink:'#ff6fae',lpink:'#ffc6dd',brown:'#a8683a',beige:'#f7d9b5',gray:'#a9b0bd',black:'#33303b',white:'#ffffff'};
 const R=(x,y,w,h,rx,c)=>['rect',{x,y,width:w,height:h,rx:rx||0},c];
 const C=(cx,cy,r,c)=>['circle',{cx,cy,r},c];
@@ -354,7 +354,7 @@ const nm=e=>(NM[e]||[e,e])[S.lang==='tr'?0:1];
 const listTxt=a=>{const n=a.map(nm);return S.lang==='tr'?`${n.slice(0,-1).join(', ')} ve ${n[n.length-1]}`:`${n.slice(0,-1).join(', ')} and ${n[n.length-1]}`};
 const cap=s=>s.charAt(0).toLocaleUpperCase(S.lang==='tr'?'tr-TR':'en-US')+s.slice(1);
 
-/* ===================== METİNLER ===================== */
+/* ===================== TEXTS ===================== */
 const T={
  tr:{name:"İpek'in Zekâ Oyunları",games:'Oyunlar',heroT:'Merhaba İpek!',heroP:'Ben Bilge Baykuş. Beynini çalıştıracak oyunlar hazırladım. Hangisiyle başlayalım?',
   sound:'Ses açık',mute:'Ses kapalı',parent:'Ebeveyn bilgisi',close:'Kapat',reset:'İlerlemeyi sıfırla',resetSure:'Emin misin? Tekrar dokun',
@@ -403,10 +403,10 @@ if(!S.lang){let l=null;try{l=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1
 function save(){try{localStorage.setItem(KEY_,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 
-/* ===================== SES ===================== */
+/* ===================== SOUND ===================== */
 const VOICE={tr:null,en:null};const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function scoreVoice(v,l){
-  /* en doğal kadın sesi öne: iPad/Mac'te indirilen "Gelişmiş/Premium" sesler, Edge'in "Natural" sesleri, Android'de Google sesi */
+  /* put the most natural female voice first: downloaded "Enhanced/Premium" voices on iPad/Mac, Edge's "Natural" voices, the Google voice on Android */
   const n=(v.name||'').toLowerCase(),u=(v.voiceURI||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
   if(/premium|enhanced|gelişmiş|geliştirilmiş|yüksek kalite|natural|neural|online/.test(n)||/premium|enhanced|neural/.test(u))s+=8;
   if(/google/.test(n))s+=4;
@@ -475,7 +475,7 @@ let parts=[],fxOn=false;const FXC=['#ff5a8a','#ff9f43','#ffd93d','#4cd17a','#4aa
 function confetti(n){if(reduce||!fctx)return;fx.width=innerWidth;fx.height=innerHeight;for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*innerWidth*.5,y:innerHeight*.4,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:6+Math.random()*7,c:FXC[i%6],a:Math.random()*6,va:(Math.random()-.5)*.3,life:1});if(!fxOn){fxOn=true;requestAnimationFrame(fxTick)}}
 function fxTick(){fctx.clearRect(0,0,fx.width,fx.height);parts.forEach(p=>{p.vy+=.42;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;p.life-=.012;fctx.save();fctx.globalAlpha=Math.max(0,p.life);fctx.translate(p.x,p.y);fctx.rotate(p.a);fctx.fillStyle=p.c;fctx.fillRect(-p.r/2,-p.r/3,p.r,p.r*.66);fctx.restore()});parts=parts.filter(p=>p.life>0&&p.y<fx.height+40);if(parts.length)requestAnimationFrame(fxTick);else{fxOn=false;fctx.clearRect(0,0,fx.width,fx.height)}}
 
-/* ===================== OYUN ÇERÇEVESİ ===================== */
+/* ===================== GAME FRAME ===================== */
 let screen='home',G={gen:0};
 const later=(fn,ms)=>{const g=G.gen;setTimeout(()=>{if(G.gen===g&&screen==='game')fn()},ms)};
 const owlSay=t=>`<div class="owlrow"><div class="owl">${OWL}</div><div class="bub">${t}</div></div>`;
@@ -556,7 +556,7 @@ function runJigsaw(lv){
         if(!moved){moved=true;ghost=document.createElement('div');ghost.className='drag';ghost.style.width=r.width+'px';ghost.style.height=r.height+'px';ghost.innerHTML=pc.innerHTML;document.body.appendChild(ghost);pc.style.opacity='.3'}
         ghost.style.left=ev.clientX+'px';ghost.style.top=ev.clientY+'px'};
       const up=ev=>{pc.removeEventListener('pointermove',mv);pc.removeEventListener('pointerup',up);pc.removeEventListener('pointercancel',up);pc.style.opacity='';
-        if(!moved){/* dokunma: seç */const was=sel===pc;tray.querySelectorAll('.pc').forEach(x=>x.classList.remove('sel'));sel=was?null:pc;if(sel){sel.classList.add('sel');tone(660,.06)}return}
+        if(!moved){/* tap: select */const was=sel===pc;tray.querySelectorAll('.pc').forEach(x=>x.classList.remove('sel'));sel=was?null:pc;if(sel){sel.classList.add('sel');tone(660,.06)}return}
         ghost.remove();const el=document.elementFromPoint(ev.clientX,ev.clientY),cell=el&&el.closest?el.closest('.cellj'):null;
         if(cell&&!cell.classList.contains('f'))tryCell(+cell.dataset.c,pc);else if(cell)wrong(cell)};
       pc.addEventListener('pointermove',mv);pc.addEventListener('pointerup',up);pc.addEventListener('pointercancel',up);
@@ -567,7 +567,7 @@ function runJigsaw(lv){
 }
 
 /* ===================== 3) ROBOT YOLU ===================== */
-/* konumlar [satır, sütun]; taşlar geçilmez; elmalar varsa önce hepsi toplanır */
+/* positions [row, column]; rocks can't be crossed; if there are apples, they all have to be collected first */
 const ROB=[
  {n:3,r:[2,0],s:[2,2],rocks:[]},
  {n:3,r:[2,0],s:[0,0],rocks:[]},
@@ -581,7 +581,7 @@ const ROB=[
  {n:5,r:[2,0],s:[2,4],rocks:[[2,2],[1,2],[3,2]],apples:[[0,2],[4,2]]}
 ];
 const DIRS={u:[-1,0],d:[1,0],l:[0,-1],r:[0,1]};
-function robSolve(c){/* en kısa yol (elmalar dahil) */
+function robSolve(c){/* shortest path (including apples) */
   const ap=c.apples||[],key=(r,k,m)=>r+','+k+','+m,full=(1<<ap.length)-1,isRock=(r,k)=>c.rocks.some(x=>x[0]===r&&x[1]===k);
   const apIdx=(r,k)=>ap.findIndex(x=>x[0]===r&&x[1]===k);
   const start=[c.r[0],c.r[1],0,[]],seen=new Set([key(...start.slice(0,3))]),q=[start];
@@ -624,7 +624,7 @@ function runRobot(lv){
   G.test={sol,cfg:c};
 }
 
-/* ===================== 4) HANGİSİ FARKLI? ===================== */
+/* ===================== 4) ODD ONE OUT ===================== */
 const CATS={fruit:['🍎','🍌','🍐','🍇','🍓','🍒','🍉','🍊','🍍'],veg:['🥕','🥦','🌽','🥒','🍆','🥔','🧅'],animal:['🐶','🐱','🐰','🐻','🐮','🐸','🦁','🐘','🐴','🐑','🐵','🦒'],vehicle:['🚗','🚌','🚲','✈️','🚂','🚢','🚁','🚜'],
   clothes:['👕','👖','👗','🧦','🧢','👟','🧤','🧣'],sea:['🐟','🐙','🦀','🐬','🐳'],fly:['🐦','🦋','🐝','🦉'],red:['🍎','🍓','🍒','🚒','🌹','❤️'],yellow:['🍌','🌻','⭐','🐥','🧀'],green:['🥦','🐸','🍀','🥒','🌲','🍏']};
 const ODD=[{k:3,pairs:'kinds'},{k:3,pairs:'kinds2'},{k:3,pairs:'colors'},{k:3,pairs:'near'},{k:4,pairs:'all'},{k:5,pairs:'all'}];
@@ -690,7 +690,7 @@ const GAMES={
   sirala:{levels:SEQ.length,run:runSeq,bg:'#f1e3ff',ic:'🔢'}
 };
 
-/* ===================== ANA SAYFA ===================== */
+/* ===================== HOME PAGE ===================== */
 function renderHome(){
   const l=L();$('heroOwl').innerHTML=OWL;$('heroT').textContent=l.heroT;$('heroP').textContent=l.heroP;
   $('games').innerHTML=Object.entries(GAMES).map(([id,g])=>{const p=progOf(id),n=g.levels;

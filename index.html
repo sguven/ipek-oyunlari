@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
 <style>
-/* layout: üstte İpek'e selam, altında üç büyük oyun kartı (her biri kendi oyununun rengiyle). Tek tema, pastel. */
+/* layout: a greeting to İpek on top, big game cards below (each in its own game's colour). Single pastel theme. */
 :root{
   --bg:#fff3e6;--ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;
   --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
@@ -89,17 +89,17 @@ const svg=(inner,vb='0 0 100 100')=>`<svg viewBox="${vb}" xmlns="http://www.w3.o
 const st=(w=4)=>`stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
 function starPts(cx,cy,R,r){const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r:R;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1))}return p.join(' ')}
 
-/* Minik Kâşif: büyüteç + sayı, renk, şekil */
+/* Little Explorer: magnifying glass + number, colour, shape */
 const ART1=svg(`<circle cx="44" cy="30" r="10" fill="#ff5a5a" ${st(3)}/><rect x="122" y="18" width="22" height="22" rx="4" fill="#4aa8ff" ${st(3)}/><polygon points="${starPts(150,96,15,6.5)}" fill="#ffd93d" ${st(3)}/><polygon points="22,110 34,88 46,110" fill="#5fd3b5" ${st(3)}/>
 <g class="bob" style="transform-origin:95px 62px"><circle cx="88" cy="56" r="36" fill="#ffc531" ${st(6)}/><circle cx="88" cy="56" r="22" fill="#fff" ${st(5)}/><text x="88" y="66" text-anchor="middle" font-family="Fredoka,system-ui" font-weight="700" font-size="28" fill="${INK}">3</text><path d="M114 82 L138 106" stroke="${INK}" stroke-width="10" stroke-linecap="round"/></g>`,'0 0 170 125');
 
-/* Pırıl'ın Gökkuşağı: gökkuşağı + boynuz */
+/* Sparkle's Rainbow: rainbow + horn */
 const RB=['#ff5a5a','#ff9f43','#ffd93d','#4cd17a','#4aa8ff','#5a63e0','#a66bff'];
 const ART2=svg(RB.map((c,i)=>{const r=74-i*8;return`<path d="M${90-r} 112 A${r} ${r} 0 0 1 ${90+r} 112" stroke="${c}" stroke-width="8" fill="none"/>`}).join('')+
   `<g fill="#fff" stroke="${INK}" stroke-width="3"><ellipse cx="90" cy="114" rx="64" ry="11"/></g><g class="bob" style="transform-origin:90px 70px"><polygon points="78,92 102,92 92,22" fill="#ffcb3d" ${st(4)}/><path d="M82 78 L98 76 M85 62 L96 60 M88 46 L94 45" stroke="${INK}" stroke-width="3"/></g>`+
   [[24,26,7],[154,30,6],[140,70,5]].map(([x,y,r])=>`<polygon points="${starPts(x,y,r,r*.42)}" fill="#ffd93d" stroke="${INK}" stroke-width="1.5"/>`).join(''),'0 0 180 125');
 
-/* Kelebek Bahçesi: kelebek + kavanoz */
+/* Butterfly Garden: butterfly + jar */
 const UPW='M50 46 C40 16 14 4 7 18 C1 32 14 50 50 52 Z',LOW='M50 52 C30 52 14 62 18 78 C22 92 42 88 50 60 Z';
 function bf(c,lt){const h=`<path d="${UPW}" fill="${c}" ${st(3)}/><path d="${LOW}" fill="${lt}" ${st(3)}/><circle cx="22" cy="24" r="6.5" fill="#fff" opacity=".85"/><circle cx="31" cy="73" r="4.5" fill="#fff" opacity=".85"/>`;
   return `<g class="wl"><g>${h}</g></g><g class="wr"><g transform="matrix(-1 0 0 1 100 0)">${h}</g></g><path d="M47 27 Q40 12 33 9 M53 27 Q60 12 67 9" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="33" cy="9" r="4" fill="${c}" ${st(2)}/><circle cx="67" cy="9" r="4" fill="${c}" ${st(2)}/><ellipse cx="50" cy="60" rx="6.5" ry="24" fill="${INK}"/><circle cx="50" cy="34" r="10" fill="${INK}"/><circle cx="46" cy="33" r="2.7" fill="#fff"/><circle cx="54" cy="33" r="2.7" fill="#fff"/><path d="M46.5 38.2 Q50 41.5 53.5 38.2" stroke="#fff" stroke-width="1.7" fill="none" stroke-linecap="round"/>`}
@@ -108,26 +108,26 @@ const ART3=svg(`<g class="bob" style="transform-origin:60px 50px"><svg x="20" y=
 <g transform="translate(118 48) scale(.62)"><rect x="10" y="22" width="80" height="90" rx="20" fill="#e9f6ff" fill-opacity=".8" ${st(5)}/><rect x="18" y="8" width="64" height="16" rx="6" fill="#c79bff" ${st(5)}/><svg x="22" y="56" width="36" height="36" viewBox="0 0 100 100">${bf('#ff5a5a','#ffc2c2')}</svg><svg x="46" y="72" width="34" height="34" viewBox="0 0 100 100">${bf('#4aa8ff','#c4e3ff')}</svg></g>`,'0 0 180 125');
 
 
-/* Araba Gezisi: Çeşnigir Köprüsü + pembe araba */
+/* Car Trip: Çeşnigir Bridge + pink car */
 const ART4=svg(`<path d="M0 108 Q90 96 180 108 V125 H0Z" fill="#7cc6f0"/><path d="M4 92 Q90 40 176 92 L176 104 L4 104 Z" fill="#e6d8b8" ${st(4)}/><path d="M64 104 Q90 66 116 104 Z" fill="#7cc6f0" ${st(4)}/><path d="M28 104 Q40 88 52 104 Z M128 104 Q140 88 152 104 Z" fill="#7cc6f0" ${st(3)}/>
 <g class="bob" style="transform-origin:90px 56px"><g transform="translate(58 26) scale(.64)"><path d="M10 62 Q10 48 24 46 L32 30 Q36 24 44 24 H60 Q68 24 72 30 L80 46 Q92 48 92 62 V70 H10 Z" fill="#ff6fa8" ${st(6)}/><path d="M36 44 L41 32 H59 L66 44 Z" fill="#cfe9ff" ${st(5)}/><circle cx="28" cy="72" r="11" fill="${INK}"/><circle cx="74" cy="72" r="11" fill="${INK}"/><circle cx="28" cy="72" r="4" fill="#fff"/><circle cx="74" cy="72" r="4" fill="#fff"/></g></g>
 ${[[26,30,10],[150,24,9],[160,60,7]].map(([x,y,r])=>`<polygon points="${starPts(x,y,r,r*.42)}" fill="#ffd93d" ${st(2.5)}/>`).join('')}`,'0 0 180 125');
 
-/* Yardım Köyü: kalp + iki arkadaş (biri atkı veriyor) */
+/* Helping Village: heart + two friends (one is giving a scarf) */
 const ART5=svg(`<path d="M90 92 C40 62 52 20 90 40 C128 20 140 62 90 92Z" fill="#ff5a8a" ${st(4)}/><path d="M62 52 Q74 40 86 50 M118 52 Q106 40 94 50" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>
 <g class="bob" style="transform-origin:34px 96px"><circle cx="34" cy="92" r="20" fill="#f6b26b" ${st(3.5)}/><path d="M20 78 L16 60 L32 72 Z M48 78 L52 60 L36 72 Z" fill="#f6b26b" ${st(3)}/><path d="M26 92 Q30 88 34 92 M38 92 Q42 88 46 92" stroke="${INK}" stroke-width="3" fill="none"/><path d="M28 100 Q34 106 40 100" stroke="${INK}" stroke-width="3" fill="none"/><path d="M16 108 Q34 116 52 108 L52 114 Q34 122 16 114Z" fill="#ff5a5a" ${st(3)}/></g>
 <g><circle cx="146" cy="92" r="20" fill="#c8915a" ${st(3.5)}/><circle cx="132" cy="74" r="7" fill="#c8915a" ${st(3)}/><circle cx="160" cy="74" r="7" fill="#c8915a" ${st(3)}/><path d="M138 92 Q142 88 146 92 M150 92 Q154 88 158 92" stroke="${INK}" stroke-width="3" fill="none"/><path d="M140 100 Q146 106 152 100" stroke="${INK}" stroke-width="3" fill="none"/></g>`,'0 0 180 125');
-/* Harf Adaları: denizde ada, üstünde harf kartları ve kalem */
+/* Letter Islands: an island in the sea with letter cards and a pencil on it */
 const ART6=svg(`<path d="M0 98 Q45 88 90 98 T180 98 V125 H0Z" fill="#7cc6f0"/><ellipse cx="90" cy="98" rx="62" ry="13" fill="#ffe08a" ${st(3.5)}/>
 <g class="bob" style="transform-origin:60px 60px"><rect x="34" y="34" width="44" height="50" rx="10" fill="#fff" ${st(4)} transform="rotate(-8 56 59)"/><text x="56" y="74" text-anchor="middle" font-family="Andika,Fredoka,sans-serif" font-weight="700" font-size="36" fill="#ff5a8a" transform="rotate(-8 56 59)">a</text></g>
 <g><rect x="96" y="30" width="44" height="50" rx="10" fill="#fff" ${st(4)} transform="rotate(7 118 55)"/><text x="118" y="70" text-anchor="middle" font-family="Andika,Fredoka,sans-serif" font-weight="700" font-size="36" fill="#4aa8ff" transform="rotate(7 118 55)">e</text></g>
 <g transform="rotate(35 150 40)"><rect x="144" y="8" width="12" height="48" rx="3" fill="#ffcb3d" ${st(3)}/><path d="M144 56 L150 68 L156 56Z" fill="#f7d9b5" ${st(3)}/></g>
 ${[[20,26,9],[166,92,6]].map(([x,y,r])=>`<polygon points="${starPts(x,y,r,r*.42)}" fill="#ffd93d" ${st(2.5)}/>`).join('')}`,'0 0 180 125');
-/* Boyama Kitabı: yarısı boyanmış kelebek, boya kovası ve kalem */
+/* Coloring Book: half-painted butterfly, paint bucket and pencil */
 const ART7=svg(`<path d="M86 60 C64 22 30 22 30 46 C30 66 56 72 86 66 Z" fill="#a66bff" ${st(3.5)}/><path d="M94 60 C116 22 150 22 150 46 C150 66 124 72 94 66 Z" fill="#fff" ${st(3.5)}/><path d="M86 68 C62 70 44 84 52 98 C60 108 80 98 87 76 Z" fill="#ff7eb6" ${st(3.5)}/><path d="M94 68 C118 70 136 84 128 98 C120 108 100 98 93 76 Z" fill="#fff" ${st(3.5)}/><ellipse cx="90" cy="70" rx="6" ry="24" fill="${INK}"/><circle cx="90" cy="44" r="7" fill="${INK}"/>
 <g class="bob" style="transform-origin:150px 90px"><g transform="rotate(35 150 80)"><rect x="144" y="52" width="13" height="44" rx="3" fill="#ffcb3d" ${st(3)}/><path d="M144 96 L150.5 108 L157 96 Z" fill="#f7d9b5" ${st(3)}/></g></g>
 <circle cx="24" cy="104" r="9" fill="#ff5a5a" ${st(3)}/><circle cx="44" cy="112" r="8" fill="#4aa8ff" ${st(3)}/><circle cx="20" cy="22" r="7" fill="#5fd3b5" ${st(3)}/>`,'0 0 180 125');
-/* Zekâ Oyunları: yapboz parçaları, hafıza kartı ve robot yolu */
+/* Brain Games: jigsaw pieces, a memory card and a robot path */
 const ART8=svg(`<g class="bob" style="transform-origin:90px 60px"><path d="M66 82 C46 78 42 56 54 46 C50 28 68 16 84 22 C94 8 120 12 122 30 C138 34 138 58 124 64 C126 82 106 92 94 82 C84 94 70 92 66 82 Z" fill="#ff9fc8" ${st(4)}/><path d="M74 42 Q84 34 92 44 Q100 54 110 46 M70 64 Q82 56 92 64 Q102 72 114 64" fill="none" ${st(3.5)}/></g>
 <rect x="14" y="70" width="34" height="42" rx="7" fill="#8fb8ff" ${st(3.5)}/><polygon points="${starPts(31,91,10,4.4)}" fill="#fff" ${st(2.5)}/>
 <path d="M138 74 H160 V86 A6 6 0 0 1 160 98 V110 H138 V98 A6 6 0 0 0 138 86 Z" fill="#ffd93d" ${st(3.5)}/>

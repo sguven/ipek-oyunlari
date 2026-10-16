@@ -1,4 +1,4 @@
-# zeka/index.html'i üretir: yapboz resimleri ve ses motoru Boyama Kitabı'ndan alınır (tek kaynak)
+# generates zeka/index.html: the jigsaw pictures and sound engine are taken from the Coloring Book (single source)
 import re,os
 D=os.path.dirname(os.path.abspath(__file__));B=open(os.path.join(D,'../boyama/index.html')).read().split('\n')
 def block(a,b):

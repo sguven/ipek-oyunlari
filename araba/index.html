@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-/* layout: tam ekran 3D sahne; üstte durum çubukları (oyunlar / yıldız+çıkartma / menü), altta sol direksiyon, sağ gaz-geri-korna. Tek tema, pastel. */
+/* layout: full-screen 3D scene; status bars on top (games / stars+stickers / menu), steering on the bottom left, gas-reverse-horn on the right. Single pastel theme. */
 :root{
   --ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;--tint:#f2f8ff;--gold:#ffcb3d;--pink:#ff7eb6;--ok:#1f9e66;
   --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
@@ -36,7 +36,7 @@ button,a{font-family:inherit}
 .round{width:52px;height:52px;border-radius:50%;border:3px solid var(--ink);background:var(--card);box-shadow:0 4px 0 var(--ink);display:grid;place-items:center;padding:0;cursor:pointer}
 .round svg{width:26px;height:26px}
 
-/* üst çubuk */
+/* top bar */
 .top{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(10px + env(safe-area-inset-left));right:calc(10px + env(safe-area-inset-right));display:flex;align-items:flex-start;justify-content:space-between;gap:8px;z-index:10;pointer-events:none}
 .top>*{pointer-events:auto}
 .score{display:flex;flex-direction:column;align-items:center;gap:6px}
@@ -50,7 +50,7 @@ button,a{font-family:inherit}
 .stk.got svg{opacity:1}
 .stk.next{border-color:var(--pink);border-style:solid;animation:pulse 1.2s ease-in-out infinite}
 
-/* radar (araba ile dönen küçük harita) */
+/* radar (small map that turns with the car) */
 #radar{position:fixed;left:calc(10px + env(safe-area-inset-left));top:calc(64px + env(safe-area-inset-top));width:clamp(96px,14vw,130px);height:clamp(96px,14vw,130px);border-radius:50%;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);background:#f3e3b8;z-index:9;pointer-events:none}
 @media (max-height:460px){#radar{width:84px;height:84px;top:calc(58px + env(safe-area-inset-top))}}
 /* kontroller */
@@ -78,7 +78,7 @@ button,a{font-family:inherit}
 #chip{position:fixed;left:50%;top:calc(176px + env(safe-area-inset-top));transform:translateX(-50%);background:var(--card);border:3px solid var(--ink);border-radius:999px;box-shadow:0 4px 0 var(--ink);padding:6px 16px;font:700 clamp(17px,4vw,22px)/1.2 var(--display);z-index:11;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 #chip.show{opacity:1}
 @media (max-height:460px){#chip{top:calc(120px + env(safe-area-inset-top))}}
-/* örtüler */
+/* overlays */
 .ov{position:fixed;inset:0;background:rgba(59,42,92,.45);display:grid;place-items:center;padding:16px;z-index:20}
 .card{background:var(--card);border:4px solid var(--ink);border-radius:32px;box-shadow:0 8px 0 var(--ink);padding:20px 18px;max-width:520px;width:100%;max-height:92vh;overflow:auto;text-align:center;display:flex;flex-direction:column;gap:14px}
 .card h2,.card h3{margin:0;font:700 clamp(24px,5vw,32px)/1.1 var(--display);text-wrap:balance}
@@ -248,7 +248,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 $('loading').textContent=L().loading;
 
-/* ---------- çizim yardımcıları ---------- */
+/* ---------- drawing helpers ---------- */
 const svg=(inner,vb='0 0 100 100')=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`;
 const st=(w=4)=>`stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
 function starPts(cx,cy,R,r){const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r:R;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1))}return p.join(' ')}
@@ -275,7 +275,7 @@ const STOP_ICON=[
   svg(`<path d="M24 88 V58 Q24 34 50 34 Q76 34 76 58 V88 Z" fill="${INK}"/><rect x="10" y="22" width="7" height="66" fill="${INK}"/><path d="M13 22 L13 8" stroke="${INK}" stroke-width="5"/>`)
 ];
 
-/* ---------- ses: kayıtlı Türkçe klipler + İngilizce cihaz sesi + kısa efektler (müzik yok) ---------- */
+/* ---------- sound: recorded Turkish clips + English device voice + short effects (no music) ---------- */
 let AC=null;
 function audioCtx(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC}catch(e){return null}}
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
@@ -304,7 +304,7 @@ function say(text){
   if(!enVoice)return;
   try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=enVoice;u.lang=enVoice.lang;u.rate=.95;u.pitch=1.1;speechSynthesis.speak(u)}catch(e){}
 }
-/* Demet ve Yılmaz kendi cümlelerini cihazın sesiyle söyler (Türkçede kayıtlı klip yok) */
+/* Demet and Yılmaz say their own lines with the device voice (no recorded clips in Turkish) */
 let trVoice=null;
 function pickTr(){try{const vs=(speechSynthesis.getVoices()||[]).filter(v=>/^tr/i.test(v.lang||''));vs.sort((a,b)=>(/premium|enhanced|gelişmiş|natural|google|yelda|emel/i.test(b.name)?1:0)-(/premium|enhanced|gelişmiş|natural|google|yelda|emel/i.test(a.name)?1:0));trVoice=vs[0]||null}catch(e){}}
 if('speechSynthesis' in window){pickTr();try{speechSynthesis.addEventListener('voiceschanged',pickTr)}catch(e){}}
@@ -332,7 +332,7 @@ function toast(title,sub,ms){const t=$('toast');t.querySelector('b').textContent
 if(typeof THREE==='undefined'){$('loading').textContent=L().noWebgl;return}
 
 /* =====================================================================
-   3D SAHNE — Serhat'ın "Çeşnigir Sürüş" oyunundan: köprü, arazi, köy, karayolu
+   3D SCENE — from Serhat's "Çeşnigir Sürüş" game: bridge, terrain, village, highway
    ===================================================================== */
 const canvas=$('scene');
 let renderer;
@@ -352,7 +352,7 @@ function skyTexture(top,mid,bottom){const c=document.createElement('canvas');c.w
 const skySunset=skyTexture('#5a5a8c','#e9a07a','#ffd9a0');
 const skyDay=skyTexture('#4a8fe0','#94c6f0','#e2eef2');
 
-/* taş dokusu */
+/* stone texture */
 function stoneTexture(){
   const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');
   g.fillStyle='#d8ccb0';g.fillRect(0,0,256,256);
@@ -366,7 +366,7 @@ const copingMat=new THREE.MeshLambertMaterial({color:0xe3d8be});
 const ringPink=new THREE.MeshLambertMaterial({color:0xb87461});
 const ringCream=new THREE.MeshLambertMaterial({color:0xcbbc9c});
 
-/* ÇEŞNİGİR KÖPRÜSÜ */
+/* ÇEŞNİGİR BRIDGE */
 const BR_LEN=110,BR_W=6,WATER_Y=2.4;
 function deckY(x){return 7+4.6*Math.pow(Math.max(Math.cos(Math.PI*x/118),0),1.3)}
 function pointedArch(cx,halfW,springY,apexY,baseY){const p=new THREE.Path();p.moveTo(cx-halfW,baseY);p.lineTo(cx-halfW,springY);p.bezierCurveTo(cx-halfW,springY+(apexY-springY)*.62,cx-halfW*.35,apexY,cx,apexY);p.bezierCurveTo(cx+halfW*.35,apexY,cx+halfW,springY+(apexY-springY)*.62,cx+halfW,springY);p.lineTo(cx+halfW,baseY);p.closePath();return p}
@@ -399,7 +399,7 @@ const reliefArches=[[-12.9,1.3,8,10.1],[12.9,1.3,8,10.1],[20.8,1.1,6.6,8.5]];
   [[-9,10.2],[3,10.1],[14,7.1],[18.6,6.4],[26,5.9],[31,5.4],[36.4,5.3],[-17,6.5],[-25,5.9],[7,10.3]].forEach(([x,y])=>{const t=new THREE.Mesh(tuftGeo,tuftMat);t.scale.set(1.2,.5,.5);t.position.set(x,y,BR_W/2+.05);scene.add(t)});
 })();
 
-/* ARAZİ */
+/* TERRAIN */
 function channelCenter(z){return -22*ss(z,40,230)+7*ss(-z,30,170)}
 function channelHalf(z){return 48+26*ss(z,20,150)-17*ss(-z,10,90)}
 function rockNoise(x,z){return Math.sin(x*.05+1)*Math.cos(z*.06)*1.6+Math.sin(x*.017+3)*Math.sin(z*.021+1)*3.4}
@@ -432,10 +432,10 @@ function terrainH(x,z){
   const m=new THREE.Mesh(geo,new THREE.MeshLambertMaterial({vertexColors:true}));if(SHADOWS)m.receiveShadow=true;scene.add(m);
 })();
 
-/* kayalar (paylaşılan geometri) */
+/* rocks (shared geometry) */
 const HW_P1=new THREE.Vector2(-165,10),HW_P2=new THREE.Vector2(95,155);
 const HW_DIR=HW_P2.clone().sub(HW_P1),HW_LEN=HW_DIR.length(),HW_ANG=Math.atan2(HW_DIR.y,HW_DIR.x),HW_DECK=9.2;
-const HW_RAMP=20/HW_LEN; /* her uçta 20 birimlik rampa */
+const HW_RAMP=20/HW_LEN; /* a 20-unit ramp at each end */
 const HW_END0=Math.max(terrainH(HW_P1.x,HW_P1.y),WATER_Y+2)+.05,HW_END1=Math.max(terrainH(HW_P2.x,HW_P2.y),WATER_Y+2)+.05;
 function hwDeckH(t){if(t<HW_RAMP)return lerp(HW_END0,HW_DECK,t/HW_RAMP);if(t>1-HW_RAMP)return lerp(HW_DECK,HW_END1,(t-(1-HW_RAMP))/HW_RAMP);return HW_DECK}
 const DER_STOP=(()=>{const ry=-Math.PI/2-.35;return[118+Math.sin(ry)*8.5,14+Math.cos(ry)*8.5]})();
@@ -443,7 +443,7 @@ const hwAt=x=>[x,HW_P1.y+(x-HW_P1.x)*HW_DIR.y/HW_DIR.x];
 const SCHOOL_STOP=[126+8*Math.sin(-.35),96+8*Math.cos(-.35)];
 const STOPS=[[0,0],[-100,12],hwAt(-47),SCHOOL_STOP,[106,41],DER_STOP,[83,-17]];
 const ROUTE=[[70,0],[30,0],[0,0,0],[-35,0],[-68,0],[-85,4],[-100,12,1],[-125,10],[-150,7],[-176,5],[-178,10],hwAt(-150),hwAt(-120),hwAt(-85),[...hwAt(-47),2],hwAt(-10),hwAt(30),hwAt(68),hwAt(90),[102,157],[110,145],[114,128],[118,112],[...SCHOOL_STOP,3],[114,104],[109,92],[108,78],[104,60],[106,52],[106,41,4],[104,30],[...DER_STOP,5],[111,3],[107,-3],[98,-11],[83,-17,6]];
-/* ---------- ENGELLER: binalar, ağaçlar, kayalar… araba içlerine giremez, kamera arkalarında kaybolmaz ---------- */
+/* ---------- OBSTACLES: buildings, trees, rocks… the car can't drive into them, the camera doesn't get lost behind them ---------- */
 const OBST=[];
 function addBox(x,z,hx,hz,rot,top){OBST.push({x,z,hx,hz,c:Math.cos(rot),s:Math.sin(rot),top,r:Math.hypot(hx,hz)})}
 function addCirc(x,z,r,top){OBST.push({x,z,r,circ:true,top})}
@@ -462,7 +462,7 @@ function pushOut(p,rad){
     if(px>0&&pz>0){if(px<pz)lx+=Math.sign(lx||1)*px;else lz+=Math.sign(lz||1)*pz;p.x=o.x+lx*o.c+lz*o.s;p.z=o.z-lx*o.s+lz*o.c;hit=true}}
   return hit;
 }
-/* yollar (çizim, harita ve ev yerleşimi için tek liste) */
+/* roads (one list for drawing, the map and house placement) */
 const ROADS=[[[68,0],[78,-8],[86,-18],[92,-26]],[[92,-26],[102,0],[110,30],[104,60],[118,90]],[[-68,0],[-85,4],[-110,10],[-140,10],[-158,6],[-176,5]],[[100,158],[110,145],[114,128],[118,108],[121,94]]];
 function distToLines(x,z,lines){let best=1e9;lines.forEach(L_=>{for(let i=0;i<L_.length-1;i++){const[ax,az]=L_[i],[bx,bz]=L_[i+1],vx=bx-ax,vz=bz-az,t=Math.max(0,Math.min(1,((x-ax)*vx+(z-az)*vz)/(vx*vx+vz*vz||1))),d=Math.hypot(x-ax-vx*t,z-az-vz*t);if(d<best)best=d}});return best}
 (function rocks(){
@@ -477,7 +477,7 @@ const waterMat=new THREE.MeshPhongMaterial({color:0x2b6a90,specular:0xdfefff,shi
 const water=new THREE.Mesh(waterGeo,waterMat);water.rotation.x=-Math.PI/2;water.position.set(-12,WATER_Y,0);scene.add(water);
 const wPos=waterGeo.attributes.position,wBase=wPos.array.slice();
 
-/* KÖPRÜKÖY (paylaşılan geometriler) */
+/* KÖPRÜKÖY (shared geometries) */
 const wallMats=[0xe6dcc4,0xd9c9a8,0xcdb894,0xe0d2b4].map(c=>new THREE.MeshLambertMaterial({color:c}));
 const roofMat=new THREE.MeshLambertMaterial({color:0xb14e32}),roofMat2=new THREE.MeshLambertMaterial({color:0xc4683f});
 const boxGeo=new THREE.BoxGeometry(1,1,1),roofGeo=new THREE.ConeGeometry(1,1,4);
@@ -513,7 +513,7 @@ mosque(88,-28,1);mosque(112,32,1.05);mosque(97,66,.85);
   const winMat=new THREE.MeshLambertMaterial({color:0x6fb6e8});
   for(let i=-2;i<=2;i++){const w=new THREE.Mesh(boxGeo,winMat);w.scale.set(1.6,1.3,.1);w.position.set(i*2.8,2.6,3.02);g.add(w)}
   g.add(body,roof,yard);
-  /* köy çeşmesi: taş ayna, kemer, lüle, yalak */
+  /* village fountain: stone face, arch, spout, trough */
   const cs=new THREE.Group(),stoneC=new THREE.MeshLambertMaterial({color:0xd6c8a8}),dark=new THREE.MeshLambertMaterial({color:0x9a8a6a});
   const wall=new THREE.Mesh(new THREE.BoxGeometry(2.6,2.3,.7),stoneC);wall.position.y=1.15;
   const arch=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,.72,16,1,false,0,Math.PI),stoneC);arch.rotation.z=Math.PI/2;arch.rotation.y=Math.PI/2;arch.position.y=2.3;
@@ -526,7 +526,7 @@ mosque(88,-28,1);mosque(112,32,1.05);mosque(97,66,.85);
   g.traverse(shade);g.position.set(x,y,z);g.rotation.y=gridRot;scene.add(g);
   addBox(x,z,7.5,3.1,gridRot,y+6);const cw=local2world(x,z,gridRot,7.6,6.1);addCirc(cw[0],cw[1],1.5,y+4);
 })();
-/* köy kenarı: ağaç altında sandalyede çay içen köylü (tabela kaldırıldı) */
+/* edge of the village: villager drinking tea on a chair under a tree (sign removed) */
 function textBoard(text,w,h,bg,fg,font){
   const c=document.createElement('canvas');c.width=1024;c.height=Math.round(1024*h/w);const g=c.getContext('2d');
   g.fillStyle=bg;g.fillRect(0,0,c.width,c.height);g.strokeStyle=fg;g.lineWidth=14;g.strokeRect(12,12,c.width-24,c.height-24);
@@ -538,7 +538,7 @@ function textBoard(text,w,h,bg,fg,font){
   return new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));
 }
 (function hacimusalar(){
-  /* ev + ağaç + sandalye */
+  /* house + tree + chair */
   const hx=131,hz=121,hy=terrainH(hx,hz),house=new THREE.Group();
   const hb=new THREE.Mesh(boxGeo,wallMats[1]);hb.scale.set(5,3,4);hb.position.y=1.5;
   const hr=new THREE.Mesh(roofGeo,roofMat);hr.scale.set(4,1.8,4);hr.position.y=3.9;hr.rotation.y=Math.PI/4;
@@ -550,28 +550,28 @@ function textBoard(text,w,h,bg,fg,font){
   tree.add(trunk,crown);tree.position.set(tx,ty,tz);tree.traverse(shade);scene.add(tree);addCirc(tx,tz,.6,ty+6);
 })();
 const FOUNTAIN={drops:[],jet:null};
-/* ÇELENK: beyaz dalgalı pano, kırmızı-beyaz çiçek halkası, yeşil dallar, çapraz kurdele "YAZILIM / SERHAT GÜVEN" */
+/* WREATH: white wavy board, red-and-white flower ring, green branches, diagonal ribbon "YAZILIM / SERHAT GÜVEN" */
 function makeWreath(){
   const W=512,H=660,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   const cx=W/2,cy=H/2-6,rx=210,ry=284;
-  /* dalgalı beyaz pano */
+  /* wavy white board */
   g.fillStyle='#ffffff';g.strokeStyle='#d9d4cc';g.lineWidth=3;
   g.beginPath();g.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);g.fill();
   for(let i=0;i<46;i++){const a=i/46*Math.PI*2,x=cx+Math.cos(a)*rx,y=cy+Math.sin(a)*ry;g.beginPath();g.arc(x,y,24,0,Math.PI*2);g.fill();g.stroke()}
   g.beginPath();g.ellipse(cx,cy,rx-4,ry-4,0,0,Math.PI*2);g.fill();
-  /* yeşil dallar (kenara doğru) */
+  /* green branches (towards the edge) */
   g.strokeStyle='#6f9a3c';g.lineWidth=3;
   for(let i=0;i<26;i++){const a=i/26*Math.PI*2+.1,x0=cx+Math.cos(a)*rx*.62,y0=cy+Math.sin(a)*ry*.62,x1=cx+Math.cos(a)*rx*.98,y1=cy+Math.sin(a)*ry*.98;
     g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke();
     for(let k=1;k<6;k++){const t=k/6,x=x0+(x1-x0)*t,y=y0+(y1-y0)*t,n=Math.atan2(y1-y0,x1-x0);[1,-1].forEach(sd=>{g.beginPath();g.moveTo(x,y);g.lineTo(x+Math.cos(n+sd*.8)*12,y+Math.sin(n+sd*.8)*12);g.stroke()})}}
-  /* çiçek halkası */
+  /* flower ring */
   const flower=(x,y,r,red)=>{g.fillStyle=red?'#e3262b':'#ffffff';g.strokeStyle=red?'#b8161c':'#cfcfcf';g.lineWidth=1.5;
     for(let p=0;p<14;p++){const a=p/14*Math.PI*2;g.beginPath();g.ellipse(x+Math.cos(a)*r*.55,y+Math.sin(a)*r*.55,r*.48,r*.2,a,0,Math.PI*2);g.fill();g.stroke()}
     g.fillStyle=red?'#e3262b':'#ffffff';g.beginPath();g.arc(x,y,r*.42,0,Math.PI*2);g.fill();
     g.fillStyle=red?'#3f8f3a':'#f2c12e';g.beginPath();g.arc(x,y,r*.2,0,Math.PI*2);g.fill()};
   const ring=[];for(let row=0;row<3;row++){const k=.42+row*.14,n=18+row*6;for(let i=0;i<n;i++){const a=i/n*Math.PI*2+row*.2;ring.push([cx+Math.cos(a)*rx*k,cy+Math.sin(a)*ry*k,30-row*2])}}
   ring.forEach(([x,y,r],i)=>flower(x,y,r,(i*7)%5!==0));
-  /* çapraz kurdele */
+  /* diagonal ribbon */
   g.save();g.translate(cx,cy+10);g.rotate(-Math.PI/3.2);
   g.fillStyle='#ffffff';g.strokeStyle='#bdbdbd';g.lineWidth=3;g.shadowColor='rgba(0,0,0,.25)';g.shadowBlur=8;
   g.beginPath();g.moveTo(-330,-62);g.lineTo(330,-62);g.lineTo(312,0);g.lineTo(330,62);g.lineTo(-330,62);g.lineTo(-312,0);g.closePath();g.fill();g.shadowBlur=0;g.stroke();
@@ -583,7 +583,7 @@ function makeWreath(){
   const grp=new THREE.Group();
   const face=new THREE.Mesh(new THREE.PlaneGeometry(2.3,2.3*H/W),new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:.5,side:THREE.DoubleSide}));
   face.position.y=1.0+2.3*H/W/2;face.rotation.x=-.08;grp.add(face);
-  /* ahşap ayaklık */
+  /* wooden stand */
   const wood=new THREE.MeshLambertMaterial({color:0x7a5230});
   [[-.6,.12],[.6,.12]].forEach(([x,z])=>{const l=new THREE.Mesh(new THREE.CylinderGeometry(.05,.06,2.6,6),wood);l.position.set(x,1.25,z);l.rotation.z=x>0?-.12:.12;grp.add(l)});
   const back=new THREE.Mesh(new THREE.CylinderGeometry(.05,.06,2.5,6),wood);back.position.set(0,1.2,-.45);back.rotation.x=-.32;grp.add(back);
@@ -606,7 +606,7 @@ function makeWreath(){
   const wr=makeWreath();wr.scale.setScalar(1.75);wr.position.set(-6.4,0,6.2);wr.rotation.y=.3;g.add(wr);
   g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
   addBox(x,z,4.7,3.7,ry,y+9);{const w=local2world(x,z,ry,-6.4,6.2);addCirc(w[0],w[1],1.3,y+6)}{const w=local2world(x,z,ry,5.2,3);addCirc(w[0],w[1],.3,y+6)}
-  /* köy meydanı: taş döşeme + fıskiyeli havuz (derneğin önü açık) */
+  /* village square: stone paving + pool with fountain (the front of the association building stays open) */
   const fx_=Math.sin(ry),fz_=Math.cos(ry),cx=x+fx_*14,cz=z+fz_*14,cy=terrainH(cx,cz);
   const plaza=new THREE.Mesh(new THREE.CylinderGeometry(13,13,.5,40),new THREE.MeshLambertMaterial({color:0xcfc2a2}));plaza.position.set(cx,cy+.02,cz);if(SHADOWS)plaza.receiveShadow=true;scene.add(plaza);
   const pool=new THREE.Group(),rim=new THREE.MeshLambertMaterial({color:0xe6dcc4});
@@ -625,7 +625,7 @@ function makeWreath(){
     const px=cx+a*9*Math.cos(ry)+b*7*fx_,pz=cz-a*9*Math.sin(ry)+b*7*fz_;t.position.set(px,terrainH(px,pz),pz);scene.add(t);addCirc(px,pz,.5,terrainH(px,pz)+5)});
 })();
 
-/* toprak yollar: her yol tek parça şerit (eskiden yüzlerce ayrı parça) */
+/* dirt roads: each road is a single strip (it used to be hundreds of separate pieces) */
 const roadMat=new THREE.MeshLambertMaterial({color:0xa38b60,side:THREE.DoubleSide});
 function dirtPath(points,w){
   const pts=[];
@@ -640,7 +640,7 @@ function dirtPath(points,w){
 }
 ROADS.forEach(r=>dirtPath(r,3.8));
 
-/* KARAYOLU KÖPRÜSÜ */
+/* HIGHWAY BRIDGE */
 (function highway(){
   const grey=new THREE.MeshLambertMaterial({color:0x9a9aa0}),lineM=new THREE.MeshBasicMaterial({color:0xfff4c8});
   const at=t=>[lerp(HW_P1.x,HW_P2.x,t),lerp(HW_P1.y,HW_P2.y,t)];
@@ -653,7 +653,7 @@ ROADS.forEach(r=>dirtPath(r,3.8));
     add(new THREE.BoxGeometry(L_,.7,.25),grey,-3.5,.38);add(new THREE.BoxGeometry(L_,.7,.25),grey,3.5,.38);
   }
   seg(0,HW_RAMP,HW_END0,HW_DECK);seg(HW_RAMP,1-HW_RAMP,HW_DECK,HW_DECK);seg(1-HW_RAMP,1,HW_DECK,HW_END1);
-  /* rampaların altı dolgu (toprak set) */
+  /* fill under the ramps (earth embankment) */
   const fill=new THREE.MeshLambertMaterial({color:0x9c8a6a});
   [[0,HW_RAMP,HW_END0],[1-HW_RAMP,1,HW_END1]].forEach(([t0,t1,he])=>{for(let k=0;k<4;k++){const t=t0+(t1-t0)*(k+.5)/4,p=at(t),top=hwDeckH(t)-1.1,gr=terrainH(p[0],p[1])-.5;if(top-gr<.2)continue;const b=new THREE.Mesh(boxGeo,fill);b.scale.set((t1-t0)*HW_LEN/4+.3,top-gr,7);b.position.set(p[0],(top+gr)/2,p[1]);b.rotation.y=-HW_ANG;scene.add(b)}});
   const pg=new THREE.CylinderGeometry(1.15,1.35,1,10);
@@ -662,7 +662,7 @@ ROADS.forEach(r=>dirtPath(r,3.8));
 function highwayCoords(x,z){const dx=x-HW_P1.x,dz=z-HW_P1.y;return{t:(dx*HW_DIR.x+dz*HW_DIR.y)/(HW_LEN*HW_LEN),perp:(dx*(-HW_DIR.y)+dz*HW_DIR.x)/HW_LEN}}
 function rampEndH(sign){return terrainH(sign*68,0)}
 [1,-1].forEach(sign=>{const s=new THREE.Shape(),x0=sign*55,x1=sign*68;s.moveTo(x0,-1);s.lineTo(x0,deckY(sign*55));s.lineTo(x1,rampEndH(sign));s.lineTo(x1,-1);s.closePath();const m=shade(new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:BR_W,bevelEnabled:false}),stoneMat));m.position.z=-BR_W/2;scene.add(m)});
-/* eski küçük tekne yerine ırmakta tur teknesi var (aşağıda, köylülerden sonra) */
+/* instead of the old small boat there is a tour boat on the river (below, after the villagers) */
 
 /* kavaklar */
 (function trees(){
@@ -673,7 +673,7 @@ function rampEndH(sign){return terrainH(sign*68,0)}
     const g=new THREE.Group();const t=new THREE.Mesh(tg,tm);t.scale.setScalar(s);t.position.y=.8*s;const c=shade(new THREE.Mesh(cg,lm));c.scale.set(s,3.1*s,s);c.position.y=4.1*s;g.add(t,c);g.position.set(x,y,z);scene.add(g)}
 })();
 
-/* etiketler ve konuşma balonları (beyaz balon, koyu yazı) */
+/* labels and speech bubbles (white bubble, dark text) */
 const MAXANISO=renderer.capabilities.getMaxAnisotropy?renderer.capabilities.getMaxAnisotropy():1;
 function bubbleCanvas(text,opts){
   opts=opts||{};const c=document.createElement('canvas');c.width=1024;c.height=256;const g=c.getContext('2d');
@@ -693,7 +693,7 @@ function makeLabel(key,x,y,z,s){const sp=bubbleSprite(L().labels[key],.26*s,.065
 makeLabel('bridge',0,22,0,1);makeLabel('village',140,34,60,.95);makeLabel('river',-30,12,160,.8);makeLabel('canyon',0,26,-85,.75);
 function relabel(){labels.forEach(sp=>{sp.material.map.dispose();sp.material.map=bubbleCanvas(L().labels[sp.userData.key],{fs:46});sp.material.needsUpdate=true})}
 
-/* ZEMİN SORGUSU */
+/* GROUND QUERY */
 function groundInfo(x,z){
   let h=terrainH(x,z),surf='zemin';
   if(Math.abs(z)<=3.4){const ax=Math.abs(x);
@@ -705,7 +705,7 @@ function groundInfo(x,z){
 }
 const isWater=g=>g.surf==='zemin'&&g.h<WATER_Y+.45;
 
-/* KÖYLÜLER: yaklaşınca dönüp el sallarlar ve İpek'i selamlarlar */
+/* VILLAGERS: they turn and wave as you approach and greet İpek */
 const DERNEK_PRES=(()=>{const ry=-Math.PI/2-.35,cx=118+Math.sin(ry)*14,cz=14+Math.cos(ry)*14;return[cx+Math.cos(ry)*6.5,cz-Math.sin(ry)*6.5]})();
 const skinMat=new THREE.MeshLambertMaterial({color:0xe0b088}),pantsMat=new THREE.MeshLambertMaterial({color:0x3a3f4a});
 const villagers=[];
@@ -749,7 +749,7 @@ function seatedVillager(x,z,rot,shirtHex,gi_){
 }
 function revillage(){villagers.forEach(v=>{v.bubble.material.map.dispose();v.bubble.material.map=bubbleCanvas(L().villagers[v.gi]);v.bubble.material.needsUpdate=true})}
 
-/* IRMAK TUR TEKNESİ: yolcular, rehber Demet ve havai fişekler */
+/* RIVER TOUR BOAT: passengers, tour guide Demet and fireworks */
 const BOAT={g:null,z0:124,z1:178,x:0,z:0,dir:1,fwT:0};
 (function tourBoat(){
   const g=new THREE.Group(),white=new THREE.MeshLambertMaterial({color:0xfaf7f0}),blue=new THREE.MeshLambertMaterial({color:0x2f6fb5}),wood=new THREE.MeshLambertMaterial({color:0x9a6a3a});
@@ -758,7 +758,7 @@ const BOAT={g:null,z0:124,z1:178,x:0,z:0,dir:1,fwT:0};
   const up=new THREE.Mesh(new THREE.ExtrudeGeometry(hullShape,{depth:.5,bevelEnabled:false}),white);up.rotation.x=-Math.PI/2;up.position.y=.2;
   const deck=new THREE.Mesh(new THREE.BoxGeometry(3.4,.08,8.6),wood);deck.position.set(0,.72,.2);
   g.add(low,up,deck);
-  /* tente: kırmızı-beyaz çizgili */
+  /* awning: red-and-white stripes */
   const c=document.createElement('canvas');c.width=256;c.height=64;const cx=c.getContext('2d');for(let i=0;i<8;i++){cx.fillStyle=i%2?'#ffffff':'#e8434b';cx.fillRect(i*32,0,32,64)}
   const awn=new THREE.Mesh(new THREE.BoxGeometry(3.7,.12,6.2),new THREE.MeshLambertMaterial({map:new THREE.CanvasTexture(c)}));awn.position.set(0,3.05,-.9);g.add(awn);
   [[-1.65,-3.8],[1.65,-3.8],[-1.65,2],[1.65,2]].forEach(([a,b])=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,2.35,6),white);p.position.set(a,1.9,b);g.add(p)});
@@ -774,7 +774,7 @@ const BOAT={g:null,z0:124,z1:178,x:0,z:0,dir:1,fwT:0};
     const arm=new THREE.Group();arm.position.set(a<0?-.3:.3,1.75,0);const am=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.6,6),sm);am.position.y=.28;arm.add(am);
     pg.add(bench,torso,head,hair,arm);pg.position.set(a,0,b);pg.rotation.y=a<0?-Math.PI/2:Math.PI/2;g.add(pg);passengers.push({arm,ph:i*1.3,side:a<0?1:-1});
   });
-  /* rehber Demet: tombul, elbiseli, topuz saçlı, bir elinde tur bayrağı */
+  /* tour guide Demet: chubby, in a dress, hair in a bun, a tour flag in one hand */
   const dg=new THREE.Group(),dress=new THREE.MeshLambertMaterial({color:0xc2185b});
   const skirt=new THREE.Mesh(new THREE.CylinderGeometry(.42,.7,1.05,12),dress);skirt.position.y=1.3;
   const belly=new THREE.Mesh(new THREE.SphereGeometry(.52,12,10),dress);belly.scale.set(1,.9,.95);belly.position.y=1.95;
@@ -789,13 +789,13 @@ const BOAT={g:null,z0:124,z1:178,x:0,z:0,dir:1,fwT:0};
   const sh=new THREE.Group();sh.position.set(.5,2.2,0);const ar=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.6,6),dress);ar.position.y=-.28;const hd=new THREE.Mesh(new THREE.SphereGeometry(.1,6,6),skinMat);hd.position.y=-.6;sh.add(ar,hd);
   dg.add(skirt,belly,head,hair,bun,cheekL,cheekR,legs,flagArm,sh);dg.position.set(0,0,3.3);g.add(dg);
   g.scale.setScalar(1.15);g.traverse(shade);
-  /* uzaktan da okunsun: ekranda sabit boyutlu balon */
+  /* readable from a distance too: a fixed-size bubble on screen */
   const bubble=bubbleSprite(L().villagers[8],.36,.09,{fs:56});bubble.material.sizeAttenuation=false;bubble.position.set(0,5.4,3.3);bubble.visible=false;g.add(bubble);
   BOAT.z=BOAT.z0;BOAT.x=channelCenter(BOAT.z)+4;g.position.set(BOAT.x,WATER_Y+.25,BOAT.z);scene.add(g);
   BOAT.g=g;BOAT.passengers=passengers;BOAT.flag=flagArm;
   villagers.push({g,sh,bubble,gi:8,wave:0,baseRot:0,greeted:0,seated:true,r2:2600,voice:true,spoke:-99,bs:[.36,.09]});
 })();
-/* havai fişekler: tekneden yükselir, gökte renk renk patlar */
+/* fireworks: rise from the boat and burst in many colours in the sky */
 const FWTEX=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.35,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)})();
 const FW=[];const FWC=[0xff4d6d,0xffd93d,0x5fd3b5,0x4aa8ff,0xc77dff,0xff9a3c,0xffffff];
 function launchFW(){
@@ -831,17 +831,17 @@ function updateBoat(dt,t){
   updateFW(dt);
 }
 
-/* ASFALT ATAN YILMAZ: dernek başkanı köy yolunu asfaltlıyor */
+/* YILMAZ LAYING ASPHALT: the association president is paving the village road */
 const PAVE={};
 (function paving(){
   const A=[104,60],B=[118,90],mx=(A[0]+B[0])/2,mz=(A[1]+B[1])/2,L0=Math.hypot(B[0]-A[0],B[1]-A[1]),dx=(B[0]-A[0])/L0,dz=(B[1]-A[1])/L0,nx=dz,nz=-dx;
   const rot=Math.atan2(dx,dz);
-  /* yeni dökülen asfalt şeridi (giderek uzar) */
+  /* freshly poured asphalt strip (grows longer over time) */
   const strip=new THREE.Mesh(new THREE.BoxGeometry(3.4,.12,1),new THREE.MeshLambertMaterial({color:0x2a2a30}));strip.receiveShadow=true;
   const sx=mx-dx*6,sz=mz-dz*6;strip.position.set(sx,terrainH(sx,sz)+.06,sz);strip.rotation.y=rot;scene.add(strip);
   /* buhar */
   const steam=[];const stm=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,depthWrite:false});for(let i=0;i<6;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.35,7,6),stm.clone());scene.add(m);steam.push({m,ph:i/6})}
-  /* Yılmaz: turuncu yelek, sarı baret, elinde tırmık */
+  /* Yılmaz: orange vest, yellow hard hat, a rake in his hand */
   const px=mx+nx*3.6,pz=mz+nz*3.6,py=terrainH(px,pz),g=new THREE.Group();
   const vest=new THREE.MeshLambertMaterial({color:0xff7a1a}),stripe=new THREE.MeshLambertMaterial({color:0xf2f2f2});
   const legs=new THREE.Mesh(new THREE.BoxGeometry(.46,.75,.28),pantsMat);legs.position.y=.38;
@@ -858,7 +858,7 @@ const PAVE={};
   g.add(legs,torso,band,head,mus,hat,brim,sh,rake);g.scale.setScalar(1.35);g.traverse(shade);
   const bubble=bubbleSprite(L().villagers[9],10,2.5);bubble.position.set(0,2.5,0);bubble.visible=false;g.add(bubble);
   g.position.set(px,py,pz);g.rotation.y=Math.atan2(-nx,-nz);scene.add(g);addCirc(px,pz,.7,py+3);
-  /* yol kenarında iki koni ve el arabası */
+  /* two cones and a wheelbarrow by the road */
   const coneM=new THREE.MeshLambertMaterial({color:0xff6a1a});
   [[-7],[7]].forEach(([k])=>{const cx=mx+dx*k+nx*3,cz=mz+dz*k+nz*3,cy=terrainH(cx,cz);const cn=new THREE.Mesh(new THREE.ConeGeometry(.35,.9,10),coneM);cn.position.set(cx,cy+.45,cz);cn.castShadow=true;scene.add(cn);addCirc(cx,cz,.4,cy+2)});
   const wbx=mx+dx*2.5+nx*4.6,wbz=mz+dz*2.5+nz*4.6,wby=terrainH(wbx,wbz),wb=new THREE.Group();
@@ -876,7 +876,7 @@ function updatePave(dt,t){
   P.rake.rotation.x=Math.sin(t*3)*.25;
 }
 
-/* ARABA (rengi seçilebilir, arkasında İPEK plakası) */
+/* CAR (colour can be chosen, İPEK number plate on the back) */
 const car=new THREE.Group();
 const carMat=new THREE.MeshPhongMaterial({color:CAR_COLORS[S.color]||CAR_COLORS[0],shininess:70});
 const body=new THREE.Mesh(new THREE.BoxGeometry(2.1,.7,4.1),carMat);body.position.y=.8;
@@ -895,7 +895,7 @@ car.traverse(o=>{if(o.isMesh&&SHADOWS)o.castShadow=true});
 scene.add(car);
 const blob=(function(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const gr=g.createRadialGradient(32,32,4,32,32,30);gr.addColorStop(0,'rgba(0,0,0,.45)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);const m=new THREE.Mesh(new THREE.PlaneGeometry(3.4,5.4),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;scene.add(m);return m})();
 
-/* yön oku (arabanın üstünde) */
+/* direction arrow (above the car) */
 const arrow=new THREE.Group();
 (function(){const m=new THREE.MeshBasicMaterial({color:0xffd23d}),o=new THREE.MeshBasicMaterial({color:0x3b2a5c,side:THREE.BackSide});
   const sh=new THREE.Shape();sh.moveTo(0,1.9);sh.lineTo(1.25,.4);sh.lineTo(.45,.4);sh.lineTo(.45,-1.3);sh.lineTo(-.45,-1.3);sh.lineTo(-.45,.4);sh.lineTo(-1.25,.4);sh.closePath();
@@ -904,7 +904,7 @@ const arrow=new THREE.Group();
 scene.add(arrow);
 
 /* =====================================================================
-   ROTA: yıldız izi + 7 durak (hepsi karada ya da köprüde; test edildi)
+   ROUTE: trail of stars + 7 stops (all on land or on a bridge; tested)
    ===================================================================== */
 const items=[];
 (function buildRoute(){
@@ -937,7 +937,7 @@ items.forEach(it=>{
 });
 const STAR_TOTAL=items.filter(i=>i.type==='star').length;
 
-/* IŞIK / GÖKYÜZÜ */
+/* LIGHT / SKY */
 const hemi=new THREE.HemisphereLight(0xfff0d8,0x7a6a4a,.6);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xffefd8,1.1);
 if(SHADOWS){sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);const sc=sun.shadow.camera;sc.left=-60;sc.right=60;sc.top=60;sc.bottom=-60;sc.far=500}
@@ -947,7 +947,7 @@ function applySky(){const m=MODES[S.sky]||MODES.day;scene.background=m.sky;scene
 applySky();
 
 /* =====================================================================
-   OYUN
+   GAME
    ===================================================================== */
 let shakeT=0,waterCd=0,halted=false,backHold=0,heading,speed,pos,lastSafe,started=false,paused=true,stopsDone,starsGot,cursor,bumpCd=0,won=false;
 const input={l:0,r:0,gas:0,back:0};
@@ -997,7 +997,7 @@ function rescue(){
   toast(L().rescued,'',1400);
 }
 
-/* girdiler: büyük düğmeler (çoklu dokunuş) + klavye */
+/* inputs: big buttons (multi-touch) + keyboard */
 function bindHold(id,prop){
   const el=$(id);const on=e=>{e.preventDefault();input[prop]=1;el.classList.add('on');try{el.setPointerCapture(e.pointerId)}catch(_){}};
   const off=e=>{e.preventDefault();input[prop]=0;el.classList.remove('on')};
@@ -1011,7 +1011,7 @@ addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyH'||e.code==='S
 addEventListener('keyup',e=>{keys[e.code]=false});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;for(const k in input)input[k]=0;document.querySelectorAll('.ctl.on').forEach(b=>b.classList.remove('on'))});
 
-/* masaüstünde fareyle kamera çevirme (dokunmatikte kapalı: çocuk yanlışlıkla çevirmesin) */
+/* turn the camera with the mouse on desktop (off on touch screens so a child doesn't turn it by accident) */
 let camOrbit=0,dragging=false,px=0,camDist=isTouch?15:13;
 if(!isTouch){
   canvas.addEventListener('pointerdown',e=>{dragging=true;px=e.clientX});
@@ -1021,7 +1021,7 @@ if(!isTouch){
 }
 
 function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<innerHeight?68:58;camera.updateProjectionMatrix();
-  /* dar (dik) ekranda balonlar ve yer adları taşmasın */
+  /* keep bubbles and place names from overflowing on narrow (portrait) screens */
   const k=Math.min(1,Math.max(.5,camera.aspect*1.05));villagers.forEach(v=>{const b=v.bs||[8.5,2.1];v.bubble.scale.set(b[0]*k,b[1]*k,1)});labels.forEach(sp=>{const s_=sp.userData.s;sp.scale.set(.26*s_*k,.065*s_*k,1)})}
 addEventListener('resize',resize);resize();
 
@@ -1029,7 +1029,7 @@ const clock=new THREE.Clock();
 let safeT=0,frame=0,simT=0;
 const fwd=new THREE.Vector3(),camPos=new THREE.Vector3(),_bp=new THREE.Vector3();
 function step(dt,t){
-  /* su dalgası (dokunmatikte her iki karede bir) */
+  /* water ripples (every other frame on touch devices) */
   if(!isTouch||frame%2===0){for(let i=0;i<wPos.count;i++){const x=wBase[i*3],y=wBase[i*3+1];wPos.setZ(i,Math.sin(x*.3+t*1.3)*.12+Math.sin(y*.1-t*.85)*.16)}wPos.needsUpdate=true}
 
   let steer=(input.l||keys.ArrowLeft||keys.KeyA?1:0)-(input.r||keys.ArrowRight||keys.KeyD?1:0);
@@ -1045,11 +1045,11 @@ function step(dt,t){
   heading+=steer*1.9*dt*clamp(Math.abs(speed)/5,.25,1)*(speed<-.2?-1:1);
   fwd.set(Math.sin(heading),0,Math.cos(heading));
 
-  /* hareket + yumuşak engeller (su, dünya kenarı) */
+  /* movement + soft obstacles (water, edge of the world) */
   const nx=pos.x+fwd.x*speed*dt,nz=pos.z+fwd.z*speed*dt;
   const gN=groundInfo(nx,nz),gAhead=groundInfo(pos.x+fwd.x*2.4*Math.sign(speed||1),pos.z+fwd.z*2.4*Math.sign(speed||1));
   const out=Math.abs(nx)>300||Math.abs(nz)>300;
-  /* taş köprü ve karayolu üstündeyken su kontrolü yok: korkuluk zaten tutar, araba kenar boyunca kayar */
+  /* no water check while on the stone bridge or the highway: the railing already holds the car, it slides along the edge */
   const gHere=groundInfo(pos.x,pos.z),onDeck=gHere.surf!=='zemin'&&(gN.surf!=='zemin'||Math.abs(pos.x)<=68&&Math.abs(nz)>2);
   if(!onDeck&&(isWater(gN)||(Math.abs(speed)>.5&&gAhead.surf==='zemin'&&isWater(gAhead)))||out){
     speed=-speed*.25;
@@ -1057,7 +1057,7 @@ function step(dt,t){
   }else{pos.x=nx;pos.z=nz}
   if(pushOut(pos,1.25)){speed*=Math.max(0,1-dt*3);if(Math.abs(speed)>2.5&&bumpCd<=0){bumpCd=1.2;bonk();shakeT=.25}}
   if(bumpCd>0)bumpCd-=dt;if(waterCd>0)waterCd-=dt;
-  /* taş köprüde korkuluk içinde kal */
+  /* stay inside the railing on the stone bridge */
   if(Math.abs(pos.x)<=68&&groundInfo(pos.x,pos.z).surf==='tas'&&Math.abs(pos.z)>2.1)pos.z=Math.sign(pos.z)*2.1;
   /* karayolunda kal */
   const gi=groundInfo(pos.x,pos.z);
@@ -1074,7 +1074,7 @@ function step(dt,t){
   wheels.forEach(w=>w.rotation.x+=speed*dt*2.2);
   blob.position.set(pos.x,g2.h+.08,pos.z);blob.rotation.z=-heading;blob.visible=!SHADOWS;
 
-  /* köylüler (ekranın kenarındaki köylünün sözü üstte yazı olarak) */
+  /* villagers (what a villager at the edge of the screen says is shown as text at the top) */
   let chipText='';
   villagers.forEach(v=>{
     const dx=pos.x-v.g.position.x,dz=pos.z-v.g.position.z,d2=dx*dx+dz*dz;
@@ -1093,9 +1093,9 @@ function step(dt,t){
 
   updateBoat(dt,t);updatePave(dt,t);
   const chipEl=$('chip');if(chipText){if(chipEl.textContent!==chipText)chipEl.textContent=chipText;chipEl.classList.add('show')}else chipEl.classList.remove('show');
-  /* fıskiye */
+  /* fountain */
   if(FOUNTAIN.jet){FOUNTAIN.jet.scale.y=1+Math.sin(t*6)*.15;FOUNTAIN.drops.forEach(d=>{const k=(t*.9+d.ph)%1,r=.3+k*2.4;d.m.position.set(Math.cos(d.a)*r,3.6+k*1.2-k*k*3.3,Math.sin(d.a)*r)})}
-  /* yıldızlar ve duraklar */
+  /* stars and stops */
   items.forEach((it,i)=>{
     if(it.type==='star'){
       if(it.done){if(it.anim<1){it.anim+=dt*3;it.mesh.position.lerp(new THREE.Vector3(pos.x,pos.y+2.5,pos.z),Math.min(1,dt*10));it.mesh.scale.setScalar(1.15*(1-it.anim));if(it.anim>=1)it.mesh.visible=false}return}
@@ -1107,9 +1107,9 @@ function step(dt,t){
       const dx=pos.x-it.x,dz=pos.z-it.z;if(dx*dx+dz*dz<56&&Math.abs(pos.y-it.y)<5)collect(it,i);
     }
   });
-  /* uzak etiketler: yakına gelince gizle (ekranı kapatmasın) */
+  /* far-away labels: hide when close (so they don't cover the screen) */
   if(frame%10===0)labels.forEach(sp=>{const dx=pos.x-sp.position.x,dz=pos.z-sp.position.z;sp.visible=dx*dx+dz*dz>4900});
-  /* hedef: ok + ışık sütunu */
+  /* target: arrow + column of light */
   const nx2=nextItem();
   items.forEach(it=>{if(it.beacon)it.beacon.visible=false});
   if(nx2){
@@ -1124,7 +1124,7 @@ function step(dt,t){
   if(!dragging)camOrbit*=Math.pow(.05,dt);
   const ca=heading+Math.PI+camOrbit;
   camPos.set(pos.x+Math.sin(ca)*camDist,pos.y+4.6+camDist*.16,pos.z+Math.cos(ca)*camDist);
-  /* kamera ile araba arasında bina varsa kamerayı yaklaştır */
+  /* if a building is between the camera and the car, move the camera closer */
   {const hx=pos.x,hy=pos.y+2.2,hz=pos.z;let clear=1;for(let k=1;k<=10;k++){const f=k/10,x=hx+(camPos.x-hx)*f,y=hy+(camPos.y-hy)*f,z=hz+(camPos.z-hz)*f;if(hitObst(x,z,y,.7)){clear=Math.max(.28,(k-1)/10);break}}
    if(clear<1){camPos.x=hx+(camPos.x-hx)*clear;camPos.z=hz+(camPos.z-hz)*clear;camPos.y=Math.max(hy+2.4,hy+(camPos.y-hy)*clear+1.5)}}
   const cg=groundInfo(camPos.x,camPos.z).h+1.8;if(camPos.y<cg)camPos.y=cg;
@@ -1146,16 +1146,16 @@ function drawRadar(t){
   g.fillStyle='#7cc6f0';g.beginPath();RIVER.forEach(([x,z],i)=>{const[a,b]=P(x,z);i?g.lineTo(a,b):g.moveTo(a,b)});g.closePath();g.fill();
   const line=(pts,col,w)=>{g.strokeStyle=col;g.lineWidth=w;g.lineCap='round';g.lineJoin='round';g.beginPath();pts.forEach(([x,z],i)=>{const[a,b]=P(x,z);i?g.lineTo(a,b):g.moveTo(a,b)});g.stroke()};
   ROADS.forEach(r=>line(r,'#b08d5a',7));line(HWLINE,'#8a8a92',9);line(BRIDGE,'#d8c49a',8);
-  /* yıldızlar ve duraklar */
+  /* stars and stops */
   items.forEach(it=>{if(it.done&&it.type==='star')return;const[a,b]=P(it.x,it.z);if(a<-10||a>W+10||b<-10||b>W+10)return;
     if(it.type==='star'){g.fillStyle='#ffc400';g.strokeStyle=INK;g.lineWidth=1.5;g.beginPath();g.arc(a,b,4.5,0,Math.PI*2);g.fill();g.stroke()}
     else{g.fillStyle=it.done?'#1f9e66':STOPCOL[it.stop];g.strokeStyle=INK;g.lineWidth=3;g.beginPath();g.arc(a,b,10,0,Math.PI*2);g.fill();g.stroke();if(it.done){g.strokeStyle='#fff';g.lineWidth=3;g.beginPath();g.moveTo(a-5,b);g.lineTo(a-1,b+4);g.lineTo(a+6,b-5);g.stroke()}}});
-  /* sıradaki hedef: radar dışındaysa kenarda ok */
+  /* next target: arrow at the edge if it's outside the radar */
   const nx=nextItem();
   if(nx){let[a,b]=P(nx.x,nx.z);const dx=a-c,dy=b-c,d=Math.hypot(dx,dy);
     if(d>c-14){const k=(c-16)/d;a=c+dx*k;b=c+dy*k;const an=Math.atan2(dy,dx);g.fillStyle='#ff2d7a';g.strokeStyle=INK;g.lineWidth=2.5;g.beginPath();g.moveTo(a+Math.cos(an)*13,b+Math.sin(an)*13);g.lineTo(a+Math.cos(an+2.4)*11,b+Math.sin(an+2.4)*11);g.lineTo(a+Math.cos(an-2.4)*11,b+Math.sin(an-2.4)*11);g.closePath();g.fill();g.stroke()}
     else{g.strokeStyle='#ff2d7a';g.lineWidth=4;g.beginPath();g.arc(a,b,14+Math.sin(t*6)*3,0,Math.PI*2);g.stroke()}}
-  /* araba (hep ortada, burnu yukarı) */
+  /* car (always in the middle, nose pointing up) */
   g.fillStyle=CAR_COLORS[S.color]||CAR_COLORS[0];g.strokeStyle=INK;g.lineWidth=3;g.beginPath();g.moveTo(c,c-14);g.lineTo(c+10,c+11);g.lineTo(c,c+6);g.lineTo(c-10,c+11);g.closePath();g.fill();g.stroke();
   g.restore();
 }

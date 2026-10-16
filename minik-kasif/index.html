@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@600;700;800&display=swap">
 <style>
-/* layout: tek sütun oyun masası, gökyüzü zemin ve altta çimen tepesi; tek tema (çocuk dünyası) */
+/* layout: single-column game table, sky background with a grassy hill at the bottom; single theme (a child's world) */
 :root{
   --sky:#d6efff;--ink:#2b2d5c;--ink2:#5c5f92;--sun:#ffc531;--coral:#ff6f61;--card:#ffffff;--tint:#eef7ff;--ok:#26b56b;--okbg:#dcf6e7;--grass:#8fd16f;--grass2:#79c25a;--warnbg:#fff4d6;
   --display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
@@ -337,12 +337,12 @@ const level=()=>Math.min(4,1+Math.floor(S.total/8));
 const maxCount=()=>[3,5,6,8][level()-1];
 const nOpts=()=>level()>=2?4:3;
 
-/* ---------- ses: her dil için o dile ait en iyi sesi seç; yoksa asla başka aksanla okuma ---------- */
+/* ---------- sound: for each language pick the best voice for that language; otherwise never read with another accent ---------- */
 const VOICE={tr:null,en:null};let voicesChecked=false;
 const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function normLang(l){return String(l||'').toLowerCase().replace('_','-')}
 function scoreVoice(v,l){
-  /* en doğal kadın sesi öne: iPad/Mac'te indirilen "Gelişmiş/Premium" sesler, Edge'in "Natural" sesleri, Android'de Google sesi */
+  /* put the most natural female voice first: downloaded "Enhanced/Premium" voices on iPad/Mac, Edge's "Natural" voices, the Google voice on Android */
   const n=(v.name||'').toLowerCase(),u=(v.voiceURI||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
   if(/premium|enhanced|gelişmiş|geliştirilmiş|yüksek kalite|natural|neural|online/.test(n)||/premium|enhanced|neural/.test(u))s+=8;
   if(/google/.test(n))s+=4;
@@ -379,7 +379,7 @@ function renderVoiceNote(){
 
 /* ---------- efektler ---------- */
 let AC=null;
-/* ---------- kayıtlı Türkçe ses: cihazın sesine bağlı kalmadan doğal Türkçe (kadın) ---------- */
+/* ---------- recorded Turkish voice: natural Turkish without depending on the device voice (female) ---------- */
 const CLIPS={base:'audio/',map:null};
 try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips&&m.voices&&m.voices.length){CLIPS.map=m;renderVoiceNote();renderVoiceSel()}}).catch(()=>{})}catch(e){}
 function curVoice(){const vs=CLIPS.map?CLIPS.map.voices:[];return vs.includes(S.voice)?S.voice:vs[0]}
@@ -429,7 +429,7 @@ let parts=[],fxOn=false;
 function confetti(n){if(reduce||!ctx)return;fx.width=innerWidth;fx.height=innerHeight;const cols=['#ef4444','#3b82f6','#facc15','#22c55e','#a855f7','#f472b6','#fb923c'];for(let i=0;i<n;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*innerWidth*.4,y:innerHeight*.45,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:5+Math.random()*7,c:pick(cols),a:Math.random()*6,va:(Math.random()-.5)*.3,life:1,star:Math.random()<.35});if(!fxOn){fxOn=true;requestAnimationFrame(tick)}}
 function tick(){ctx.clearRect(0,0,fx.width,fx.height);parts.forEach(p=>{p.vy+=.45;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;p.life-=.012;ctx.save();ctx.globalAlpha=Math.max(0,p.life);ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;if(p.star){ctx.beginPath();for(let i=0;i<10;i++){const r=i%2?p.r*.45:p.r,an=-Math.PI/2+i*Math.PI/5;ctx.lineTo(r*Math.cos(an),r*Math.sin(an))}ctx.fill()}else ctx.fillRect(-p.r/2,-p.r/3,p.r,p.r*.66);ctx.restore()});parts=parts.filter(p=>p.life>0&&p.y<fx.height+40);if(parts.length)requestAnimationFrame(tick);else{fxOn=false;ctx.clearRect(0,0,fx.width,fx.height)}}
 
-/* ---------- oyun ---------- */
+/* ---------- game ---------- */
 const MODES=[
   {k:'count',art:()=>THINGS[0].d()+THINGS[0].d()+THINGS[0].d()},
   {k:'color',art:()=>balloon('#ef4444')+balloon('#3b82f6')+balloon('#facc15')},
@@ -513,7 +513,7 @@ function reward(){
   $('rewardGo').focus();
 }
 
-/* ---------- arayüz ---------- */
+/* ---------- interface ---------- */
 function renderHud(){
   const l=L();
   $('brand').innerHTML=ICON.logo+l.name;
