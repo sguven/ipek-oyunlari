@@ -518,7 +518,7 @@ mosque(88,-28,1);mosque(112,32,1.05);mosque(97,66,.85);
   g.traverse(shade);g.position.set(x,y,z);g.rotation.y=gridRot;scene.add(g);
   addBox(x,z,7.5,3.1,gridRot,y+6);const cw=local2world(x,z,gridRot,7.6,6.1);addCirc(cw[0],cw[1],1.5,y+4);
 })();
-/* HACIMUSALAR: hoş geldiniz tabelası + ağaç altında sandalyede çay içen köylü */
+/* köy kenarı: ağaç altında sandalyede çay içen köylü (tabela kaldırıldı) */
 function textBoard(text,w,h,bg,fg,font){
   const c=document.createElement('canvas');c.width=1024;c.height=Math.round(1024*h/w);const g=c.getContext('2d');
   g.fillStyle=bg;g.fillRect(0,0,c.width,c.height);g.strokeStyle=fg;g.lineWidth=14;g.strokeRect(12,12,c.width-24,c.height-24);
@@ -530,12 +530,6 @@ function textBoard(text,w,h,bg,fg,font){
   return new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));
 }
 (function hacimusalar(){
-  const sx=114.5,sz=124,sy=terrainH(sx,sz),sg=new THREE.Group();
-  const post=new THREE.MeshLambertMaterial({color:0x6a4a2a});
-  [-3.1,3.1].forEach(px=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.14,.16,4.2,8),post);p.position.set(px,2.1,0);sg.add(p)});
-  const board=textBoard("HACIMUSALAR'A\nHOŞ GELDİNİZ",6.8,2.3,'#1f6f4a','#ffffff',150);board.position.y=3.2;sg.add(board);
-  sg.position.set(sx,sy,sz);sg.rotation.y=-.25;sg.traverse(shade);scene.add(sg);
-  [-3.1,3.1].forEach(px=>{const w=local2world(sx,sz,-.25,px,0);addCirc(w[0],w[1],.4,sy+5)});
   /* ev + ağaç + sandalye */
   const hx=131,hz=121,hy=terrainH(hx,hz),house=new THREE.Group();
   const hb=new THREE.Mesh(boxGeo,wallMats[1]);hb.scale.set(5,3,4);hb.position.y=1.5;
