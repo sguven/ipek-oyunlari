@@ -214,7 +214,7 @@ const T={
     greet:'Merhaba İpek! Haydi oynayalım!',
     winT:'Köprüköy turu bitti!',winX:n=>`Tebrikler İpek! Bütün durakları gezdin ve ${n} yıldız topladın.`,again:'Bir tur daha',
     labels:{bridge:'Çeşnigir Köprüsü',village:'Köprüköy',river:'Kızılırmak',canyon:'Çeşnigir Kanyonu'},
-    villagers:['Merhaba İpek!','Hoş geldin İpek!','Selam İpek!','Ne güzel araba!','Manzara harika!','Kolay gelsin!','Gel çay iç İpek!','Çay ister misin İpek?','Köyümüz çok güzel, ırmak çok güzel! Ben Demet!','Ben Yılmaz, dernek başkanıyım!'],
+    villagers:['Merhaba İpek!','Hoş geldin İpek!','Selam İpek!','Ne güzel araba!','Manzara harika!','Kolay gelsin!','Gel çay iç İpek!','Çay ister misin İpek?','Ben Demet, köyümüz çok güzel!','Ben Yılmaz, dernek başkanıyım!'],
     loading:'Köprüköy hazırlanıyor…',rescued:'Yola döndük!',noWebgl:'Bu cihaz 3D oyunu açamadı. Başka bir tarayıcı deneyin.'
   },
   en:{
@@ -233,7 +233,7 @@ const T={
     greet:"Hi Ipek! Let's play!",
     winT:'Village tour complete!',winX:n=>`Well done, Ipek! You visited every stop and collected ${n} stars.`,again:'Another tour',
     labels:{bridge:'Çeşnigir Bridge',village:'Köprüköy',river:'Kızılırmak River',canyon:'Çeşnigir Canyon'},
-    villagers:['Hi Ipek!','Welcome, Ipek!','Hello Ipek!','What a nice car!','Great view!','Have a nice day!','Come have tea, Ipek!','Want some tea, Ipek?','Our village is lovely, the river is lovely! I am Demet!','I am Yılmaz, the association president!'],
+    villagers:['Hi Ipek!','Welcome, Ipek!','Hello Ipek!','What a nice car!','Great view!','Have a nice day!','Come have tea, Ipek!','Want some tea, Ipek?','I am Demet, our village is lovely!','I am Yılmaz, the association president!'],
     loading:'Getting Köprüköy ready…',rescued:'Back on the road!',noWebgl:'This device could not open the 3D game. Please try another browser.'
   }
 };
@@ -789,10 +789,11 @@ const BOAT={g:null,z0:124,z1:178,x:0,z:0,dir:1,fwT:0};
   const sh=new THREE.Group();sh.position.set(.5,2.2,0);const ar=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.6,6),dress);ar.position.y=-.28;const hd=new THREE.Mesh(new THREE.SphereGeometry(.1,6,6),skinMat);hd.position.y=-.6;sh.add(ar,hd);
   dg.add(skirt,belly,head,hair,bun,cheekL,cheekR,legs,flagArm,sh);dg.position.set(0,0,3.3);g.add(dg);
   g.scale.setScalar(1.15);g.traverse(shade);
-  const bubble=bubbleSprite(L().villagers[8],12,3);bubble.position.set(0,5.2,3.3);bubble.visible=false;g.add(bubble);
+  /* uzaktan da okunsun: ekranda sabit boyutlu balon */
+  const bubble=bubbleSprite(L().villagers[8],.36,.09,{fs:56});bubble.material.sizeAttenuation=false;bubble.position.set(0,5.4,3.3);bubble.visible=false;g.add(bubble);
   BOAT.z=BOAT.z0;BOAT.x=channelCenter(BOAT.z)+4;g.position.set(BOAT.x,WATER_Y+.25,BOAT.z);scene.add(g);
   BOAT.g=g;BOAT.passengers=passengers;BOAT.flag=flagArm;
-  villagers.push({g,sh,bubble,gi:8,wave:0,baseRot:0,greeted:0,seated:true,r2:2600,voice:true,spoke:-99});
+  villagers.push({g,sh,bubble,gi:8,wave:0,baseRot:0,greeted:0,seated:true,r2:2600,voice:true,spoke:-99,bs:[.36,.09]});
 })();
 /* havai fişekler: tekneden yükselir, gökte renk renk patlar */
 const FWTEX=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.35,'rgba(255,255,255,.9)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)})();
@@ -864,7 +865,7 @@ const PAVE={};
   const tub=new THREE.Mesh(new THREE.BoxGeometry(1,.45,1.4),new THREE.MeshLambertMaterial({color:0x3f7a3a}));tub.position.y=.55;const pile=new THREE.Mesh(new THREE.SphereGeometry(.45,8,6),new THREE.MeshLambertMaterial({color:0x26262b}));pile.scale.y=.5;pile.position.y=.8;
   const wh=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.12,10),new THREE.MeshLambertMaterial({color:0x222222}));wh.rotation.z=Math.PI/2;wh.position.set(0,.22,.75);wb.add(tub,pile,wh);wb.position.set(wbx,wby,wbz);wb.rotation.y=rot;wb.traverse(shade);scene.add(wb);addCirc(wbx,wbz,.8,wby+2);
   Object.assign(PAVE,{strip,steam,sx,sz,dx,dz,rot,rake,len:0});
-  villagers.push({g,sh,bubble,gi:9,wave:0,baseRot:g.rotation.y,greeted:0,seated:true,r2:500,voice:true,spoke:-99});
+  villagers.push({g,sh,bubble,gi:9,wave:0,baseRot:g.rotation.y,greeted:0,seated:true,r2:500,voice:true,spoke:-99,bs:[10,2.5]});
 })();
 function updatePave(dt,t){
   const P=PAVE;if(!P.strip)return;
@@ -1021,7 +1022,7 @@ if(!isTouch){
 
 function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<innerHeight?68:58;camera.updateProjectionMatrix();
   /* dar (dik) ekranda balonlar ve yer adları taşmasın */
-  const k=Math.min(1,Math.max(.5,camera.aspect*1.05));villagers.forEach(v=>v.bubble.scale.set(8.5*k,2.1*k,1));labels.forEach(sp=>{const s_=sp.userData.s;sp.scale.set(.26*s_*k,.065*s_*k,1)})}
+  const k=Math.min(1,Math.max(.5,camera.aspect*1.05));villagers.forEach(v=>{const b=v.bs||[8.5,2.1];v.bubble.scale.set(b[0]*k,b[1]*k,1)});labels.forEach(sp=>{const s_=sp.userData.s;sp.scale.set(.26*s_*k,.065*s_*k,1)})}
 addEventListener('resize',resize);resize();
 
 const clock=new THREE.Clock();
