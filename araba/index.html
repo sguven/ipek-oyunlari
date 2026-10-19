@@ -162,6 +162,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
     <div class="rows">
       <div class="opt"><span id="oAuto"></span><div class="seg" data-opt="auto"><button data-v="1"></button><button data-v="0"></button></div></div>
       <div class="opt"><span id="oSound"></span><div class="seg" data-opt="sound"><button data-v="1"></button><button data-v="0"></button></div></div>
+      <div class="opt"><span id="oMusic"></span><div class="seg" data-opt="music"><button data-v="1"></button><button data-v="0"></button></div></div>
       <div class="opt" id="voiceRow"><span id="oVoice"></span><div class="seg" data-opt="voice"><button data-v="kadin"></button><button data-v="fettah"></button></div></div>
       <div class="opt"><span id="oSky"></span><div class="seg" data-opt="sky"><button data-v="day"></button><button data-v="sunset"></button></div></div>
       <div class="opt"><span id="oLang"></span><div class="seg" data-opt="lang"><button data-v="tr">TR</button><button data-v="en">EN</button></div></div>
@@ -202,7 +203,7 @@ const T={
     name:"İpek'in Araba Gezisi",sub:'Kırıkkale · Köprüköy',
     start:"Merhaba İpek! Arabanın rengini seç, sonra yıldızları takip ederek Çeşnigir Köprüsü'nden geç ve Köprüköy'ü gez. Sarı ok sana yolu gösterir.",
     go:'Haydi, sür!',games:'Oyunlar',menu:'Ayarlar',close:'Devam et',
-    auto:'Kendi kendine gitsin',sound:'Ses',voice:'Ses tonu',sky:'Gökyüzü',lang:'Dil',
+    auto:'Kendi kendine gitsin',sound:'Ses',music:'Müzik',voice:'Ses tonu',sky:'Gökyüzü',lang:'Dil',
     yes:'Açık',no:'Kapalı',day:'Gündüz',sunset:'Gün batımı',voiceNames:{kadin:'Kadın',fettah:'Fettah'},
     note:'“Kendi kendine gitsin” açıkken araba yavaşça kendisi ilerler; çocuk sadece sağa sola çevirir. Yeşil pedal hızlandırır. Turuncu DUR düğmesine bir kez dokununca araba durur; gaza dokununca yeniden yola çıkar. DUR düğmesine basılı tutarsanız yavaşça geri gider. Suya girmek ya da bir yere takılmak yok; araba yumuşakça durur. Bina ve köylülerin içinden geçebilir.',
     rescue:'Yola dön',restart:'Baştan başla',car:'Araba rengi',
@@ -221,7 +222,7 @@ const T={
     name:"Ipek's Car Trip",sub:'Kırıkkale · Köprüköy',
     start:"Hi Ipek! Pick a color for your car, then follow the stars across the Çeşnigir Bridge and around Köprüköy village. The yellow arrow shows the way.",
     go:"Let's drive!",games:'Games',menu:'Settings',close:'Keep driving',
-    auto:'Drive by itself',sound:'Sound',voice:'Voice',sky:'Sky',lang:'Language',
+    auto:'Drive by itself',sound:'Sound',music:'Music',voice:'Voice',sky:'Sky',lang:'Language',
     yes:'On',no:'Off',day:'Day',sunset:'Sunset',voiceNames:{kadin:'Female',fettah:'Fettah'},
     note:'With “Drive by itself” on, the car rolls forward slowly and your child only steers. The green pedal speeds up. One tap on the orange STOP button stops the car; tap GO to drive on. Hold STOP to reverse slowly. You can never fall in the water or get stuck; the car gently stops. It can drive through houses and villagers.',
     rescue:'Back to the road',restart:'Start over',car:'Car color',
@@ -240,7 +241,7 @@ const T={
 
 /* ---------- durum ---------- */
 const KEY='araba-gezisi-v1';
-const fresh=()=>({lang:null,sound:true,voice:'kadin',auto:true,sky:'day',color:0,tours:0,starsAll:0});
+const fresh=()=>({lang:null,sound:true,music:true,voice:'kadin',auto:true,sky:'day',color:0,tours:0,starsAll:0});
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
 if(!S.lang){let l=null;try{const k=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')||'{}');l=k.lang}catch(e){}S.lang=l||((navigator.language||'').toLowerCase().startsWith('en')?'en':'tr')}
@@ -294,6 +295,7 @@ async function playClip(text){
   let b;try{b=await clipBuf(CLIPS.map.clips[text])}catch(e){return}
   const a=audioCtx();if(!a||g!==clipGen)return;if(a.state!=='running'){try{await a.resume()}catch(e){}}
   const s=a.createBufferSource();s.buffer=b;s.connect(a.destination);clipSrc=s;try{s.start()}catch(e){}
+  musicDuck(b.duration+.3);
 }
 let enVoice=null;
 function loadVoices(){try{const vs=speechSynthesis.getVoices()||[];const en=vs.filter(v=>/^en(-|_|$)/i.test(v.lang));en.sort((a,b)=>(/natural|enhanced|premium|google|samantha|ava|aria|jenny/i.test(b.name)?1:0)-(/natural|enhanced|premium|google|samantha|ava|aria|jenny/i.test(a.name)?1:0));enVoice=en[0]||null}catch(e){}}
@@ -301,7 +303,7 @@ if('speechSynthesis' in window){loadVoices();try{speechSynthesis.addEventListene
 function say(text){
   if(!S.sound||!text)return;
   if(S.lang==='tr'){if(CLIPS.map&&CLIPS.map.clips[text])playClip(text);return}
-  if(!enVoice)return;
+  if(!enVoice)return;musicDuck(2.5);
   try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=enVoice;u.lang=enVoice.lang;u.rate=.95;u.pitch=1.1;speechSynthesis.speak(u)}catch(e){}
 }
 /* Demet and Yılmaz say their own lines with the device voice (no recorded clips in Turkish) */
@@ -309,9 +311,42 @@ let trVoice=null;
 function pickTr(){try{const vs=(speechSynthesis.getVoices()||[]).filter(v=>/^tr/i.test(v.lang||''));vs.sort((a,b)=>(/premium|enhanced|gelişmiş|natural|google|yelda|emel/i.test(b.name)?1:0)-(/premium|enhanced|gelişmiş|natural|google|yelda|emel/i.test(a.name)?1:0));trVoice=vs[0]||null}catch(e){}}
 if('speechSynthesis' in window){pickTr();try{speechSynthesis.addEventListener('voiceschanged',pickTr)}catch(e){}}
 function sayLine(text){
-  if(!S.sound||!text||!('speechSynthesis' in window))return;
+  if(!S.sound||!text||!('speechSynthesis' in window))return;musicDuck(2.8);
   try{if(speechSynthesis.speaking)return;const tr=S.lang==='tr',v=tr?trVoice:enVoice;const u=new SpeechSynthesisUtterance(text);if(v)u.voice=v;u.lang=v?v.lang:(tr?'tr-TR':'en-US');u.rate=tr?.95:.97;u.pitch=1.12;speechSynthesis.speak(u)}catch(e){}
 }
+/* MÜZİK: neşeli, yumuşak bir köy ezgisi; cihazda üretilir (dosya yok). Konuşmalarda sesi kısılır. */
+const MUS={on:false,timer:0,next:0,step:0,master:null,base:.065,duckUntil:0};
+const NOTE=n=>{const m={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[n[0]];return 12*(+n.slice(-1)+1)+m};
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const MEL=['C5 . E5 G5 A5 . G5 .','E5 . D5 C5 D5 - - .','E5 . G5 A5 C6 . A5 G5','A5 - G5 . E5 - - .','C5 . E5 G5 A5 . G5 .','E5 . D5 C5 D5 . E5 .','G5 . E5 D5 C5 . D5 .','C5 - - . . . . .',
+  'A5 . A5 G5 A5 . C6 .','G5 . E5 G5 A5 - - .','G5 . G5 E5 G5 . A5 .','E5 . D5 E5 G5 - - .','A5 . A5 G5 A5 . C6 .','D6 . C6 A5 G5 . E5 .','D5 . E5 G5 A5 . G5 E5','C5 - - . . . . .'].map(b=>b.split(' '));
+const CH={C:['C3','E4','G4','C5'],G:['G2','D4','G4','B4'],Am:['A2','C4','E4','A4'],F:['F2','C4','F4','A4']};
+const PROG=['C','G','Am','C','C','G','G','C','F','C','C','G','F','G','G','C'];
+const EIGHTH=60/108/2;
+function mVoice(a,f,t,d,type,vol,dest){const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.015);g.gain.setTargetAtTime(vol*.55,t+.04,.12);g.gain.setTargetAtTime(0,t+Math.max(.06,d-.05),.06);o.connect(g).connect(dest);o.start(t);o.stop(t+d+.4)}
+function mNoise(a,t,vol,dest){const n=Math.floor(a.sampleRate*.05),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='highpass';f.frequency.value=6000;g.gain.value=vol;s.connect(f).connect(g).connect(dest);s.start(t)}
+function mKick(a,t,vol,dest){const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(45,t+.12);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(g).connect(dest);o.start(t);o.stop(t+.2)}
+function musicTick(){
+  const a=AC;if(!a||!MUS.on)return;
+  while(MUS.next<a.currentTime+.35){
+    const t=MUS.next,bar=Math.floor(MUS.step/8)%16,e=MUS.step%8,tok=MEL[bar][e],dst=MUS.master;
+    if(tok!=='.'&&tok!=='-'){let len=1;while(e+len<8&&MEL[bar][e+len]==='-')len++;const f=mtof(NOTE(tok)),d=len*EIGHTH;mVoice(a,f,t,d,'triangle',.5,dst);mVoice(a,f*2,t,d*.6,'sine',.09,dst)}
+    const ch=CH[PROG[bar]];
+    if(e===0){mVoice(a,mtof(NOTE(ch[0])),t,EIGHTH*3,'sine',.55,dst);ch.slice(1).forEach(n=>mVoice(a,mtof(NOTE(n)),t,EIGHTH*7.5,'sine',.07,dst));mKick(a,t,.35,dst)}
+    if(e===4){mVoice(a,mtof(NOTE(ch[0])+7),t,EIGHTH*3,'sine',.45,dst);mKick(a,t,.22,dst)}
+    if(e%2===1)mNoise(a,t,.05,dst);
+    MUS.step++;MUS.next+=EIGHTH;
+  }
+  const want=performance.now()<MUS.duckUntil?MUS.base*.3:MUS.base;MUS.master.gain.setTargetAtTime(want,a.currentTime,.12);
+}
+function musicStart(){const a=audioCtx();if(!a||MUS.on)return;if(a.state!=='running')a.resume().catch(()=>{});
+  if(!MUS.master){MUS.master=a.createGain();MUS.master.connect(a.destination)}MUS.master.gain.setValueAtTime(0,a.currentTime);MUS.master.gain.linearRampToValueAtTime(MUS.base,a.currentTime+1.5);
+  MUS.on=true;MUS.next=a.currentTime+.1;MUS.timer=setInterval(musicTick,90);musicTick()}
+function musicStop(){if(!MUS.on)return;MUS.on=false;clearInterval(MUS.timer);if(MUS.master&&AC){MUS.master.gain.setTargetAtTime(0,AC.currentTime,.15)}}
+function musicSync(){if(S.music&&S.sound&&started&&!document.hidden)musicStart();else musicStop()}
+function musicDuck(sec){MUS.duckUntil=Math.max(MUS.duckUntil,performance.now()+sec*1000)}
+document.addEventListener('visibilitychange',()=>{if(typeof started!=='undefined')musicSync()});
+window.__music={MUS,MEL,CH,PROG,EIGHTH,NOTE,mtof,mVoice,mKick,mNoise};
 function tone(f,d,t0,type,vol){if(!S.sound)return;const a=audioCtx();if(!a)return;try{const t=a.currentTime+(t0||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.15,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}catch(e){}}
 let starTone=0;
 const pling=()=>{const f=[523,587,659,784,880,988,1047][starTone++%7];tone(f,.2);tone(f*1.5,.22,.06)};
@@ -1188,16 +1223,17 @@ function renderStatic(){
 }
 function renderMenu(){
   const l=L();
-  $('menuTitle').textContent=l.menu;$('oAuto').textContent=l.auto;$('oSound').textContent=l.sound;$('oVoice').textContent=l.voice;$('oSky').textContent=l.sky;$('oLang').textContent=l.lang;
+  $('menuTitle').textContent=l.menu;$('oAuto').textContent=l.auto;$('oSound').textContent=l.sound;$('oMusic').textContent=l.music;$('oVoice').textContent=l.voice;$('oSky').textContent=l.sky;$('oLang').textContent=l.lang;
   $('menuNote').textContent=l.note;$('rescueBtn').textContent=l.rescue;$('restartBtn').textContent=l.restart;$('carBtn').textContent=l.car;$('menuClose').textContent=l.close;
-  const val={auto:S.auto?'1':'0',sound:S.sound?'1':'0',voice:curVoice()||S.voice,sky:S.sky,lang:S.lang};
-  const txt={auto:{1:l.yes,0:l.no},sound:{1:l.yes,0:l.no},voice:l.voiceNames,sky:{day:l.day,sunset:l.sunset},lang:{tr:'TR',en:'EN'}};
+  const val={auto:S.auto?'1':'0',sound:S.sound?'1':'0',music:S.music?'1':'0',voice:curVoice()||S.voice,sky:S.sky,lang:S.lang};
+  const txt={auto:{1:l.yes,0:l.no},sound:{1:l.yes,0:l.no},music:{1:l.yes,0:l.no},voice:l.voiceNames,sky:{day:l.day,sunset:l.sunset},lang:{tr:'TR',en:'EN'}};
   document.querySelectorAll('#menuOv .seg').forEach(sg=>{const k=sg.dataset.opt;sg.querySelectorAll('button').forEach(b=>{b.textContent=txt[k][b.dataset.v];b.setAttribute('aria-pressed',String(val[k]===b.dataset.v))})});
   $('voiceRow').hidden=!(S.lang==='tr'&&CLIPS.map&&CLIPS.map.voices.length>1);
 }
 document.querySelectorAll('#menuOv .seg').forEach(sg=>sg.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const k=sg.dataset.opt,v=b.dataset.v;
-  if(k==='auto')S.auto=v==='1';else if(k==='sound'){S.sound=v==='1';if(!S.sound){try{speechSynthesis.cancel()}catch(_){}}}
+  if(k==='auto')S.auto=v==='1';else if(k==='sound'){S.sound=v==='1';if(!S.sound){try{speechSynthesis.cancel()}catch(_){}}musicSync()}
+  else if(k==='music'){S.music=v==='1';musicSync()}
   else if(k==='voice'){S.voice=v;save();say(L().greet)}else if(k==='sky'){S.sky=v;applySky()}
   else if(k==='lang'&&S.lang!==v){S.lang=v;relabel();revillage();renderStatic()}
   save();renderMenu();
@@ -1211,7 +1247,7 @@ $('menuOv').addEventListener('click',e=>{if(e.target===$('menuOv'))closeMenu()})
 $('rescueBtn').onclick=()=>{closeMenu();rescue()};
 $('restartBtn').onclick=()=>{closeMenu();resetTour()};
 $('carBtn').onclick=()=>{$('menuOv').hidden=true;$('startOv').hidden=false};
-$('startGo').onclick=()=>{$('startOv').hidden=true;paused=false;if(!started){started=true;say(L().greet)}};
+$('startGo').onclick=()=>{$('startOv').hidden=true;paused=false;if(!started){started=true;say(L().greet)}musicSync()};
 addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('menuOv').hidden)closeMenu();else if($('startOv').hidden&&$('winOv').hidden)openMenu()}});
 
 resetTour();renderStatic();
