@@ -314,39 +314,57 @@ function sayLine(text){
   if(!S.sound||!text||!('speechSynthesis' in window))return;musicDuck(2.8);
   try{if(speechSynthesis.speaking)return;const tr=S.lang==='tr',v=tr?trVoice:enVoice;const u=new SpeechSynthesisUtterance(text);if(v)u.voice=v;u.lang=v?v.lang:(tr?'tr-TR':'en-US');u.rate=tr?.95:.97;u.pitch=1.12;speechSynthesis.speak(u)}catch(e){}
 }
-/* MÜZİK: neşeli, yumuşak bir köy ezgisi; cihazda üretilir (dosya yok). Konuşmalarda sesi kısılır. */
-const MUS={on:false,timer:0,next:0,step:0,master:null,base:.065,duckUntil:0};
-const NOTE=n=>{const m={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[n[0]];return 12*(+n.slice(-1)+1)+m};
+/* MÜZİK: bağlama ve davullu, Hüseyni makamında özgün bir oyun havası (9/8, 2+2+2+3).
+   Bağlama sesi cihazda tel modeliyle (Karplus-Strong) üretilir; dosya yok. Konuşmalarda sesi kısılır. */
+const MUS={on:false,timer:0,next:0,step:0,master:null,base:.07,duckUntil:0,bufs:{}};
+/* perde adları: Bk = segah (si, bir koma pes), Fk = eviç (fa diyez, bir koma pes) */
+const PERDE={G4:67,A4:69,Bk4:70.78,C5:72,D5:74,E5:76,Fk5:77.78,G5:79,A5:81,A3:57,E4:64,D4:62};
 const mtof=m=>440*Math.pow(2,(m-69)/12);
-const MEL=['C5 . E5 G5 A5 . G5 .','E5 . D5 C5 D5 - - .','E5 . G5 A5 C6 . A5 G5','A5 - G5 . E5 - - .','C5 . E5 G5 A5 . G5 .','E5 . D5 C5 D5 . E5 .','G5 . E5 D5 C5 . D5 .','C5 - - . . . . .',
-  'A5 . A5 G5 A5 . C6 .','G5 . E5 G5 A5 - - .','G5 . G5 E5 G5 . A5 .','E5 . D5 E5 G5 - - .','A5 . A5 G5 A5 . C6 .','D6 . C6 A5 G5 . E5 .','D5 . E5 G5 A5 . G5 E5','C5 - - . . . . .'].map(b=>b.split(' '));
-const CH={C:['C3','E4','G4','C5'],G:['G2','D4','G4','B4'],Am:['A2','C4','E4','A4'],F:['F2','C4','F4','A4']};
-const PROG=['C','G','Am','C','C','G','G','C','F','C','C','G','F','G','G','C'];
-const EIGHTH=60/108/2;
-function mVoice(a,f,t,d,type,vol,dest){const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.015);g.gain.setTargetAtTime(vol*.55,t+.04,.12);g.gain.setTargetAtTime(0,t+Math.max(.06,d-.05),.06);o.connect(g).connect(dest);o.start(t);o.stop(t+d+.4)}
-function mNoise(a,t,vol,dest){const n=Math.floor(a.sampleRate*.05),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='highpass';f.frequency.value=6000;g.gain.value=vol;s.connect(f).connect(g).connect(dest);s.start(t)}
-function mKick(a,t,vol,dest){const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(45,t+.12);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(g).connect(dest);o.start(t);o.stop(t+.2)}
+const MEL=['E5 E5 D5 E5 Fk5 E5 D5 C5 Bk4','C5 Bk4 A4 Bk4 C5 - D5 C5 Bk4','A4 - A4 Bk4 C5 D5 E5 - -','D5 C5 Bk4 C5 Bk4 A4 A4 - -',
+  'E5 E5 D5 E5 Fk5 E5 G5 Fk5 E5','D5 E5 Fk5 E5 D5 C5 Bk4 - C5','D5 C5 Bk4 A4 Bk4 C5 Bk4 A4 G4','A4 - - A4 - - A4 - -',
+  'A5 - G5 Fk5 E5 - Fk5 G5 A5','G5 Fk5 E5 D5 E5 - E5 - -','Fk5 E5 D5 C5 D5 E5 Fk5 E5 D5','E5 - - D5 C5 Bk4 C5 - -',
+  'A5 - G5 Fk5 E5 - Fk5 G5 A5','G5 Fk5 E5 D5 E5 Fk5 G5 Fk5 E5','D5 C5 Bk4 C5 D5 C5 Bk4 A4 G4','A4 - - A4 - - A4 - -'].map(b=>b.split(' '));
+const EIGHTH=.155,BAR=9;
+/* tel modeli: gürültüyle vurulan, ortalamayla sönen tel */
+function ksBuf(a,f){
+  const sr=a.sampleRate,N=Math.max(2,Math.round(sr/f)),key=N;if(MUS.bufs[key])return MUS.bufs[key];
+  const len=Math.floor(sr*1.5),b=a.createBuffer(1,len,sr),d=b.getChannelData(0),ring=new Float32Array(N);
+  let lp=0;for(let i=0;i<N;i++){lp=lp*.35+(Math.random()*2-1)*.65;ring[i]=lp}
+  let idx=0;for(let i=0;i<len;i++){const nx=(idx+1)%N,v=ring[idx];d[i]=v;ring[idx]=(v+ring[nx])*.4985;idx=nx}
+  return MUS.bufs[key]={b,base:sr/N};
+}
+function pluck(a,midi,t,vol,dest,dur){
+  [0,4].forEach((c,k)=>{const f=mtof(midi+c/100),kb=ksBuf(a,f),s=a.createBufferSource(),g=a.createGain();s.buffer=kb.b;s.playbackRate.value=f/kb.base;
+    g.gain.setValueAtTime(vol*(k?.6:1),t);if(dur)g.gain.setTargetAtTime(0,t+dur,.05);s.connect(g).connect(dest);s.start(t);s.stop(t+(dur?dur+.3:1.5))});
+}
+function davul(a,t,strong,dest){
+  const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.setValueAtTime(strong?95:180,t);o.frequency.exponentialRampToValueAtTime(strong?42:110,t+.14);
+  g.gain.setValueAtTime(strong?.9:.32,t);g.gain.exponentialRampToValueAtTime(.001,t+(strong?.28:.12));o.connect(g).connect(dest);o.start(t);o.stop(t+.3);
+  const n=Math.floor(a.sampleRate*.06),bf=a.createBuffer(1,n,a.sampleRate),dd=bf.getChannelData(0);for(let i=0;i<n;i++)dd[i]=(Math.random()*2-1)*Math.pow(1-i/n,3);
+  const s=a.createBufferSource(),fl=a.createBiquadFilter(),g2=a.createGain();s.buffer=bf;fl.type='bandpass';fl.frequency.value=strong?400:2600;fl.Q.value=1.2;g2.gain.value=strong?.25:.32;s.connect(fl).connect(g2).connect(dest);s.start(t);
+}
 function musicTick(){
   const a=AC;if(!a||!MUS.on)return;
   while(MUS.next<a.currentTime+.35){
-    const t=MUS.next,bar=Math.floor(MUS.step/8)%16,e=MUS.step%8,tok=MEL[bar][e],dst=MUS.master;
-    if(tok!=='.'&&tok!=='-'){let len=1;while(e+len<8&&MEL[bar][e+len]==='-')len++;const f=mtof(NOTE(tok)),d=len*EIGHTH;mVoice(a,f,t,d,'triangle',.5,dst);mVoice(a,f*2,t,d*.6,'sine',.09,dst)}
-    const ch=CH[PROG[bar]];
-    if(e===0){mVoice(a,mtof(NOTE(ch[0])),t,EIGHTH*3,'sine',.55,dst);ch.slice(1).forEach(n=>mVoice(a,mtof(NOTE(n)),t,EIGHTH*7.5,'sine',.07,dst));mKick(a,t,.35,dst)}
-    if(e===4){mVoice(a,mtof(NOTE(ch[0])+7),t,EIGHTH*3,'sine',.45,dst);mKick(a,t,.22,dst)}
-    if(e%2===1)mNoise(a,t,.05,dst);
+    const t=MUS.next,bar=Math.floor(MUS.step/BAR)%MEL.length,e=MUS.step%BAR,tok=MEL[bar][e],dst=MUS.master;
+    if(tok==='-'){/* uzun seste tezene tekrarı */let k=e;while(k>0&&MEL[bar][k]==='-')k--;const n=MEL[bar][k];if(PERDE[n])pluck(a,PERDE[n],t,.28,dst)}
+    else if(tok!=='.')pluck(a,PERDE[tok],t,.62,dst);
+    /* alt tellerde dem (la) ve davul: DÜM . tek . DÜM . tek tek . */
+    if(e===0||e===4)pluck(a,PERDE.A3,t,.3,dst);
+    if(e===2||e===6)pluck(a,PERDE.E4,t,.18,dst);
+    if(e===0||e===4)davul(a,t,true,dst);else if(e===2||e===6||e===7)davul(a,t,false,dst);
     MUS.step++;MUS.next+=EIGHTH;
   }
   const want=performance.now()<MUS.duckUntil?MUS.base*.3:MUS.base;MUS.master.gain.setTargetAtTime(want,a.currentTime,.12);
 }
 function musicStart(){const a=audioCtx();if(!a||MUS.on)return;if(a.state!=='running')a.resume().catch(()=>{});
-  if(!MUS.master){MUS.master=a.createGain();MUS.master.connect(a.destination)}MUS.master.gain.setValueAtTime(0,a.currentTime);MUS.master.gain.linearRampToValueAtTime(MUS.base,a.currentTime+1.5);
+  if(!MUS.master){MUS.master=a.createGain();const comp=a.createDynamicsCompressor();MUS.master.connect(comp).connect(a.destination)}MUS.master.gain.setValueAtTime(0,a.currentTime);MUS.master.gain.linearRampToValueAtTime(MUS.base,a.currentTime+1.5);
   MUS.on=true;MUS.next=a.currentTime+.1;MUS.timer=setInterval(musicTick,90);musicTick()}
 function musicStop(){if(!MUS.on)return;MUS.on=false;clearInterval(MUS.timer);if(MUS.master&&AC){MUS.master.gain.setTargetAtTime(0,AC.currentTime,.15)}}
 function musicSync(){if(S.music&&S.sound&&started&&!document.hidden)musicStart();else musicStop()}
 function musicDuck(sec){MUS.duckUntil=Math.max(MUS.duckUntil,performance.now()+sec*1000)}
 document.addEventListener('visibilitychange',()=>{if(typeof started!=='undefined')musicSync()});
-window.__music={MUS,MEL,CH,PROG,EIGHTH,NOTE,mtof,mVoice,mKick,mNoise};
+window.__music={MUS,MEL,PERDE,EIGHTH,BAR,pluck,davul,ksBuf};
 function tone(f,d,t0,type,vol){if(!S.sound)return;const a=audioCtx();if(!a)return;try{const t=a.currentTime+(t0||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.15,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}catch(e){}}
 let starTone=0;
 const pling=()=>{const f=[523,587,659,784,880,988,1047][starTone++%7];tone(f,.2);tone(f*1.5,.22,.06)};
