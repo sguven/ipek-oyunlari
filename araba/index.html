@@ -80,7 +80,7 @@ button,a{font-family:inherit}
 @media (max-height:460px){#chip{top:calc(120px + env(safe-area-inset-top))}}
 /* overlays */
 .ov{position:fixed;inset:0;background:rgba(59,42,92,.45);display:grid;place-items:center;padding:16px;z-index:20}
-.card{background:var(--card);border:4px solid var(--ink);border-radius:32px;box-shadow:0 8px 0 var(--ink);padding:20px 18px;max-width:520px;width:100%;max-height:92vh;overflow:auto;text-align:center;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--card);border:4px solid var(--ink);border-radius:32px;box-shadow:0 8px 0 var(--ink);padding:20px 18px;max-width:520px;width:100%;max-height:92vh;max-height:calc(100dvh - 32px);overflow:auto;text-align:center;display:flex;flex-direction:column;gap:14px}
 .card h2,.card h3{margin:0;font:700 clamp(24px,5vw,32px)/1.1 var(--display);text-wrap:balance}
 .card p{margin:0;color:var(--ink2);font-weight:700;line-height:1.45}
 .card .sub{font:800 12px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
@@ -109,6 +109,8 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 @keyframes spin-in{from{transform:scale(.2) rotate(-25deg)}to{transform:scale(1) rotate(0)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media (max-width:560px){.stickers{gap:2px;padding:3px 4px}.stk{width:22px;height:22px}.stk svg{width:15px;height:15px}.stars{font-size:18px}.stars svg{width:24px;height:24px}.top .pill span{display:none}}
+#menuOv .card>.btns:last-child{position:sticky;bottom:-20px;background:var(--card);padding:8px 0 4px;margin-top:-4px}
+@media (max-height:900px) and (orientation:portrait){#menuOv .note{font-size:12px!important;line-height:1.35}}
 @media (max-height:520px){#menuOv .card{max-width:760px;padding:14px;gap:10px}#menuOv .rows{display:grid;grid-template-columns:1fr 1fr;gap:8px}#menuOv .note{display:none}#menuOv h3{font-size:22px}.opt{padding:6px 8px;font-size:14px}#startOv .card{max-width:640px;padding:14px;gap:10px}#startOv p{font-size:14px}.col{width:50px;height:50px}}
 @media (max-height:460px){.steer{width:72px;height:72px}.gas{width:80px;height:104px}.rev,.horn{width:54px;height:54px}.small-col{gap:8px}#toast{top:calc(70px + env(safe-area-inset-top))}}
 </style>
@@ -203,7 +205,7 @@ const T={
     name:"İpek'in Araba Gezisi",sub:'Kırıkkale · Köprüköy',
     start:"Merhaba İpek! Arabanın rengini seç, sonra yıldızları takip ederek Çeşnigir Köprüsü'nden geç ve Köprüköy'ü gez. Sarı ok sana yolu gösterir.",
     go:'Haydi, sür!',games:'Oyunlar',menu:'Ayarlar',close:'Devam et',
-    auto:'Kendi kendine gitsin',sound:'Ses',music:'Müzik',voice:'Ses tonu',sky:'Gökyüzü',lang:'Dil',
+    auto:'Kendi kendine gitsin',sound:'Konuşma ve sesler',music:'Müzik',voice:'Ses tonu',sky:'Gökyüzü',lang:'Dil',
     yes:'Açık',no:'Kapalı',day:'Gündüz',sunset:'Gün batımı',voiceNames:{kadin:'Kadın',fettah:'Fettah'},
     note:'“Kendi kendine gitsin” açıkken araba yavaşça kendisi ilerler; çocuk sadece sağa sola çevirir. Yeşil pedal hızlandırır. Turuncu DUR düğmesine bir kez dokununca araba durur; gaza dokununca yeniden yola çıkar. DUR düğmesine basılı tutarsanız yavaşça geri gider. Suya girmek ya da bir yere takılmak yok; araba yumuşakça durur. Bina ve köylülerin içinden geçebilir.',
     rescue:'Yola dön',restart:'Baştan başla',car:'Araba rengi',
@@ -222,7 +224,7 @@ const T={
     name:"Ipek's Car Trip",sub:'Kırıkkale · Köprüköy',
     start:"Hi Ipek! Pick a color for your car, then follow the stars across the Çeşnigir Bridge and around Köprüköy village. The yellow arrow shows the way.",
     go:"Let's drive!",games:'Games',menu:'Settings',close:'Keep driving',
-    auto:'Drive by itself',sound:'Sound',music:'Music',voice:'Voice',sky:'Sky',lang:'Language',
+    auto:'Drive by itself',sound:'Voices & sounds',music:'Music',voice:'Voice',sky:'Sky',lang:'Language',
     yes:'On',no:'Off',day:'Day',sunset:'Sunset',voiceNames:{kadin:'Female',fettah:'Fettah'},
     note:'With “Drive by itself” on, the car rolls forward slowly and your child only steers. The green pedal speeds up. One tap on the orange STOP button stops the car; tap GO to drive on. Hold STOP to reverse slowly. You can never fall in the water or get stuck; the car gently stops. It can drive through houses and villagers.',
     rescue:'Back to the road',restart:'Start over',car:'Car color',
@@ -316,7 +318,7 @@ function sayLine(text){
 }
 /* MÜZİK: bağlama ve davullu, Hüseyni makamında özgün bir oyun havası (9/8, 2+2+2+3).
    Bağlama sesi cihazda tel modeliyle (Karplus-Strong) üretilir; dosya yok. Konuşmalarda sesi kısılır. */
-const MUS={on:false,timer:0,next:0,step:0,master:null,base:.07,duckUntil:0,bufs:{}};
+const MUS={on:false,timer:0,next:0,step:0,master:null,base:.07,duckUntil:0,bufs:{},file:null,fileFail:false,src:null,fileBase:.5};
 /* perde adları: Bk = segah (si, bir koma pes), Fk = eviç (fa diyez, bir koma pes) */
 const PERDE={G4:67,A4:69,Bk4:70.78,C5:72,D5:74,E5:76,Fk5:77.78,G5:79,A5:81,A3:57,E4:64,D4:62};
 const mtof=m=>440*Math.pow(2,(m-69)/12);
@@ -357,11 +359,22 @@ function musicTick(){
   }
   const want=performance.now()<MUS.duckUntil?MUS.base*.3:MUS.base;MUS.master.gain.setTargetAtTime(want,a.currentTime,.12);
 }
+/* Serhat'ın gönderdiği kayıt: audio/muzik.mp3 (başa dönerek çalar) */
+function musicLoad(){if(MUS.file||MUS.loading)return;const a=audioCtx();if(!a)return;MUS.loading=true;
+  fetch('audio/muzik.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).then(b=>new Promise((res,rej)=>a.decodeAudioData(b,res,rej))).then(buf=>{MUS.file=buf;MUS.loading=false;if(MUS.on){musicStop();musicStart()}}).catch(()=>{MUS.fileFail=true;MUS.loading=false;if(MUS.on){MUS.on=false;musicStart()}})}
 function musicStart(){const a=audioCtx();if(!a||MUS.on)return;if(a.state!=='running')a.resume().catch(()=>{});
+  musicLoad();
+  if(!MUS.fileFail){/* kayıt varsa onu çal, yüklenirken bekle */
+    if(!MUS.master){MUS.master=a.createGain();MUS.master.connect(a.destination)}MUS.on=true;MUS.useFile=true;
+    if(!MUS.file)return;
+    const src=a.createBufferSource();src.buffer=MUS.file;src.loop=true;src.connect(MUS.master);src.start();MUS.src=src;
+    MUS.master.gain.cancelScheduledValues(a.currentTime);MUS.master.gain.setValueAtTime(0,a.currentTime);MUS.master.gain.linearRampToValueAtTime(MUS.fileBase,a.currentTime+1.2);
+    MUS.timer=setInterval(()=>{if(!MUS.on||!AC)return;const want=performance.now()<MUS.duckUntil?MUS.fileBase*.3:MUS.fileBase;MUS.master.gain.setTargetAtTime(want,AC.currentTime,.15)},120);return}
+  MUS.useFile=false;
   if(!MUS.master){MUS.master=a.createGain();const comp=a.createDynamicsCompressor();MUS.master.connect(comp).connect(a.destination)}MUS.master.gain.setValueAtTime(0,a.currentTime);MUS.master.gain.linearRampToValueAtTime(MUS.base,a.currentTime+1.5);
   MUS.on=true;MUS.next=a.currentTime+.1;MUS.timer=setInterval(musicTick,90);musicTick()}
-function musicStop(){if(!MUS.on)return;MUS.on=false;clearInterval(MUS.timer);if(MUS.master&&AC){MUS.master.gain.setTargetAtTime(0,AC.currentTime,.15)}}
-function musicSync(){if(S.music&&S.sound&&started&&!document.hidden)musicStart();else musicStop()}
+function musicStop(){if(!MUS.on)return;MUS.on=false;clearInterval(MUS.timer);if(MUS.master&&AC){MUS.master.gain.setTargetAtTime(0,AC.currentTime,.15)}const s=MUS.src;MUS.src=null;if(s)setTimeout(()=>{try{s.stop()}catch(e){}},700)}
+function musicSync(){if(S.music&&started&&!document.hidden)musicStart();else musicStop()}
 function musicDuck(sec){MUS.duckUntil=Math.max(MUS.duckUntil,performance.now()+sec*1000)}
 document.addEventListener('visibilitychange',()=>{if(typeof started!=='undefined')musicSync()});
 window.__music={MUS,MEL,PERDE,EIGHTH,BAR,pluck,davul,ksBuf};
