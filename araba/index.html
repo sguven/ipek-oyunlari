@@ -162,7 +162,6 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
     <h3 id="menuTitle"></h3>
     <div class="rows">
-      <div class="opt"><span id="oAuto"></span><div class="seg" data-opt="auto"><button data-v="1"></button><button data-v="0"></button></div></div>
       <div class="opt"><span id="oSound"></span><div class="seg" data-opt="sound"><button data-v="1"></button><button data-v="0"></button></div></div>
       <div class="opt"><span id="oMusic"></span><div class="seg" data-opt="music"><button data-v="1"></button><button data-v="0"></button></div></div>
       <div class="opt" id="voiceRow"><span id="oVoice"></span><div class="seg" data-opt="voice"><button data-v="kadin"></button><button data-v="fettah"></button></div></div>
@@ -205,9 +204,9 @@ const T={
     name:"İpek'in Araba Gezisi",sub:'Kırıkkale · Köprüköy',
     start:"Merhaba İpek! Arabanın rengini seç, sonra yıldızları takip ederek Çeşnigir Köprüsü'nden geç ve Köprüköy'ü gez. Sarı ok sana yolu gösterir.",
     go:'Haydi, sür!',games:'Oyunlar',menu:'Ayarlar',close:'Devam et',
-    auto:'Kendi kendine gitsin',sound:'Konuşma ve sesler',music:'Müzik',voice:'Ses tonu',sky:'Gökyüzü',lang:'Dil',
+    sound:'Konuşma ve sesler',music:'Müzik',voice:'Ses tonu',sky:'Gökyüzü',lang:'Dil',
     yes:'Açık',no:'Kapalı',day:'Gündüz',sunset:'Gün batımı',voiceNames:{kadin:'Kadın',fettah:'Fettah'},
-    note:'“Kendi kendine gitsin” açıkken araba yavaşça kendisi ilerler; çocuk sadece sağa sola çevirir. Yeşil pedal hızlandırır. Turuncu DUR düğmesine bir kez dokununca araba durur; gaza dokununca yeniden yola çıkar. DUR düğmesine basılı tutarsanız yavaşça geri gider. Suya girmek ya da bir yere takılmak yok; araba yumuşakça durur. Bina ve köylülerin içinden geçebilir.',
+    note:'Araba yalnızca yeşil GAZ pedalına basıldıkça gider; bırakınca yavaşlayıp durur. Sağ ve sol oklarla direksiyon çevrilir. Turuncu DUR düğmesine bir kez dokununca araba durur; gaza dokununca yeniden yola çıkar. DUR düğmesine basılı tutarsanız yavaşça geri gider. Suya girmek ya da bir yere takılmak yok; araba yumuşakça durur. Bina ve köylülerin içinden geçebilir.',
     rescue:'Yola dön',restart:'Baştan başla',car:'Araba rengi',
     gas:'GAZ',left:'Sola dön',right:'Sağa dön',back:'Dur',horn:'Korna',
     water:'Dikkat, su!',waterSub:'Başka yöne dön',
@@ -224,9 +223,9 @@ const T={
     name:"Ipek's Car Trip",sub:'Kırıkkale · Köprüköy',
     start:"Hi Ipek! Pick a color for your car, then follow the stars across the Çeşnigir Bridge and around Köprüköy village. The yellow arrow shows the way.",
     go:"Let's drive!",games:'Games',menu:'Settings',close:'Keep driving',
-    auto:'Drive by itself',sound:'Voices & sounds',music:'Music',voice:'Voice',sky:'Sky',lang:'Language',
+    sound:'Voices & sounds',music:'Music',voice:'Voice',sky:'Sky',lang:'Language',
     yes:'On',no:'Off',day:'Day',sunset:'Sunset',voiceNames:{kadin:'Female',fettah:'Fettah'},
-    note:'With “Drive by itself” on, the car rolls forward slowly and your child only steers. The green pedal speeds up. One tap on the orange STOP button stops the car; tap GO to drive on. Hold STOP to reverse slowly. You can never fall in the water or get stuck; the car gently stops. It can drive through houses and villagers.',
+    note:'The car only moves while the green GO pedal is held; let go and it slows down and stops. The arrows steer. One tap on the orange STOP button stops the car; tap GO to drive on. Hold STOP to reverse slowly. You can never fall in the water or get stuck; the car gently stops. It can drive through houses and villagers.',
     rescue:'Back to the road',restart:'Start over',car:'Car color',
     gas:'GO',left:'Turn left',right:'Turn right',back:'Stop',horn:'Horn',
     water:'Careful, water!',waterSub:'Turn the other way',
@@ -243,7 +242,7 @@ const T={
 
 /* ---------- durum ---------- */
 const KEY='araba-gezisi-v1';
-const fresh=()=>({lang:null,sound:true,music:true,voice:'kadin',auto:true,sky:'day',color:0,tours:0,starsAll:0});
+const fresh=()=>({lang:null,sound:true,music:true,voice:'kadin',sky:'day',color:0,tours:0,starsAll:0});
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
 if(!S.lang){let l=null;try{const k=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')||'{}');l=k.lang}catch(e){}S.lang=l||((navigator.language||'').toLowerCase().startsWith('en')?'en':'tr')}
@@ -265,7 +264,7 @@ const ICON={
   up:svg(`<path d="M18 62 L50 28 L82 62" stroke="${INK}" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`),
   back:svg(`<polygon points="32,6 68,6 94,32 94,68 68,94 32,94 6,68 6,32" fill="#e2453a" ${st(5)}/><rect x="24" y="42" width="52" height="16" rx="4" fill="#fff"/>`),
   horn:svg(`<path d="M14 40 H30 L66 18 V82 L30 60 H14 Z" fill="${INK}"/><path d="M76 34 Q86 50 76 66 M84 24 Q100 50 84 76" stroke="${INK}" stroke-width="7" fill="none" stroke-linecap="round"/>`),
-  car:c=>svg(`<path d="M10 62 Q10 48 24 46 L32 30 Q36 24 44 24 H60 Q68 24 72 30 L80 46 Q92 48 92 62 V70 H10 Z" fill="${c}" ${st(5)}/><path d="M36 44 L41 32 H59 L66 44 Z" fill="#cfe9ff" ${st(4)}/><circle cx="28" cy="72" r="10" fill="${INK}"/><circle cx="74" cy="72" r="10" fill="${INK}"/><circle cx="28" cy="72" r="4" fill="#fff"/><circle cx="74" cy="72" r="4" fill="#fff"/>`),
+  car:c=>svg(`<path d="M6 66 Q6 56 18 54 L38 50 Q46 38 58 36 L70 36 Q78 37 86 48 L94 52 Q97 55 96 66 Z" fill="${c}" ${st(5)}/><path d="M44 50 Q50 41 58 40 L68 40 Q74 41 79 50 Z" fill="#24374d" ${st(3)}/><circle cx="26" cy="68" r="10" fill="#3b2a5c"/><circle cx="78" cy="68" r="10" fill="#3b2a5c"/><circle cx="26" cy="68" r="4" fill="#e8ebef"/><circle cx="78" cy="68" r="4" fill="#e8ebef"/>`),
   trophy:svg(`<path d="M30 14 H70 V40 Q70 62 50 66 Q30 62 30 40 Z" fill="#ffcb3d" ${st(5)}/><path d="M30 22 H16 Q14 44 32 46 M70 22 H84 Q86 44 68 46" stroke="${INK}" stroke-width="5" fill="none"/><rect x="44" y="64" width="12" height="14" fill="#ffcb3d" ${st(4)}/><rect x="30" y="78" width="40" height="10" rx="3" fill="#ff7eb6" ${st(4)}/><polygon points="${starPts(50,38,12,5)}" fill="#fff"/>`)
 };
 const STOP_ICON=[
@@ -1008,18 +1007,36 @@ function updatePave(dt,t){
 /* CAR (colour can be chosen, İPEK number plate on the back) */
 const car=new THREE.Group();
 const carMat=new THREE.MeshPhongMaterial({color:CAR_COLORS[S.color]||CAR_COLORS[0],shininess:70});
-const body=new THREE.Mesh(new THREE.BoxGeometry(2.1,.7,4.1),carMat);body.position.y=.8;
-const hood=new THREE.Mesh(new THREE.BoxGeometry(2.0,.3,1.3),carMat);hood.position.set(0,1.2,1.25);
-const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.8,.75,2.0),new THREE.MeshPhongMaterial({color:0xcfe9ff,shininess:90}));cabin.position.set(0,1.5,-.35);
-const roofC=new THREE.Mesh(new THREE.BoxGeometry(1.9,.16,2.1),carMat);roofC.position.set(0,1.94,-.35);
-car.add(body,hood,cabin,roofC);
-const wheelGeo=new THREE.CylinderGeometry(.46,.46,.38,14);wheelGeo.rotateZ(Math.PI/2);
-const wheelMat=new THREE.MeshLambertMaterial({color:0x26222e}),hubMat=new THREE.MeshLambertMaterial({color:0xf2f2f2});
+/* spor araba: alçak, uzun kaputlu, kaplumbağa sırtı arka; yandan profil çizilip genişliğe uzatılır */
+function sideExtrude(pts,width,bevel,mat){const sh=new THREE.Shape();pts.forEach(([z,y],k)=>k?sh.lineTo(z,y):sh.moveTo(z,y));sh.closePath();
+  const g=new THREE.ExtrudeGeometry(sh,{depth:width-bevel*2,bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel*.8,bevelSegments:3,curveSegments:8});g.rotateY(-Math.PI/2);g.translate((width-bevel*2)/2,0,0);return new THREE.Mesh(g,mat)}
+const body=sideExtrude([[2.28,.34],[2.34,.52],[2.1,.7],[1.2,.83],[.5,.9],[-1.3,.93],[-1.95,.9],[-2.22,.8],[-2.22,.36]],2.06,.1,carMat);
+const glassMat=new THREE.MeshPhongMaterial({color:0x1d2c3f,shininess:110,specular:0x8899aa});
+const cabin=sideExtrude([[.62,.86],[.02,1.28],[-.72,1.3],[-1.62,.94],[-1.2,.88]],1.46,.12,glassMat);
+const roofC=sideExtrude([[-.02,1.31],[-.7,1.33],[-.95,1.27],[-.05,1.27]],1.3,.06,carMat);roofC.position.y=.02;
+car.add(body,cabin,roofC);
+const blackM=new THREE.MeshLambertMaterial({color:0x1b1b22}),chromeM=new THREE.MeshPhongMaterial({color:0xd9dde3,shininess:120});
+const bx=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);return o};
+car.add(bx(1.3,.16,.1,blackM,0,.44,2.42));                                   /* ön ızgara */
+[-1,1].forEach(sg=>{
+  const hl=new THREE.Mesh(new THREE.SphereGeometry(.2,12,8),new THREE.MeshBasicMaterial({color:0xfff6d6}));hl.scale.set(1.5,.42,.8);hl.position.set(sg*.66,.66,2.26);hl.rotation.y=sg*.35;car.add(hl);
+  const intake=bx(.06,.24,.62,blackM,sg*1.04,.62,-.85);intake.rotation.x=-.18;car.add(intake);   /* yan hava girişi */
+  const mir=bx(.24,.12,.18,carMat,sg*.92,1.0,.45);car.add(mir);                                   /* ayna */
+  [-.42,-.72].forEach(tx=>{const tl=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,.06,14),new THREE.MeshBasicMaterial({color:0xff2a2a}));tl.rotation.x=Math.PI/2;tl.position.set(sg*Math.abs(tx)*1.0,.72,-2.35);car.add(tl)});  /* yuvarlak stop lambaları */
+  const ex=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.2,10),chromeM);ex.rotation.x=Math.PI/2;ex.position.set(sg*.3,.4,-2.36);car.add(ex);  /* egzoz */
+});
+car.add(bx(1.5,.1,.14,blackM,0,.36,-2.3));                                  /* arka difüzör */
+const spoiler=bx(1.7,.05,.32,carMat,0,.99,-1.98);spoiler.rotation.x=-.12;car.add(spoiler);   /* spoyler */
+const wheelGeo=new THREE.CylinderGeometry(.45,.45,.34,18);wheelGeo.rotateZ(Math.PI/2);
+const wheelMat=new THREE.MeshLambertMaterial({color:0x202028}),hubMat=new THREE.MeshPhongMaterial({color:0xe8ebef,shininess:90});
 const wheels=[];
-[[-1,1.35],[1,1.35],[-1,-1.4],[1,-1.4]].forEach(([wx,wz])=>{const w=new THREE.Group();const t=new THREE.Mesh(wheelGeo,wheelMat);const hb=new THREE.Mesh(new THREE.BoxGeometry(.4,.5,.12),hubMat);w.add(t,hb);w.position.set(wx,.46,wz);car.add(w);wheels.push(w)});
-[-.62,.62].forEach(hx=>{const hl=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8),new THREE.MeshBasicMaterial({color:0xfff2c0}));hl.position.set(hx,.95,2.06);car.add(hl)});
+[[-1,1.38],[1,1.38],[-1,-1.42],[1,-1.42]].forEach(([wx,wz])=>{const w=new THREE.Group();const t=new THREE.Mesh(wheelGeo,wheelMat);w.add(t);
+  for(let k=0;k<5;k++){const sp=new THREE.Mesh(new THREE.BoxGeometry(.05,.62,.09),hubMat);sp.rotation.x=k*Math.PI*2/5;sp.position.x=wx*.17;w.add(sp)}
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.06,10),hubMat);cap.rotation.z=Math.PI/2;cap.position.x=wx*.18;w.add(cap);
+  const cal=bx(.06,.18,.2,new THREE.MeshLambertMaterial({color:0xffcb2e}),wx*.12,.12,-.12);w.add(cal);
+  w.position.set(wx*.98,.45,wz);car.add(w);wheels.push(w)});
 (function plate(){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,256,64);g.fillStyle='#1f4fbf';g.fillRect(0,0,34,64);g.fillStyle='#fff';g.font='bold 18px sans-serif';g.textAlign='center';g.fillText('TR',17,44);g.fillStyle='#111';g.font='bold 40px sans-serif';g.textBaseline='middle';g.fillText('71 İPEK',146,34);g.strokeStyle='#111';g.lineWidth=4;g.strokeRect(2,2,252,60);
-  const p=new THREE.Mesh(new THREE.PlaneGeometry(1.1,.28),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c)}));p.position.set(0,.72,-2.06);p.rotation.y=Math.PI;car.add(p)})();
+  const p=new THREE.Mesh(new THREE.PlaneGeometry(1.1,.28),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c)}));p.position.set(0,.53,-2.36);p.rotation.y=Math.PI;car.add(p)})();
 car.traverse(o=>{if(o.isMesh&&SHADOWS)o.castShadow=true});
 scene.add(car);
 const blob=(function(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const gr=g.createRadialGradient(32,32,4,32,32,30);gr.addColorStop(0,'rgba(0,0,0,.45)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);const m=new THREE.Mesh(new THREE.PlaneGeometry(3.4,5.4),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;scene.add(m);return m})();
@@ -1164,11 +1181,11 @@ function step(dt,t){
   let steer=(input.l||keys.ArrowLeft||keys.KeyA?1:0)-(input.r||keys.ArrowRight||keys.KeyD?1:0);
   const gas=input.gas||keys.ArrowUp||keys.KeyW,back=input.back||keys.ArrowDown||keys.KeyS;
   if(paused){steer=0}
-  const MAXF=19,CRUISE=9.5,MAXR=7;
+  const MAXF=19,MAXR=7;
   let target=0;
   if(back){if(!halted){halted=true;backHold=0}backHold+=dt}else backHold=0;
   if(gas)halted=false;
-  if(!paused){if(gas)target=MAXF;else if(halted)target=backHold>.8?-MAXR*.6:0;else if(S.auto)target=CRUISE}
+  if(!paused){if(gas)target=MAXF;else if(halted)target=backHold>.8?-MAXR*.6:0}
   const acc=target>speed?(speed<0?14:8):(speed>0&&target<speed?(halted?22:6):10);
   speed+=clamp(target-speed,-acc*dt,acc*dt);
   heading+=steer*1.9*dt*clamp(Math.abs(speed)/5,.25,1)*(speed<-.2?-1:1);
@@ -1317,16 +1334,16 @@ function renderStatic(){
 }
 function renderMenu(){
   const l=L();
-  $('menuTitle').textContent=l.menu;$('oAuto').textContent=l.auto;$('oSound').textContent=l.sound;$('oMusic').textContent=l.music;$('oVoice').textContent=l.voice;$('oSky').textContent=l.sky;$('oLang').textContent=l.lang;
+  $('menuTitle').textContent=l.menu;$('oSound').textContent=l.sound;$('oMusic').textContent=l.music;$('oVoice').textContent=l.voice;$('oSky').textContent=l.sky;$('oLang').textContent=l.lang;
   $('menuNote').textContent=l.note;$('rescueBtn').textContent=l.rescue;$('restartBtn').textContent=l.restart;$('carBtn').textContent=l.car;$('menuClose').textContent=l.close;
-  const val={auto:S.auto?'1':'0',sound:S.sound?'1':'0',music:S.music?'1':'0',voice:curVoice()||S.voice,sky:S.sky,lang:S.lang};
-  const txt={auto:{1:l.yes,0:l.no},sound:{1:l.yes,0:l.no},music:{1:l.yes,0:l.no},voice:l.voiceNames,sky:{day:l.day,sunset:l.sunset},lang:{tr:'TR',en:'EN'}};
+  const val={sound:S.sound?'1':'0',music:S.music?'1':'0',voice:curVoice()||S.voice,sky:S.sky,lang:S.lang};
+  const txt={sound:{1:l.yes,0:l.no},music:{1:l.yes,0:l.no},voice:l.voiceNames,sky:{day:l.day,sunset:l.sunset},lang:{tr:'TR',en:'EN'}};
   document.querySelectorAll('#menuOv .seg').forEach(sg=>{const k=sg.dataset.opt;sg.querySelectorAll('button').forEach(b=>{b.textContent=txt[k][b.dataset.v];b.setAttribute('aria-pressed',String(val[k]===b.dataset.v))})});
   $('voiceRow').hidden=!(S.lang==='tr'&&CLIPS.map&&CLIPS.map.voices.length>1);
 }
 document.querySelectorAll('#menuOv .seg').forEach(sg=>sg.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const k=sg.dataset.opt,v=b.dataset.v;
-  if(k==='auto')S.auto=v==='1';else if(k==='sound'){S.sound=v==='1';if(!S.sound){try{speechSynthesis.cancel()}catch(_){}}musicSync()}
+  if(k==='sound'){S.sound=v==='1';if(!S.sound){try{speechSynthesis.cancel()}catch(_){}}musicSync()}
   else if(k==='music'){S.music=v==='1';musicSync()}
   else if(k==='voice'){S.voice=v;save();say(L().greet)}else if(k==='sky'){S.sky=v;applySky()}
   else if(k==='lang'&&S.lang!==v){S.lang=v;relabel();revillage();renderStatic()}
