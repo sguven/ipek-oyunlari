@@ -1,7 +1,7 @@
 // Automated test for İpek's Car Trip.
 // Run:  cd tests && npm install && node araba-test.js   (--quick: skips the autopilot tour)
 // - Interface layout, buttons, language and menu at tablet/phone/desktop sizes
-// - Controls: automatic gas, steering, reverse, horn, gas+steering at the same time with two fingers
+// - Controls: no auto-drive (car moves only with gas), steering, reverse, horn, gas+steering at the same time with two fingers
 // - Can't drive into water; no star/stop along the route is in the water
 // - Autopilot drives the whole tour with the real controls (arrow keys): 7 stops, all stars, celebration
 const { chromium } = require('playwright');
@@ -99,10 +99,10 @@ async function runCase(browser, base, dev) {
   check(!small.length, `${tag}: ana kontroller çocuk için küçük: ${small.map(b => b.s).join(',')}`);
   check(!(await G(page, () => document.documentElement.scrollWidth > innerWidth + 1)), `${tag}: yatay taşma`);
 
-  // --- otomatik gaz: dokunmadan ilerliyor
+  // --- otomatik sürüş yok: gaza basmadan araba durur
   await waitSim(page, 1.5);
   const s1 = await G(page, () => ({ x: __game.pos.x, sp: __game.speed, h: __game.heading }));
-  check(s1.sp > 3 && s1.x < 72, `${tag}: otomatik gaz çalışmıyor (hız ${s1.sp.toFixed(1)})`);
+  check(Math.abs(s1.sp) < 0.1, `${tag}: gaza basılmadan araba kendi kendine gidiyor (hız ${s1.sp.toFixed(1)})`);
   await page.screenshot({ path: path.join(OUT, `araba-${tag}-2-surus.png`) });
 
   // --- steering + gas at the same time (two fingers)
@@ -118,9 +118,10 @@ async function runCase(browser, base, dev) {
   await waitSim(page, 1.6);
   const sp1 = await G(page, () => Math.abs(__game.speed));
   check(sp1 < 0.3, `${tag}: DUR'a bir kez dokununca araba durmadı (hız ${sp1.toFixed(1)})`);
-  await hold(page, '#cGas', 150, 1);
-  await waitSim(page, 1.2);
-  check((await G(page, () => __game.speed)) > 3, `${tag}: gaza dokununca araba yeniden gitmedi`);
+  await hold(page, '#cGas', 0, 1); await waitSim(page, 1.2);
+  check((await G(page, () => __game.speed)) > 3, `${tag}: gaza basınca araba yeniden gitmedi`);
+  await release(page, '#cGas', 1); await waitSim(page, 3.5);
+  check(Math.abs(await G(page, () => __game.speed)) < 0.5, `${tag}: gaz bırakılınca araba durmadı`);
   // no sudden drop in road height along the route (bridge ramps)
   const drop = await G(page, () => { let worst = 0, at = null; const R = __game.ROUTE; for (let i = 0; i < R.length - 1; i++) { const a = R[i], b = R[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])); let prev = null; for (let k = 0; k <= n; k++) { const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n, h = __game.groundInfo(x, z).h; if (prev !== null && Math.abs(h - prev) > worst) { worst = Math.abs(h - prev); at = [x.toFixed(0), z.toFixed(0)]; } prev = h; } } return { worst, at }; });
   check(drop.worst < 1.2, `${tag}: rotada ani yükseklik değişimi ${drop.worst.toFixed(2)} (${drop.at})`);
