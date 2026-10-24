@@ -152,7 +152,6 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
     <div class="colors" id="colors" role="group"></div>
     <div class="btns"><button class="pill big" id="startGo"></button></div>
     <div class="btns">
-      <div class="lang" role="group" aria-label="Dil / Language"><button data-lang="tr">TR</button><button data-lang="en">EN</button></div>
       <a class="pill" id="startGames" href="../"></a>
     </div>
   </div>
@@ -166,7 +165,6 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
       <div class="opt"><span id="oMusic"></span><div class="seg" data-opt="music"><button data-v="1"></button><button data-v="0"></button></div></div>
       <div class="opt" id="voiceRow"><span id="oVoice"></span><div class="seg" data-opt="voice"><button data-v="kadin"></button><button data-v="fettah"></button></div></div>
       <div class="opt"><span id="oSky"></span><div class="seg" data-opt="sky"><button data-v="day"></button><button data-v="sunset"></button></div></div>
-      <div class="opt"><span id="oLang"></span><div class="seg" data-opt="lang"><button data-v="tr">TR</button><button data-v="en">EN</button></div></div>
     </div>
     <p class="note" id="menuNote"></p>
     <div class="btns">
@@ -245,7 +243,7 @@ const KEY='araba-gezisi-v1';
 const fresh=()=>({lang:null,sound:true,music:true,voice:'kadin',sky:'day',color:0,tours:0,starsAll:0});
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
-if(!S.lang){let l=null;try{const k=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')||'{}');l=k.lang}catch(e){}S.lang=l||((navigator.language||'').toLowerCase().startsWith('en')?'en':'tr')}
+S.lang='tr'; /* oyun yalnızca Türkçe */
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 $('loading').textContent=L().loading;
@@ -506,8 +504,11 @@ function hwDeckH(t){if(t<HW_RAMP)return lerp(HW_END0,HW_DECK,t/HW_RAMP);if(t>1-H
 const DER_STOP=(()=>{const ry=-Math.PI/2-.35;return[118+Math.sin(ry)*8.5,14+Math.cos(ry)*8.5]})();
 const hwAt=x=>[x,HW_P1.y+(x-HW_P1.x)*HW_DIR.y/HW_DIR.x];
 const SCHOOL_STOP=[126+8*Math.sin(-.35),96+8*Math.cos(-.35)];
-const STOPS=[[0,0],[-100,12],hwAt(-47),SCHOOL_STOP,[106,41],DER_STOP,[83,-17]];
-const ROUTE=[[70,0],[30,0],[0,0,0],[-35,0],[-68,0],[-85,4],[-100,12,1],[-125,10],[-150,7],[-176,5],[-178,10],hwAt(-150),hwAt(-120),hwAt(-85),[...hwAt(-47),2],hwAt(-10),hwAt(30),hwAt(68),hwAt(90),[102,157],[110,145],[114,128],[118,112],[...SCHOOL_STOP,3],[114,104],[109,92],[108,78],[104,60],[106,52],[106,41,4],[104,30],[...DER_STOP,5],[111,3],[107,-3],[98,-11],[83,-17,6]];
+const STOPS=[[0,0],[-100,12],hwAt(-140),SCHOOL_STOP,[106,41],DER_STOP,[83,-17]];
+/* tur, karayolu köprüsünün karşı yakasında (batı) başlar: önce tarihi Çeşnigir Köprüsü görünür ve üstünden geçilir, köy gezilir, karayolu köprüsünden başlangıca dönülür */
+const ROUTE=[[-152,7],[-125,10],[-100,12,1],[-85,4],[-68,0],[-35,0],[0,0,0],[30,0],[70,0],[83,-17,6],[98,-11],[107,-3],[111,3],[...DER_STOP,5],[104,30],[106,41,4],[106,52],[104,60],[108,78],[109,92],[114,104],[...SCHOOL_STOP,3],[118,112],[114,128],[110,145],[102,157],hwAt(90),hwAt(68),hwAt(30),hwAt(-10),hwAt(-47),hwAt(-85),hwAt(-120),[...hwAt(-140),2]];
+const START=[-152,7,1.52];
+const STOP_ORDER=[1,0,6,5,4,3,2];
 /* ---------- OBSTACLES: buildings, trees, rocks… the car can't drive into them, the camera doesn't get lost behind them ---------- */
 const OBST=[];
 function addBox(x,z,hx,hz,rot,top){OBST.push({x,z,hx,hz,c:Math.cos(rot),s:Math.sin(rot),top,r:Math.hypot(hx,hz)})}
@@ -1099,7 +1100,7 @@ let shakeT=0,waterCd=0,halted=false,backHold=0,heading,speed,pos,lastSafe,starte
 const input={l:0,r:0,gas:0,back:0};
 const keys={};
 function resetTour(){
-  halted=false;heading=-Math.PI/2;speed=0;pos=new THREE.Vector3(74,0,0);pos.y=groundInfo(74,0).h;lastSafe=pos.clone();
+  halted=false;heading=START[2];speed=0;pos=new THREE.Vector3(START[0],0,START[1]);pos.y=groundInfo(START[0],START[1]).h;lastSafe=pos.clone();
   stopsDone=new Array(STOPS.length).fill(false);starsGot=0;cursor=0;won=false;starTone=0;
   items.forEach(it=>{it.done=false;it.mesh.visible=true;if(it.type==='star')it.mesh.scale.setScalar(1.15)});
   renderHud();
@@ -1113,7 +1114,7 @@ function renderHud(){
   const l=L();
   $('stars').innerHTML=ICON.star+`<span>${starsGot}</span>`;
   const nx=nextItem(),nextStop=nx?(nx.type==='stop'?nx.stop:(items.slice(items.indexOf(nx)).find(i=>i.type==='stop')||{}).stop):-1;
-  $('stickers').innerHTML=STOPS.map((_,i)=>`<span class="stk${stopsDone[i]?' got':''}${i===nextStop&&!stopsDone[i]?' next':''}" title="${l.stops[i]}">${STOP_ICON[i]}</span>`).join('');
+  $('stickers').innerHTML=STOP_ORDER.map(i=>`<span class="stk${stopsDone[i]?' got':''}${i===nextStop&&!stopsDone[i]?' next':''}" title="${l.stops[i]}">${STOP_ICON[i]}</span>`).join('');
 }
 function collect(it,idx){
   it.done=true;cursor=Math.max(cursor,idx+1);
@@ -1334,7 +1335,7 @@ function renderStatic(){
 }
 function renderMenu(){
   const l=L();
-  $('menuTitle').textContent=l.menu;$('oSound').textContent=l.sound;$('oMusic').textContent=l.music;$('oVoice').textContent=l.voice;$('oSky').textContent=l.sky;$('oLang').textContent=l.lang;
+  $('menuTitle').textContent=l.menu;$('oSound').textContent=l.sound;$('oMusic').textContent=l.music;$('oVoice').textContent=l.voice;$('oSky').textContent=l.sky;
   $('menuNote').textContent=l.note;$('rescueBtn').textContent=l.rescue;$('restartBtn').textContent=l.restart;$('carBtn').textContent=l.car;$('menuClose').textContent=l.close;
   const val={sound:S.sound?'1':'0',music:S.music?'1':'0',voice:curVoice()||S.voice,sky:S.sky,lang:S.lang};
   const txt={sound:{1:l.yes,0:l.no},music:{1:l.yes,0:l.no},voice:l.voiceNames,sky:{day:l.day,sunset:l.sunset},lang:{tr:'TR',en:'EN'}};
@@ -1364,7 +1365,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('menuOv').hidden)close
 resetTour();renderStatic();
 $('loading').hidden=true;
 loop();
-window.__game={hitObst,OBST,pushOut,get cam(){return camera.position},get simT(){return simT},get frame(){return frame},get pos(){return pos},get heading(){return heading},set heading(v){heading=v},get speed(){return speed},items,STOPS,groundInfo,isWater,get stopsDone(){return stopsDone},get starsGot(){return starsGot},get paused(){return paused},teleport(x,z){pos.set(x,groundInfo(x,z).h,z);lastSafe.copy(pos)},STAR_TOTAL,ROUTE};
+window.__game={START,hitObst,OBST,pushOut,get cam(){return camera.position},get simT(){return simT},get frame(){return frame},get pos(){return pos},get heading(){return heading},set heading(v){heading=v},get speed(){return speed},items,STOPS,groundInfo,isWater,get stopsDone(){return stopsDone},get starsGot(){return starsGot},get paused(){return paused},teleport(x,z){pos.set(x,groundInfo(x,z).h,z);lastSafe.copy(pos)},STAR_TOTAL,ROUTE};
 })();
 </script>
 </body>
