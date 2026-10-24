@@ -161,21 +161,20 @@ async function runCase(browser, base, dev) {
   check(await G(page, () => __game.paused), `${tag}: menü açıkken oyun durmuyor`);
   await page.screenshot({ path: path.join(OUT, `araba-${tag}-4-menu.png`) });
   await tap(page, dev, '#rescueBtn'); await sleep(300);
-  const rp = await G(page, () => [__game.pos.x, __game.pos.z]);
-  check(Math.hypot(rp[0] - 70, rp[1]) < 45, `${tag}: "Yola dön" rotaya getirmedi (${rp.map(v => v.toFixed(0))})`);
+  const rp = await G(page, () => { const R = __game.ROUTE, x = __game.pos.x, z = __game.pos.z; let d = 1e9; for (let i = 0; i < R.length - 1; i++) { const [ax, az] = R[i], [bx, bz] = R[i + 1], vx = bx - ax, vz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * vx + (z - az) * vz) / (vx * vx + vz * vz || 1))); d = Math.min(d, Math.hypot(x - ax - vx * t, z - az - vz * t)); } return [x, z, d]; });
+  check(rp[2] < 6, `${tag}: "Yola dön" rotaya getirmedi (${rp.map(v => v.toFixed(0))})`);
   await tap(page, dev, '#menuBtn'); await sleep(150);
-  await tap(page, dev, '#menuOv .seg[data-opt="lang"] button[data-v="en"]'); await sleep(150);
-  check((await page.title()) === "Ipek's Car Trip", `${tag}: İngilizceye geçmedi`);
-  await tap(page, dev, '#menuOv .seg[data-opt="lang"] button[data-v="tr"]'); await sleep(150);
+  check(await page.locator('[data-opt="lang"], #startOv .lang').count() === 0, `${tag}: dil seçeneği hâlâ var`);
+  check((await page.title()) === "İpek'in Araba Gezisi", `${tag}: oyun Türkçe değil`);
   await tap(page, dev, '#menuClose'); await sleep(150);
   check(!(await G(page, () => __game.paused)), `${tag}: menü kapanınca oyun devam etmiyor`);
 
   // --- stop: teleport to the first stop → sticker + confetti + recorded Turkish praise
   const before = clips.length;
-  await G(page, () => { const s = __game.items.find(i => i.type === 'stop'); __game.teleport(s.x + 1, s.z); });
+  const firstStop = await G(page, () => { const s = __game.items.find(i => i.type === 'stop'); __game.teleport(s.x + 1, s.z); return s.stop; });
   await waitSim(page, 0.5);
   for (let i = 0; i < 40 && clips.length === before; i++) await sleep(100);
-  check((await G(page, () => __game.stopsDone[0])), `${tag}: ilk durak sayılmadı`);
+  check((await G(page, () => __game.stopsDone)) [firstStop], `${tag}: ilk durak sayılmadı`);
   check((await page.locator('.stk.got').count()) === 1, `${tag}: çıkartma dolmadı`);
   check(clips.length > before, `${tag}: durakta Türkçe ses çalmadı`);
   await page.screenshot({ path: path.join(OUT, `araba-${tag}-5-durak.png`) });
@@ -192,7 +191,7 @@ async function runCase(browser, base, dev) {
 
 // Drive the whole tour with the real controls (arrow keys)
 async function autopilot(page, tag) {
-  await G(page, () => { __game.teleport(74, 0); __game.heading = -Math.PI / 2; });
+  await G(page, () => { const s0 = __game.START; __game.teleport(s0[0], s0[1]); __game.heading = s0[2]; });
   await page.evaluate(() => {
     const send = (code, down) => dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', { code, key: code }));
     const state = {};
