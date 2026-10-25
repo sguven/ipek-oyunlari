@@ -39,6 +39,12 @@ button,a{font-family:inherit}
 /* top bar */
 .top{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(10px + env(safe-area-inset-left));right:calc(10px + env(safe-area-inset-right));display:flex;align-items:flex-start;justify-content:space-between;gap:8px;z-index:10;pointer-events:none}
 .top>*{pointer-events:auto}
+.trb{display:flex;gap:8px}
+.round.ride{background:#ffe7a8}.round.ride svg{width:34px;height:34px}
+.rides{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.rides button{display:flex;align-items:center;gap:8px;font:800 18px var(--display,inherit);padding:8px 16px;border:4px solid var(--ink);border-radius:20px;background:var(--card);color:var(--ink);box-shadow:0 4px 0 var(--ink);cursor:pointer;min-height:58px}
+.rides button svg{width:46px;height:46px}
+.rides button[aria-pressed="true"]{background:#ffe7a8;outline:4px solid #ff7eb6;outline-offset:2px}
 .score{display:flex;flex-direction:column;align-items:center;gap:6px}
 .stars{font:700 22px/1 var(--display);background:var(--card);border:3px solid var(--ink);border-radius:999px;box-shadow:0 4px 0 var(--ink);padding:6px 14px 6px 8px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
 .stars svg{width:30px;height:30px}
@@ -125,7 +131,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
     <div class="stars" id="stars"></div>
     <div class="stickers" id="stickers"></div>
   </div>
-  <button class="round" id="menuBtn"></button>
+  <div class="trb"><button class="round ride" id="rideBtn"></button><button class="round" id="menuBtn"></button></div>
 </div>
 
 <canvas id="radar" width="260" height="260" aria-hidden="true"></canvas>
@@ -149,6 +155,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
     <div class="sub" id="startSub"></div>
     <h2 id="startTitle"></h2>
     <p id="startText"></p>
+    <div class="rides" id="rides" role="group"></div>
     <div class="colors" id="colors" role="group"></div>
     <div class="btns"><button class="pill big" id="startGo"></button></div>
     <div class="btns">
@@ -206,7 +213,7 @@ const T={
     yes:'Açık',no:'Kapalı',day:'Gündüz',sunset:'Gün batımı',voiceNames:{kadin:'Kadın',fettah:'Fettah'},
     note:'Araba yalnızca yeşil GAZ pedalına basıldıkça gider; bırakınca yavaşlayıp durur. Sağ ve sol oklarla direksiyon çevrilir. Turuncu DUR düğmesine bir kez dokununca araba durur; gaza dokununca yeniden yola çıkar. DUR düğmesine basılı tutarsanız yavaşça geri gider. Suya girmek ya da bir yere takılmak yok; araba yumuşakça durur. Bina ve köylülerin içinden geçebilir.',
     rescue:'Yola dön',restart:'Baştan başla',car:'Araba rengi',
-    gas:'GAZ',left:'Sola dön',right:'Sağa dön',back:'Dur',horn:'Korna',
+    gas:'GAZ',left:'Sola dön',right:'Sağa dön',back:'Dur',horn:'Korna',fly:'UÇ',down:'İn',fire:'Ateş',rideCar:'Araba',rideDragon:'Ejderha',dragonOn:'Ejderhaya bindin! Yeşil düğmeyle uç.',carOn:'Arabaya bindin!',rideSwitch:'Araba ya da ejderha',
     water:'Dikkat, su!',waterSub:'Başka yöne dön',
     stops:['Çeşnigir Köprüsü','Batı tarlaları','Karayolu köprüsü','Okul','Fatih Camii','Çeşnigir-Der','Yeni Cami'],
     stopSub:['Çok eski bir taş köprü!','Buğday tarlaları burada.','Büyük köprü, uzun yol!','Okul bahçesine geldin.','Kubbesine bak!','Köy meydanı! Fıskiyeye bak!','Neredeyse bitti!'],
@@ -225,7 +232,7 @@ const T={
     yes:'On',no:'Off',day:'Day',sunset:'Sunset',voiceNames:{kadin:'Female',fettah:'Fettah'},
     note:'The car only moves while the green GO pedal is held; let go and it slows down and stops. The arrows steer. One tap on the orange STOP button stops the car; tap GO to drive on. Hold STOP to reverse slowly. You can never fall in the water or get stuck; the car gently stops. It can drive through houses and villagers.',
     rescue:'Back to the road',restart:'Start over',car:'Car color',
-    gas:'GO',left:'Turn left',right:'Turn right',back:'Stop',horn:'Horn',
+    gas:'GO',left:'Turn left',right:'Turn right',back:'Stop',horn:'Horn',fly:'FLY',down:'Down',fire:'Fire',rideCar:'Car',rideDragon:'Dragon',dragonOn:'You are riding the dragon! Hold the green button to fly.',carOn:'Back in the car!',rideSwitch:'Car or dragon',
     water:'Careful, water!',waterSub:'Turn the other way',
     stops:['Çeşnigir Bridge','West fields','Highway bridge','School','Fatih Mosque','Çeşnigir-Der club','Yeni Mosque'],
     stopSub:['A very old stone bridge!','The wheat fields are here.','A big bridge and a long road!','You reached the schoolyard.','Look at the dome!','The village square! Look at the fountain!','Almost done!'],
@@ -240,7 +247,7 @@ const T={
 
 /* ---------- durum ---------- */
 const KEY='araba-gezisi-v1';
-const fresh=()=>({lang:null,sound:true,music:true,voice:'kadin',sky:'day',color:0,tours:0,starsAll:0});
+const fresh=()=>({lang:null,ride:'car',sound:true,music:true,voice:'kadin',sky:'day',color:0,tours:0,starsAll:0});
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
 S.lang='tr'; /* oyun yalnızca Türkçe */
@@ -259,6 +266,9 @@ const ICON={
   gear:svg(`<g fill="${INK}">${[0,45,90,135,180,225,270,315].map(a=>`<rect x="44" y="6" width="12" height="20" rx="3" transform="rotate(${a} 50 50)"/>`).join('')}</g><circle cx="50" cy="50" r="30" fill="${INK}"/><circle cx="50" cy="50" r="12" fill="#fff"/>`),
   left:svg(`<path d="M62 18 L28 50 L62 82" stroke="${INK}" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`),
   right:svg(`<path d="M38 18 L72 50 L38 82" stroke="${INK}" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`),
+  dragon:c=>svg(`<path d="M30 60 Q22 40 34 26 Q40 40 46 46 Z" fill="#ffd6ea" ${st(4)}/><path d="M66 60 Q78 38 70 22 Q60 36 54 46 Z" fill="#ffd6ea" ${st(4)}/><ellipse cx="50" cy="62" rx="20" ry="14" fill="${c}" ${st(4)}/><path d="M32 66 Q14 70 10 84 Q22 78 32 76 Z" fill="${c}" ${st(4)}/><circle cx="70" cy="46" r="11" fill="${c}" ${st(4)}/><path d="M66 36 L64 26 L71 34 M74 36 L78 27 L77 37" fill="none" ${st(3)}/><circle cx="73" cy="44" r="2.6" fill="${INK}"/><path d="M80 50 Q86 52 90 48" fill="none" ${st(3)}/>`),
+  flame:svg(`<path d="M50 92 C24 90 18 64 34 46 C36 58 42 60 44 56 C40 40 50 22 62 12 C60 30 80 40 80 62 C80 80 66 92 50 92 Z" fill="#ff7a1a" ${st(5)}/><path d="M50 86 C38 84 36 70 44 62 C46 70 52 70 54 64 C60 70 62 82 50 86 Z" fill="#ffd93d"/>`),
+  down:svg(`<path d="M18 38 L50 72 L82 38" stroke="${INK}" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`),
   up:svg(`<path d="M18 62 L50 28 L82 62" stroke="${INK}" stroke-width="14" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`),
   back:svg(`<polygon points="32,6 68,6 94,32 94,68 68,94 32,94 6,68 6,32" fill="#e2453a" ${st(5)}/><rect x="24" y="42" width="52" height="16" rx="4" fill="#fff"/>`),
   horn:svg(`<path d="M14 40 H30 L66 18 V82 L30 60 H14 Z" fill="${INK}"/><path d="M76 34 Q86 50 76 66 M84 24 Q100 50 84 76" stroke="${INK}" stroke-width="7" fill="none" stroke-linecap="round"/>`),
@@ -1042,6 +1052,118 @@ car.traverse(o=>{if(o.isMesh&&SHADOWS)o.castShadow=true});
 scene.add(car);
 const blob=(function(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const gr=g.createRadialGradient(32,32,4,32,32,30);gr.addColorStop(0,'rgba(0,0,0,.45)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);const m=new THREE.Mesh(new THREE.PlaneGeometry(3.4,5.4),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));m.rotation.x=-Math.PI/2;scene.add(m);return m})();
 
+/* EJDERHA: İpek sırtında; kanat çırpar, uçar, ateş üfler. Rengi araba rengiyle aynı. */
+const dragon=new THREE.Group(),dragonMat=new THREE.MeshPhongMaterial({color:CAR_COLORS[S.color]||CAR_COLORS[0],shininess:40});
+const DR={wings:[],legs:[],tail:[],neck:null,head:null,alt:0,flap:0,pitch:0,roll:0,fireT:0};
+(function buildDragon(){
+  const M=c=>new THREE.MeshLambertMaterial({color:c}),belly=M(0xffe7b3),hornM=M(0xfff3d6),wingM=new THREE.MeshLambertMaterial({color:0xffd6ea,side:THREE.DoubleSide,transparent:true,opacity:.92});
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),dragonMat);body.scale.set(1.05,.9,1.9);body.position.y=1.7;
+  const bel=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),belly);bel.scale.set(.85,.62,1.6);bel.position.set(0,1.45,.15);
+  /* boyun ve baş */
+  const neck=new THREE.Group();neck.position.set(0,2.2,1.55);
+  const nk=new THREE.Mesh(new THREE.CylinderGeometry(.38,.55,1.5,10),dragonMat);nk.rotation.x=.75;nk.position.set(0,.5,.5);neck.add(nk);
+  const head=new THREE.Group();head.position.set(0,1.15,1.15);
+  const skull=new THREE.Mesh(new THREE.SphereGeometry(.62,14,10),dragonMat);skull.scale.set(1,.88,1.05);
+  const snout=new THREE.Mesh(new THREE.SphereGeometry(.42,12,10),dragonMat);snout.scale.set(1,.72,1.25);snout.position.set(0,-.12,.62);
+  const nostril=x=>{const n=new THREE.Mesh(new THREE.SphereGeometry(.05,6,5),M(0x3b2a5c));n.position.set(x,-.02,1.1);return n};
+  const eye=x=>{const g=new THREE.Group(),w=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8),M(0xffffff)),pu=new THREE.Mesh(new THREE.SphereGeometry(.09,8,6),M(0x2a1f3d)),hl=new THREE.Mesh(new THREE.SphereGeometry(.035,6,5),M(0xffffff));pu.position.set(x>0?.05:-.05,.02,.12);hl.position.set(x>0?.08:-.02,.07,.19);g.add(w,pu,hl);g.position.set(x,.18,.42);return g};
+  const horn=x=>{const h=new THREE.Mesh(new THREE.ConeGeometry(.11,.55,8),hornM);h.position.set(x,.62,-.22);h.rotation.x=-.55;h.rotation.z=x>0?-.25:.25;return h};
+  const smile=new THREE.Mesh(new THREE.TorusGeometry(.22,.025,6,12,Math.PI*.8),M(0x3b2a5c));smile.rotation.set(Math.PI*.55,0,Math.PI*1.1);smile.position.set(0,-.33,.78);
+  const cheek=x=>{const c=new THREE.Mesh(new THREE.SphereGeometry(.1,8,6),M(0xff8fb8));c.position.set(x,-.1,.55);return c};
+  head.add(skull,snout,nostril(.14),nostril(-.14),eye(.3),eye(-.3),horn(.28),horn(-.28),smile,cheek(.36),cheek(-.36));neck.add(head);
+  /* sırt dikenleri */
+  const spikes=new THREE.Group();for(let i=0;i<6;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(.16-i*.012,.42,6),hornM);sp.position.set(0,2.55-i*.06,1.0-i*.62);sp.rotation.x=-.3;spikes.add(sp)}
+  /* kuyruk: kıvrılan halkalar + ok ucu */
+  let parent=new THREE.Group();parent.position.set(0,1.6,-1.7);const tailRoot=parent;
+  for(let i=0;i<5;i++){const r1=.42-i*.07,seg=new THREE.Group();const c=new THREE.Mesh(new THREE.CylinderGeometry(r1-.06,r1,.9,10),dragonMat);c.rotation.x=Math.PI/2;c.position.z=-.42;seg.add(c);
+    seg.position.z=i?-.8:0;parent.add(seg);DR.tail.push(seg);parent=seg}
+  const tip=new THREE.Mesh(new THREE.ConeGeometry(.32,.6,4),hornM);tip.rotation.x=-Math.PI/2;tip.scale.set(1,1,.35);tip.position.z=-1.05;parent.add(tip);
+  /* kanatlar: yarasa kanadı biçiminde zar + kemik */
+  const wsh=new THREE.Shape();wsh.moveTo(0,0);wsh.lineTo(1.2,.9);wsh.lineTo(2.6,1.5);wsh.lineTo(3.4,.9);wsh.quadraticCurveTo(2.9,.2,3.1,-.4);wsh.quadraticCurveTo(2.4,-.2,2.2,-.9);wsh.quadraticCurveTo(1.5,-.6,1.2,-1.2);wsh.quadraticCurveTo(.6,-.6,0,-.6);wsh.closePath();
+  [-1,1].forEach(sg=>{const pivot=new THREE.Group();pivot.position.set(sg*.75,2.25,.35);
+    const mem=new THREE.Mesh(new THREE.ShapeGeometry(wsh),wingM);mem.rotation.x=-Math.PI/2;mem.scale.set(sg,1,1);pivot.add(mem);
+    const bone=new THREE.Mesh(new THREE.CylinderGeometry(.07,.09,3,6),dragonMat);bone.rotation.z=Math.PI/2;bone.rotation.y=sg*-.45;bone.position.set(sg*1.45,.05,-.65);pivot.add(bone);
+    dragon.add(pivot);DR.wings.push({p:pivot,sg})});
+  /* bacaklar */
+  [[-.6,.95],[.6,.95],[-.65,-.9],[.65,-.9]].forEach(([x,z])=>{const lg=new THREE.Group();lg.position.set(x,1.25,z);const l=new THREE.Mesh(new THREE.CylinderGeometry(.2,.17,.9,8),dragonMat);l.position.y=-.45;const f=new THREE.Mesh(new THREE.SphereGeometry(.24,8,6),belly);f.scale.set(1,.55,1.3);f.position.set(0,-.9,.1);lg.add(l,f);dragon.add(lg);DR.legs.push(lg)});
+  /* eyer ve sırtta İpek */
+  const saddle=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.16,14),M(0x8a4b2a));saddle.scale.set(1,1,1.15);saddle.position.set(0,2.55,.25);
+  const ipek=new THREE.Group(),shirt=M(0xff7eb6),skin=M(0xe8b48a),hair=M(0x4a2d1a);
+  const legsI=new THREE.Mesh(new THREE.BoxGeometry(.9,.2,.34),M(0x3d6fb5));legsI.position.set(0,.12,.1);
+  const torso=new THREE.Mesh(new THREE.CylinderGeometry(.22,.27,.62,10),shirt);torso.position.y=.5;
+  const hd=new THREE.Mesh(new THREE.SphereGeometry(.24,12,10),skin);hd.position.y=1.0;
+  const hr=new THREE.Mesh(new THREE.SphereGeometry(.26,12,10,0,Math.PI*2,0,Math.PI*.6),hair);hr.position.y=1.03;hr.rotation.x=-.25;
+  [-1,1].forEach(sg=>{const br=new THREE.Mesh(new THREE.CylinderGeometry(.06,.04,.5,6),hair);br.position.set(sg*.22,.78,-.12);ipek.add(br);
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.48,6),shirt);arm.position.set(sg*.28,.55,.22);arm.rotation.x=1.1;ipek.add(arm)});
+  const gl=new THREE.Mesh(new THREE.TorusGeometry(.08,.02,6,12),M(0x2a1f3d));gl.position.set(-.09,1.02,.22);const gl2=gl.clone();gl2.position.x=.09;
+  ipek.add(legsI,torso,hd,hr,gl,gl2);ipek.position.set(0,2.6,.25);
+  dragon.add(body,bel,neck,spikes,tailRoot,saddle,ipek);DR.neck=neck;DR.head=head;
+  dragon.scale.setScalar(1.05);
+  dragon.traverse(o=>{if(o.isMesh&&SHADOWS)o.castShadow=true});
+  dragon.visible=false;scene.add(dragon);
+})();
+/* ateş: ağızdan çıkan turuncu-sarı alev parçacıkları */
+const FIRE_TEX=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,220,1)');gr.addColorStop(.35,'rgba(255,200,60,.95)');gr.addColorStop(.7,'rgba(255,90,20,.6)');gr.addColorStop(1,'rgba(255,60,0,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)})();
+const FIRE={pts:null,pos:null,vel:[],life:[],n:90,next:0};
+(function(){const g=new THREE.BufferGeometry();FIRE.pos=new Float32Array(FIRE.n*3);for(let i=0;i<FIRE.n;i++)FIRE.pos[i*3+1]=-999;g.setAttribute('position',new THREE.BufferAttribute(FIRE.pos,3));
+  FIRE.pts=new THREE.Points(g,new THREE.PointsMaterial({size:1.5,map:FIRE_TEX,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));FIRE.pts.frustumCulled=false;scene.add(FIRE.pts);
+  for(let i=0;i<FIRE.n;i++){FIRE.vel.push([0,0,0]);FIRE.life.push(0)}})();
+function breatheFire(){DR.fireT=1.3;roar()}
+function roar(){if(!S.sound)return;const a=audioCtx();if(!a)return;try{const t=a.currentTime,o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter();o.type='sawtooth';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(70,t+.9);f.type='lowpass';f.frequency.value=700;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.08);g.gain.exponentialRampToValueAtTime(.001,t+1);o.connect(f).connect(g).connect(a.destination);o.start(t);o.stop(t+1.05);
+  const n=Math.floor(a.sampleRate*1.2),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.min(1,i/2000)*(1-i/n);const sN=a.createBufferSource(),fN=a.createBiquadFilter(),gN=a.createGain();sN.buffer=b;fN.type='bandpass';fN.frequency.value=900;gN.gain.value=.12;sN.connect(fN).connect(gN).connect(a.destination);sN.start(t)}catch(e){}}
+function updateFire(dt){
+  const P=FIRE.pos;
+  if(DR.fireT>0&&dragon.visible){DR.fireT-=dt;DR.head.updateMatrixWorld();const m=new THREE.Vector3(0,-.15,1.15).applyMatrix4(DR.head.matrixWorld);const f=new THREE.Vector3(0,-.12,1).transformDirection(DR.head.matrixWorld);
+    for(let k=0;k<3;k++){const i=FIRE.next;FIRE.next=(FIRE.next+1)%FIRE.n;P[i*3]=m.x;P[i*3+1]=m.y;P[i*3+2]=m.z;const sp=10+Math.random()*5;FIRE.vel[i]=[f.x*sp+(Math.random()-.5)*2.5,f.y*sp+(Math.random()-.5)*2+1,f.z*sp+(Math.random()-.5)*2.5];FIRE.life[i]=.75}}
+  for(let i=0;i<FIRE.n;i++){if(FIRE.life[i]<=0){P[i*3+1]=-999;continue}FIRE.life[i]-=dt;const v=FIRE.vel[i];v[0]*=.94;v[1]=v[1]*.94+dt*3;v[2]*=.94;P[i*3]+=v[0]*dt;P[i*3+1]+=v[1]*dt;P[i*3+2]+=v[2]*dt}
+  FIRE.pts.geometry.attributes.position.needsUpdate=true;FIRE.pts.material.size=1.2+Math.max(0,DR.fireT)*.5;
+}
+const isDragon=()=>S.ride==='dragon';
+function setRide(r,silent){
+  if(r===S.ride&&!silent)return;S.ride=r;save();
+  if(r==='car'){/* ejderhadan inince araba güvenli zemine konur */const g=groundInfo(pos.x,pos.z);if(isWater(g)||hitObst(pos.x,pos.z,g.h+.5,1.2)){pos.copy(lastSafe)}else pos.y=g.h;speed=0;DR.alt=0}
+  else{DR.alt=0;speed=Math.max(0,speed)}
+  car.visible=r==='car';dragon.visible=r==='dragon';renderStatic();
+  if(!silent){tone(r==='dragon'?520:660,.12);tone(r==='dragon'?780:880,.16,.1);if(started)toast(r==='dragon'?L().rideDragon:L().rideCar,r==='dragon'?L().dragonOn:L().carOn,2200);if(r==='dragon'&&started)roar()}
+}
+function renderRide(){
+  const l=L(),c=CAR_COLORS[S.color]||CAR_COLORS[0];
+  $('rideBtn').innerHTML=isDragon()?ICON.car(c):ICON.dragon(c);$('rideBtn').setAttribute('aria-label',l.rideSwitch);
+  $('rides').innerHTML=[['car',ICON.car(c),l.rideCar],['dragon',ICON.dragon(c),l.rideDragon]].map(([k,ic,t])=>`<button data-r="${k}" aria-pressed="${S.ride===k}">${ic}<span>${t}</span></button>`).join('');
+  $('rides').querySelectorAll('button').forEach(b=>b.onclick=()=>setRide(b.dataset.r));
+}
+/* ejderha uçuşu: GAZ ileri uçar ve yükselir, bırakınca havada süzülür, İN ile alçalır ve iner, korna yerine ateş */
+function stepDragon(dt,t,steer,gas,back){
+  const MAXD=22,CRUISE=15;
+  const target=paused?0:(gas?MAXD:0);
+  speed+=clamp(target-speed,-7*dt,9*dt);
+  heading+=steer*1.7*dt;
+  fwd.set(Math.sin(heading),0,Math.cos(heading));
+  let nx=clamp(pos.x+fwd.x*speed*dt,-285,285),nz=clamp(pos.z+fwd.z*speed*dt,-285,285);
+  const gg=groundInfo(nx,nz),floor=isWater(gg)?WATER_Y+2.2:gg.h;
+  /* alçakta binalara çarpmasın */
+  if(pos.y-floor<3.5){const tmp=new THREE.Vector3(nx,pos.y,nz);if(pushOut(tmp,1.6)){nx=tmp.x;nz=tmp.z;speed*=.6}}
+  pos.x=nx;pos.z=nz;
+  let want=DR.alt;if(back&&!paused)want=0;else if(gas)want=CRUISE;
+  const rate=want>DR.alt?6:5;DR.alt+=clamp(want-DR.alt,-rate*dt,rate*dt);
+  /* hiçbir engelin içine inmesin */
+  const ob=hitObst(pos.x,pos.z,floor+DR.alt+.5,1.2);if(ob&&DR.alt<ob.top-floor+1)DR.alt=Math.min(CRUISE,ob.top-floor+1);
+  pos.y=floor+DR.alt;
+  if(DR.alt<.3&&!isWater(gg)){safeT+=dt;if(safeT>.5){lastSafe.set(pos.x,gg.h,pos.z);safeT=0}}
+  /* animasyon */
+  const flying=DR.alt>.4||speed>.5;
+  DR.flap+=dt*(flying?(gas?9:6):1.5);
+  const fl=Math.sin(DR.flap);
+  DR.wings.forEach(w=>{w.p.rotation.z=w.sg*(flying?(-.15+fl*.65):-.9);w.p.rotation.y=flying?0:w.sg*.5});
+  DR.tail.forEach((sg,i)=>{sg.rotation.y=Math.sin(t*2.4-i*.7)*.18;sg.rotation.x=flying?-.04:.05});
+  DR.legs.forEach(l=>{l.rotation.x+=((flying?-.9:0)-l.rotation.x)*Math.min(1,dt*5)});
+  DR.head.rotation.y=Math.sin(t*1.3)*.12;
+  const climb=clamp((want-DR.alt)*.06,-.25,.25);DR.pitch+=(-climb-DR.pitch)*Math.min(1,dt*3);DR.roll+=(-steer*.35*(speed/MAXD+.3)-DR.roll)*Math.min(1,dt*3);
+  dragon.position.set(pos.x,pos.y+(flying?Math.sin(t*3)*.15:0),pos.z);
+  dragon.quaternion.setFromEuler(new THREE.Euler(DR.pitch,heading,DR.roll,'YXZ'));
+  blob.position.set(pos.x,gg.h+.08,pos.z);blob.rotation.z=-heading;blob.visible=true;const bs=Math.max(.35,1-DR.alt/30);blob.scale.set(bs*1.2,bs*1.3,1);
+  if(frame%8===0&&flying&&S.sound&&gas)tone(180+Math.random()*30,.12,0,'sine',.025);
+}
 /* direction arrow (above the car) */
 const arrow=new THREE.Group();
 (function(){const m=new THREE.MeshBasicMaterial({color:0xffd23d}),o=new THREE.MeshBasicMaterial({color:0x3b2a5c,side:THREE.BackSide});
@@ -1100,7 +1222,7 @@ let shakeT=0,waterCd=0,halted=false,backHold=0,heading,speed,pos,lastSafe,starte
 const input={l:0,r:0,gas:0,back:0};
 const keys={};
 function resetTour(){
-  halted=false;heading=START[2];speed=0;pos=new THREE.Vector3(START[0],0,START[1]);pos.y=groundInfo(START[0],START[1]).h;lastSafe=pos.clone();
+  halted=false;heading=START[2];speed=0;if(typeof DR!=='undefined')DR.alt=0;pos=new THREE.Vector3(START[0],0,START[1]);pos.y=groundInfo(START[0],START[1]).h;lastSafe=pos.clone();
   stopsDone=new Array(STOPS.length).fill(false);starsGot=0;cursor=0;won=false;starTone=0;
   items.forEach(it=>{it.done=false;it.mesh.visible=true;if(it.type==='star')it.mesh.scale.setScalar(1.15)});
   renderHud();
@@ -1152,7 +1274,7 @@ function bindHold(id,prop){
   el.addEventListener('contextmenu',e=>e.preventDefault());
 }
 bindHold('cLeft','l');bindHold('cRight','r');bindHold('cGas','gas');bindHold('cBack','back');
-function honk(){beep();villagers.forEach(v=>{const dx=pos.x-v.g.position.x,dz=pos.z-v.g.position.z;if(dx*dx+dz*dz<900)v.honk=2.5})}
+function honk(){if(isDragon())breatheFire();else beep();villagers.forEach(v=>{const dx=pos.x-v.g.position.x,dz=pos.z-v.g.position.z;if(dx*dx+dz*dz<900)v.honk=2.5})}
 $('cHorn').addEventListener('pointerdown',e=>{e.preventDefault();honk()});
 addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyH'||e.code==='Space')honk();if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault()});
 addEventListener('keyup',e=>{keys[e.code]=false});
@@ -1182,6 +1304,8 @@ function step(dt,t){
   let steer=(input.l||keys.ArrowLeft||keys.KeyA?1:0)-(input.r||keys.ArrowRight||keys.KeyD?1:0);
   const gas=input.gas||keys.ArrowUp||keys.KeyW,back=input.back||keys.ArrowDown||keys.KeyS;
   if(paused){steer=0}
+  if(isDragon()){stepDragon(dt,t,steer,gas,back);updateFire(dt);stepWorld(dt,t);return}
+  updateFire(dt);
   const MAXF=19,MAXR=7;
   let target=0;
   if(back){if(!halted){halted=true;backHold=0}backHold+=dt}else backHold=0;
@@ -1219,7 +1343,12 @@ function step(dt,t){
   const hL=groundInfo(pos.x+Math.cos(heading),pos.z-Math.sin(heading)).h,hR=groundInfo(pos.x-Math.cos(heading),pos.z+Math.sin(heading)).h;
   car.rotation.set(0,0,0);car.quaternion.setFromEuler(new THREE.Euler(Math.atan2(gB-gF,3.2),heading,Math.atan2(hR-hL,2),'YXZ'));
   wheels.forEach(w=>w.rotation.x+=speed*dt*2.2);
-  blob.position.set(pos.x,g2.h+.08,pos.z);blob.rotation.z=-heading;blob.visible=!SHADOWS;
+  blob.position.set(pos.x,g2.h+.08,pos.z);blob.rotation.z=-heading;blob.visible=!SHADOWS;blob.scale.set(1,1,1);
+  stepWorld(dt,t);
+}
+/* araba ve ejderha için ortak dünya güncellemesi: köylüler, yıldızlar, ok, kamera */
+function stepWorld(dt,t){
+  const D=isDragon();
 
   /* villagers (what a villager at the edge of the screen says is shown as text at the top) */
   let chipText='';
@@ -1247,11 +1376,11 @@ function step(dt,t){
     if(it.type==='star'){
       if(it.done){if(it.anim<1){it.anim+=dt*3;it.mesh.position.lerp(new THREE.Vector3(pos.x,pos.y+2.5,pos.z),Math.min(1,dt*10));it.mesh.scale.setScalar(1.15*(1-it.anim));if(it.anim>=1)it.mesh.visible=false}return}
       it.mesh.rotation.y=t*2+i;it.mesh.position.y=it.y+1.7+Math.sin(t*3+i)*.25;
-      const dx=pos.x-it.x,dz=pos.z-it.z;if(dx*dx+dz*dz<14&&Math.abs(pos.y-it.y)<4)collect(it,i);
+      const dx=pos.x-it.x,dz=pos.z-it.z;if(D?(dx*dx+dz*dz<30&&pos.y-it.y<24):(dx*dx+dz*dz<14&&Math.abs(pos.y-it.y)<4))collect(it,i);
     }else{
       it.mesh.children[1].rotation.y=Math.sin(t*3+i)*.3;
       if(it.done)return;
-      const dx=pos.x-it.x,dz=pos.z-it.z;if(dx*dx+dz*dz<56&&Math.abs(pos.y-it.y)<5)collect(it,i);
+      const dx=pos.x-it.x,dz=pos.z-it.z;if(D?(dx*dx+dz*dz<110&&pos.y-it.y<26):(dx*dx+dz*dz<56&&Math.abs(pos.y-it.y)<5))collect(it,i);
     }
   });
   /* far-away labels: hide when close (so they don't cover the screen) */
@@ -1263,14 +1392,14 @@ function step(dt,t){
     const nextStop=nx2.type==='stop'?nx2:items.slice(items.indexOf(nx2)).find(i=>i.type==='stop'&&!i.done);
     if(nextStop)nextStop.beacon.visible=true;
     const dx=nx2.x-pos.x,dz=nx2.z-pos.z,d=Math.hypot(dx,dz);
-    arrow.visible=d>7;arrow.position.set(pos.x,pos.y+3.6+Math.sin(t*4)*.15,pos.z);
+    arrow.visible=d>7;arrow.position.set(pos.x,pos.y+(D?6.2:3.6)+Math.sin(t*4)*.15,pos.z);
     let ta=Math.atan2(dx,dz),cur=arrow.rotation.y,df=ta-cur;df=Math.atan2(Math.sin(df),Math.cos(df));arrow.rotation.y=cur+df*Math.min(1,dt*8);
   }else arrow.visible=false;
 
   /* kamera */
   if(!dragging)camOrbit*=Math.pow(.05,dt);
   const ca=heading+Math.PI+camOrbit;
-  camPos.set(pos.x+Math.sin(ca)*camDist,pos.y+4.6+camDist*.16,pos.z+Math.cos(ca)*camDist);
+  const cd=D?camDist*1.25:camDist;camPos.set(pos.x+Math.sin(ca)*cd,pos.y+(D?5.5:4.6)+cd*.16,pos.z+Math.cos(ca)*cd);
   /* if a building is between the camera and the car, move the camera closer */
   {const hx=pos.x,hy=pos.y+2.2,hz=pos.z;let clear=1;for(let k=1;k<=10;k++){const f=k/10,x=hx+(camPos.x-hx)*f,y=hy+(camPos.y-hy)*f,z=hz+(camPos.z-hz)*f;if(hitObst(x,z,y,.7)){clear=Math.max(.28,(k-1)/10);break}}
    if(clear<1){camPos.x=hx+(camPos.x-hx)*clear;camPos.z=hz+(camPos.z-hz)*clear;camPos.y=Math.max(hy+2.4,hy+(camPos.y-hy)*clear+1.5)}}
@@ -1323,14 +1452,15 @@ function renderStatic(){
   $('menuBtn').innerHTML=ICON.gear;$('menuBtn').setAttribute('aria-label',l.menu);
   $('cLeft').innerHTML=ICON.left;$('cLeft').setAttribute('aria-label',l.left);
   $('cRight').innerHTML=ICON.right;$('cRight').setAttribute('aria-label',l.right);
-  $('cGas').innerHTML=ICON.up+`<b>${l.gas}</b>`;$('cGas').setAttribute('aria-label',l.gas);
-  $('cBack').innerHTML=ICON.back;$('cBack').setAttribute('aria-label',l.back);
-  $('cHorn').innerHTML=ICON.horn;$('cHorn').setAttribute('aria-label',l.horn);
+  const Dm=isDragon();
+  $('cGas').innerHTML=ICON.up+`<b>${Dm?l.fly:l.gas}</b>`;$('cGas').setAttribute('aria-label',Dm?l.fly:l.gas);
+  $('cBack').innerHTML=Dm?ICON.down:ICON.back;$('cBack').setAttribute('aria-label',Dm?l.down:l.back);
+  $('cHorn').innerHTML=Dm?ICON.flame:ICON.horn;$('cHorn').setAttribute('aria-label',Dm?l.fire:l.horn);
   $('startSub').textContent=l.sub;$('startTitle').textContent=l.name;$('startText').textContent=l.start;$('startGo').textContent=l.go;
   $('colors').setAttribute('aria-label',l.car);
   $('colors').innerHTML=CAR_COLORS.map((c,i)=>`<button class="col" data-c="${i}" style="background:#fff" aria-pressed="${S.color===i}" aria-label="${l.car} ${i+1}">${ICON.car(c)}</button>`).join('');
-  $('colors').querySelectorAll('.col').forEach(b=>b.onclick=()=>{S.color=+b.dataset.c;save();carMat.color.set(CAR_COLORS[S.color]);tone(660+S.color*60,.15);renderStatic()});
-  document.querySelectorAll('#startOv .lang button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===S.lang)));
+  $('colors').querySelectorAll('.col').forEach(b=>b.onclick=()=>{S.color=+b.dataset.c;save();carMat.color.set(CAR_COLORS[S.color]);dragonMat.color.set(CAR_COLORS[S.color]);tone(660+S.color*60,.15);renderStatic()});
+  renderRide();
   renderMenu();renderHud();
 }
 function renderMenu(){
@@ -1362,10 +1492,11 @@ $('carBtn').onclick=()=>{$('menuOv').hidden=true;$('startOv').hidden=false};
 $('startGo').onclick=()=>{$('startOv').hidden=true;paused=false;if(!started){started=true;say(L().greet)}musicSync()};
 addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('menuOv').hidden)closeMenu();else if($('startOv').hidden&&$('winOv').hidden)openMenu()}});
 
-resetTour();renderStatic();
+resetTour();setRide(S.ride,true);
+$('rideBtn').onclick=()=>setRide(isDragon()?'car':'dragon');
 $('loading').hidden=true;
 loop();
-window.__game={START,hitObst,OBST,pushOut,get cam(){return camera.position},get simT(){return simT},get frame(){return frame},get pos(){return pos},get heading(){return heading},set heading(v){heading=v},get speed(){return speed},items,STOPS,groundInfo,isWater,get stopsDone(){return stopsDone},get starsGot(){return starsGot},get paused(){return paused},teleport(x,z){pos.set(x,groundInfo(x,z).h,z);lastSafe.copy(pos)},STAR_TOTAL,ROUTE};
+window.__game={get fire(){return{t:DR.fireT,alive:FIRE.life.filter(x=>x>0).length}},START,hitObst,OBST,pushOut,get cam(){return camera.position},get simT(){return simT},get frame(){return frame},get pos(){return pos},get heading(){return heading},set heading(v){heading=v},get speed(){return speed},items,STOPS,groundInfo,isWater,get stopsDone(){return stopsDone},get starsGot(){return starsGot},get paused(){return paused},teleport(x,z){pos.set(x,groundInfo(x,z).h,z);lastSafe.copy(pos)},STAR_TOTAL,ROUTE};
 })();
 </script>
 </body>
