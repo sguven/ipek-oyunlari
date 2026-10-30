@@ -3,7 +3,7 @@
 // - Interface layout, buttons, language and menu at tablet/phone/desktop sizes
 // - Controls: no auto-drive (car moves only with gas), steering, reverse, horn, gas+steering at the same time with two fingers
 // - Can't drive into water; no star/stop along the route is in the water
-// - Autopilot drives the whole tour with the real controls (arrow keys): 7 stops, all stars, celebration
+// - Autopilot drives the whole tour with the real controls (arrow keys): 5 stops, all stars, celebration
 const { chromium } = require('playwright');
 const http = require('http');
 const fs = require('fs');
@@ -129,15 +129,15 @@ async function runCase(browser, base, dev) {
   const blocked = await G(page, () => { const R = __game.ROUTE, bad = []; for (let i = 0; i < R.length - 1; i++) { const a = R[i], b = R[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])); for (let k = 0; k <= n; k++) { const x = a[0] + (b[0] - a[0]) * k / n, z = a[1] + (b[1] - a[1]) * k / n; if (__game.hitObst(x, z, __game.groundInfo(x, z).h, 1.3)) { bad.push([x.toFixed(0), z.toFixed(0)]); break; } } } return bad; });
   check(!blocked.length, `${tag}: rota engelle kesişiyor: ${JSON.stringify(blocked)}`);
   // gas towards a building: must not go inside, and the camera must not end up inside the building
-  await G(page, () => { __game.teleport(97, 55); __game.heading = 0; });
+  await G(page, () => { __game.teleport(126, 84); __game.heading = 0; });
   await hold(page, '#cGas', 0, 1);
   let inside = false, camIn = false;
   const tb = await G(page, () => __game.simT);
   while ((await G(page, () => __game.simT)) - tb < 3) { await sleep(60); const r = await G(page, () => ({ c: !!__game.hitObst(__game.pos.x, __game.pos.z, __game.pos.y, 0.3), k: !!__game.hitObst(__game.cam.x, __game.cam.z, __game.cam.y, 0) })); if (r.c) inside = true; if (r.k) camIn = true; }
   await release(page, '#cGas', 1);
-  check(!inside, `${tag}: araba caminin içine girdi`);
+  check(!inside, `${tag}: araba binanın içine girdi`);
   check(!camIn, `${tag}: kamera binanın içine düştü`);
-  await page.screenshot({ path: path.join(OUT, `araba-${tag}-3b-cami.png`) });
+  await page.screenshot({ path: path.join(OUT, `araba-${tag}-3b-bina.png`) });
   // geri
   await hold(page, '#cBack', 1800, 3);
   check((await G(page, () => __game.speed)) < 0, `${tag}: geri gitmiyor`);
@@ -216,9 +216,9 @@ async function autopilot(page, tag) {
   }
   await page.evaluate(() => clearInterval(window.__ap));
   const res = await G(page, () => ({ stars: __game.starsGot, total: __game.STAR_TOTAL, stops: __game.stopsDone.filter(Boolean).length, win: !document.getElementById('winOv').hidden }));
-  console.log(`  otopilot: ${Math.round((Date.now() - t0) / 1000)} sn, ${res.stops}/7 durak, ${res.stars}/${res.total} yıldız`);
+  console.log(`  otopilot: ${Math.round((Date.now() - t0) / 1000)} sn, ${res.stops}/5 durak, ${res.stars}/${res.total} yıldız`);
   check(res.win, `${tag}: tur sonu kutlaması çıkmadı`);
-  check(res.stops === 7 && res.stars === res.total, `${tag}: otopilot her şeyi toplayamadı (${res.stops}/7, ${res.stars}/${res.total})`);
+  check(res.stops === 5 && res.stars === res.total, `${tag}: otopilot her şeyi toplayamadı (${res.stops}/5, ${res.stars}/${res.total})`);
   check(!wet, `${tag}: otopilot sırasında suya girildi`);
   await page.screenshot({ path: path.join(OUT, `araba-${tag}-6-kutlama.png`) });
   // tekrar oyna

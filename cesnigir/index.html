@@ -380,13 +380,6 @@ const gridRot=-0.35;
 })();
 const wallMat0=new THREE.MeshStandardMaterial({color:0xf0e6cf,roughness:0.95});
 const roofMat=new THREE.MeshStandardMaterial({color:0xb4523a,roughness:0.9});
-function mosque(x,z,sc){const y=terrainH(x,z),g=new THREE.Group();const domeMat=new THREE.MeshStandardMaterial({color:0x8fa6b8,roughness:0.5,metalness:0.3});
-  const body=new THREE.Mesh(new THREE.BoxGeometry(6*sc,3.4*sc,6*sc),wallMat0);body.position.y=1.7*sc;
-  const dome=new THREE.Mesh(new THREE.SphereGeometry(2.5*sc,16,10,0,Math.PI*2,0,Math.PI/2),domeMat);dome.position.y=3.4*sc;
-  const min=new THREE.Mesh(new THREE.CylinderGeometry(0.4*sc,0.48*sc,8.5*sc,10),wallMat0);min.position.set(3.6*sc,4.2*sc,3.6*sc);
-  const cap=new THREE.Mesh(new THREE.ConeGeometry(0.58*sc,1.5*sc,10),domeMat);cap.position.set(3.6*sc,9.2*sc,3.6*sc);
-  g.add(body,dome,min,cap);g.traverse(shadows);g.position.set(x,y,z);g.rotation.y=gridRot;scene.add(g)}
-mosque(88,-28,1.0);mosque(112,32,1.05);mosque(97,66,0.85);
 (function school(){const x=126,z=96,y=terrainH(x,z),g=new THREE.Group();
   const body=new THREE.Mesh(new THREE.BoxGeometry(15,4.6,6),new THREE.MeshStandardMaterial({color:0xfff1c2,roughness:0.9}));body.position.y=2.3;
   const roof=new THREE.Mesh(new THREE.BoxGeometry(15.8,0.5,6.8),roofMat);roof.position.y=4.85;
