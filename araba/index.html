@@ -59,6 +59,7 @@ button,a{font-family:inherit}
 /* radar (small map that turns with the car) */
 #radar{position:fixed;left:calc(10px + env(safe-area-inset-left));top:calc(64px + env(safe-area-inset-top));width:clamp(96px,14vw,130px);height:clamp(96px,14vw,130px);border-radius:50%;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);background:#f3e3b8;z-index:9;pointer-events:none}
 @media (max-height:460px){#radar{width:84px;height:84px;top:calc(58px + env(safe-area-inset-top))}}
+@media (max-width:560px) and (min-height:461px){#radar{top:calc(100px + env(safe-area-inset-top))}}
 /* kontroller */
 .pad{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));z-index:10;display:flex;gap:12px;align-items:flex-end}
 .pad.l{left:calc(14px + env(safe-area-inset-left))}
@@ -215,8 +216,8 @@ const T={
     rescue:'Yola dön',restart:'Baştan başla',car:'Araba rengi',
     gas:'GAZ',left:'Sola dön',right:'Sağa dön',back:'Dur',horn:'Korna',fly:'UÇ',down:'İn',fire:'Ateş',rideCar:'Araba',rideDragon:'Ejderha',dragonOn:'Ejderhaya bindin! Yeşil düğmeyle uç.',carOn:'Arabaya bindin!',rideSwitch:'Araba ya da ejderha',
     water:'Dikkat, su!',waterSub:'Başka yöne dön',
-    stops:['Çeşnigir Köprüsü','Batı tarlaları','Karayolu köprüsü','Okul','Fatih Camii','Çeşnigir-Der','Yeni Cami'],
-    stopSub:['Çok eski bir taş köprü!','Buğday tarlaları burada.','Büyük köprü, uzun yol!','Okul bahçesine geldin.','Kubbesine bak!','Köy meydanı! Fıskiyeye bak!','Neredeyse bitti!'],
+    stops:['Çeşnigir Köprüsü','Batı tarlaları','Karayolu köprüsü','Okul','Çeşnigir-Der'],
+    stopSub:['Çok eski bir taş köprü!','Buğday tarlaları burada.','Büyük köprü, uzun yol!','Okul bahçesine geldin.','Köy meydanı! Fıskiyeye bak!'],
     praise:['Aferin İpek!','Harika!','Süpersin İpek!','Bravo İpek!','Çok güzel!','Muhteşemsin İpek!'],
     greet:'Merhaba İpek! Haydi oynayalım!',
     winT:'Köprüköy turu bitti!',winX:n=>`Tebrikler İpek! Bütün durakları gezdin ve ${n} yıldız topladın.`,again:'Bir tur daha',
@@ -234,8 +235,8 @@ const T={
     rescue:'Back to the road',restart:'Start over',car:'Car color',
     gas:'GO',left:'Turn left',right:'Turn right',back:'Stop',horn:'Horn',fly:'FLY',down:'Down',fire:'Fire',rideCar:'Car',rideDragon:'Dragon',dragonOn:'You are riding the dragon! Hold the green button to fly.',carOn:'Back in the car!',rideSwitch:'Car or dragon',
     water:'Careful, water!',waterSub:'Turn the other way',
-    stops:['Çeşnigir Bridge','West fields','Highway bridge','School','Fatih Mosque','Çeşnigir-Der club','Yeni Mosque'],
-    stopSub:['A very old stone bridge!','The wheat fields are here.','A big bridge and a long road!','You reached the schoolyard.','Look at the dome!','The village square! Look at the fountain!','Almost done!'],
+    stops:['Çeşnigir Bridge','West fields','Highway bridge','School','Çeşnigir-Der club'],
+    stopSub:['A very old stone bridge!','The wheat fields are here.','A big bridge and a long road!','You reached the schoolyard.','The village square! Look at the fountain!'],
     praise:['Great job, Ipek!','Awesome!','You did it, Ipek!','Bravo!','Well done, Ipek!','Amazing!'],
     greet:"Hi Ipek! Let's play!",
     winT:'Village tour complete!',winX:n=>`Well done, Ipek! You visited every stop and collected ${n} stars.`,again:'Another tour',
@@ -280,9 +281,7 @@ const STOP_ICON=[
   svg(`<path d="M50 90 V30 M50 40 L36 28 M50 52 L36 40 M50 64 L36 52 M50 40 L64 28 M50 52 L64 40 M50 64 L64 52" stroke="${INK}" stroke-width="7" fill="none" stroke-linecap="round"/>`),
   svg(`<rect x="8" y="40" width="84" height="12" fill="${INK}"/><rect x="22" y="52" width="10" height="34" fill="${INK}"/><rect x="68" y="52" width="10" height="34" fill="${INK}"/>`),
   svg(`<path d="M14 88 V46 L50 22 L86 46 V88 Z" fill="${INK}"/><rect x="42" y="60" width="16" height="28" fill="#fff"/><path d="M50 22 V6 L66 12 L50 16" fill="${INK}" stroke="${INK}" stroke-width="3"/>`),
-  svg(`<path d="M20 88 V60 Q20 30 50 30 Q80 30 80 60 V88 Z" fill="${INK}"/><rect x="86" y="18" width="7" height="70" fill="${INK}"/><path d="M89 18 L89 6" stroke="${INK}" stroke-width="5"/>`),
-  svg(`<rect x="16" y="40" width="68" height="48" fill="${INK}"/><path d="M10 42 L50 14 L90 42 Z" fill="${INK}"/><rect x="30" y="52" width="40" height="10" fill="#fff"/>`),
-  svg(`<path d="M24 88 V58 Q24 34 50 34 Q76 34 76 58 V88 Z" fill="${INK}"/><rect x="10" y="22" width="7" height="66" fill="${INK}"/><path d="M13 22 L13 8" stroke="${INK}" stroke-width="5"/>`)
+  svg(`<rect x="16" y="40" width="68" height="48" fill="${INK}"/><path d="M10 42 L50 14 L90 42 Z" fill="${INK}"/><rect x="30" y="52" width="40" height="10" fill="#fff"/>`)
 ];
 
 /* ---------- sound: recorded Turkish clips + English device voice + short effects (no music) ---------- */
@@ -514,11 +513,11 @@ function hwDeckH(t){if(t<HW_RAMP)return lerp(HW_END0,HW_DECK,t/HW_RAMP);if(t>1-H
 const DER_STOP=(()=>{const ry=-Math.PI/2-.35;return[118+Math.sin(ry)*8.5,14+Math.cos(ry)*8.5]})();
 const hwAt=x=>[x,HW_P1.y+(x-HW_P1.x)*HW_DIR.y/HW_DIR.x];
 const SCHOOL_STOP=[126+8*Math.sin(-.35),96+8*Math.cos(-.35)];
-const STOPS=[[0,0],[-100,12],hwAt(-140),SCHOOL_STOP,[106,41],DER_STOP,[83,-17]];
+const STOPS=[[0,0],[-100,12],hwAt(-140),SCHOOL_STOP,DER_STOP];
 /* tur, karayolu köprüsünün karşı yakasında (batı) başlar: önce tarihi Çeşnigir Köprüsü görünür ve üstünden geçilir, köy gezilir, karayolu köprüsünden başlangıca dönülür */
-const ROUTE=[[-152,7],[-125,10],[-100,12,1],[-85,4],[-68,0],[-35,0],[0,0,0],[30,0],[70,0],[83,-17,6],[98,-11],[107,-3],[111,3],[...DER_STOP,5],[104,30],[106,41,4],[106,52],[104,60],[108,78],[109,92],[114,104],[...SCHOOL_STOP,3],[118,112],[114,128],[110,145],[102,157],hwAt(90),hwAt(68),hwAt(30),hwAt(-10),hwAt(-47),hwAt(-85),hwAt(-120),[...hwAt(-140),2]];
+const ROUTE=[[-152,7],[-125,10],[-100,12,1],[-85,4],[-68,0],[-35,0],[0,0,0],[30,0],[70,0],[83,-17],[98,-11],[107,-3],[111,3],[...DER_STOP,4],[104,30],[106,41],[106,52],[104,60],[108,78],[109,92],[114,104],[...SCHOOL_STOP,3],[118,112],[114,128],[110,145],[102,157],hwAt(90),hwAt(68),hwAt(30),hwAt(-10),hwAt(-47),hwAt(-85),hwAt(-120),[...hwAt(-140),2]];
 const START=[-152,7,1.52];
-const STOP_ORDER=[1,0,6,5,4,3,2];
+const STOP_ORDER=[1,0,4,3,2];
 /* ---------- OBSTACLES: buildings, trees, rocks… the car can't drive into them, the camera doesn't get lost behind them ---------- */
 const OBST=[];
 function addBox(x,z,hx,hz,rot,top){OBST.push({x,z,hx,hz,c:Math.cos(rot),s:Math.sin(rot),top,r:Math.hypot(hx,hz)})}
@@ -571,16 +570,6 @@ for(let i=0;i<78;i++){
   const roof=shade(new THREE.Mesh(roofGeo,rm));roof.scale.set(3.2*s,1.5*s,3.2*s);roof.position.y=h+.72*s;roof.rotation.y=Math.PI/4;
   g.add(body,roof);g.position.set(x,y,z);g.rotation.y=gridRot+rr;scene.add(g);
 }
-function mosque(x,z,sc){
-  const y=terrainH(x,z),g=new THREE.Group(),dm=new THREE.MeshPhongMaterial({color:0x8a9aa5,shininess:60});
-  const body=new THREE.Mesh(new THREE.BoxGeometry(6*sc,3.4*sc,6*sc),wallMats[0]);body.position.y=1.7*sc;
-  const dome=new THREE.Mesh(new THREE.SphereGeometry(2.5*sc,18,10,0,Math.PI*2,0,Math.PI/2),dm);dome.position.y=3.4*sc;
-  const min=new THREE.Mesh(new THREE.CylinderGeometry(.4*sc,.48*sc,8.5*sc,10),wallMats[0]);min.position.set(3.6*sc,4.2*sc,3.6*sc);
-  const cap=new THREE.Mesh(new THREE.ConeGeometry(.58*sc,1.5*sc,10),dm);cap.position.set(3.6*sc,9.2*sc,3.6*sc);
-  g.add(body,dome,min,cap);g.traverse(shade);g.position.set(x,y,z);g.rotation.y=gridRot;scene.add(g);
-  addBox(x,z,3*sc,3*sc,gridRot,y+12*sc);const mn=local2world(x,z,gridRot,3.6*sc,3.6*sc);addCirc(mn[0],mn[1],.6*sc,y+12*sc);
-}
-mosque(88,-28,1);mosque(112,32,1.05);mosque(97,66,.85);
 (function school(){
   const x=126,z=96,y=terrainH(x,z),g=new THREE.Group();
   const body=new THREE.Mesh(new THREE.BoxGeometry(15,4.6,6),new THREE.MeshLambertMaterial({color:0xf3eddc}));body.position.y=2.3;
@@ -1192,15 +1181,15 @@ const starGeo=new THREE.ExtrudeGeometry(starShape,{depth:.3,bevelEnabled:true,be
 const starMat=new THREE.MeshPhongMaterial({color:0xffd23d,emissive:0x8a5a00,emissiveIntensity:.55,shininess:80});
 const beaconMat=new THREE.MeshBasicMaterial({color:0xffe066,transparent:true,opacity:.32,depthWrite:false});
 const beaconGeo=new THREE.CylinderGeometry(1.6,1.6,60,16,1,true);
-const flagMats=['#ff5a5a','#ff9f43','#ffd93d','#4cd17a','#4aa8ff','#5a63e0','#a66bff'].map(c=>new THREE.MeshLambertMaterial({color:c,side:THREE.DoubleSide}));
+const flagMats=['#ff5a5a','#ff9f43','#ffd93d','#4cd17a','#5a63e0'].map(c=>new THREE.MeshLambertMaterial({color:c,side:THREE.DoubleSide}));
 items.forEach(it=>{
   const g=groundInfo(it.x,it.z);it.y=g.h;
   if(it.type==='star'){const m=new THREE.Mesh(starGeo,starMat);m.scale.setScalar(1.15);m.position.set(it.x,g.h+1.7,it.z);scene.add(m);it.mesh=m}
   else{
-    const grp=new THREE.Group(),fo=it.stop===5?-3.4:3.2;
+    const grp=new THREE.Group(),fo=it.stop===4?-3.4:3.2;
     const pole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,5,8),new THREE.MeshLambertMaterial({color:0xffffff}));pole.position.y=2.5;
     const fl=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.4),flagMats[it.stop]);fl.position.set(1.15,4.2,0);
-    grp.add(pole,fl);grp.position.set(it.x+fo,g.h,it.z+(it.stop===5?3.4:3.2));scene.add(grp);it.mesh=grp;
+    grp.add(pole,fl);grp.position.set(it.x+fo,g.h,it.z+(it.stop===4?3.4:3.2));scene.add(grp);it.mesh=grp;
     const bc=new THREE.Mesh(beaconGeo,beaconMat);bc.position.set(it.x,g.h+30,it.z);bc.visible=false;scene.add(bc);it.beacon=bc;
   }
 });
@@ -1413,7 +1402,7 @@ function stepWorld(dt,t){
 const radar=$('radar'),rctx=radar.getContext('2d');
 const RIVER=(()=>{const L_=[],R_=[];for(let z=-260;z<=320;z+=12){const c=channelCenter(z),h=channelHalf(z)*.95;L_.push([c-h,z]);R_.push([c+h,z])}return L_.concat(R_.reverse())})();
 const HWLINE=[[HW_P1.x,HW_P1.y],[HW_P2.x,HW_P2.y]],BRIDGE=[[-68,0],[68,0]];
-const STOPCOL=['#ff5a5a','#ff9f43','#ffd93d','#4cd17a','#4aa8ff','#5a63e0','#a66bff'];
+const STOPCOL=['#ff5a5a','#ff9f43','#ffd93d','#4cd17a','#5a63e0'];
 function drawRadar(t){
   const W=radar.width,c=W/2,K=c/80,sh=Math.sin(heading),ch=Math.cos(heading);
   const P=(x,z)=>{const dx=x-pos.x,dz=z-pos.z,ahead=dx*sh+dz*ch,right=-dx*ch+dz*sh;return[c+right*K,c-ahead*K]};
