@@ -203,7 +203,7 @@ async function runCase(browser, base, gameKey, dev) {
   if (title !== G.title.tr) fail(`başlık beklenen "${G.title.tr}", gelen "${title}"`);
   const manifest = await page.evaluate(() => typeof CLIPS !== 'undefined' && !!CLIPS.map);
   if (!manifest) fail('ses kayıtları listesi (manifest) yüklenmedi');
-  if (!(await page.locator('#voiceSel').isVisible())) fail('Türkçe ses seçimi görünmüyor');
+  if (await page.locator('#voiceSel').isVisible()) fail('tek ses varken ses seçimi gizli olmalı');
   const homeText = await page.locator('#home').innerText();
   if (!/İpek/.test(homeText)) fail('ana sayfada İpek adı yok');
   await layout('ana sayfa'); await shot('1-ana');
@@ -254,10 +254,6 @@ async function runCase(browser, base, gameKey, dev) {
   const panel = await page.locator('#stats').innerText();
   if (!new RegExp(String(rounds)).test(panel)) fail('ebeveyn panelinde toplam doğru sayısı yok');
   await tap(page, dev, '[data-close="parentOv"]'); await advance(page, 200);
-
-  // voice choice: Erkek
-  await tap(page, dev, '#voiceSel [data-voice="erkek"]'); await advance(page, 1500); await sleep(300);
-  if (!mp3.some(u => u.includes('/erkek/'))) fail('Erkek seçilince Erkek kaydı çalınmadı');
 
   // sound off: no recording may play
   await tap(page, dev, '#soundBtn'); await advance(page, 200);

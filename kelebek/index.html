@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>İpek'in Kelebek Bahçesi</title>
-<meta name="description" content="kelebek yakalama oyunu: kelebek yakala, renk avı, say ve yakala. Butterfly catching game.">
+<meta name="description" content="Kelebek yakalama oyunu: kelebek yakala, renk avı, say ve yakala. Butterfly catching game.">
 <meta name="theme-color" content="#e6f6ff">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -531,7 +531,7 @@ function renderVoiceNote(){
   $('retryVoice').onclick=watchVoices;
 }
 
-/* ---------- recorded Turkish voice: natural Turkish without depending on the device voice (female) ---------- */
+/* ---------- recorded Turkish voice: natural Turkish without depending on the device voice (female voice) ---------- */
 let AC=null;
 const CLIPS={base:'audio/',map:null};
 try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips&&m.voices&&m.voices.length){CLIPS.map=m;renderVoiceNote();renderVoiceSel()}}).catch(()=>{})}catch(e){}

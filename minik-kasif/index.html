@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Minik Kâşif İpek</title>
-<meta name="description" content="sesli, iki dilli sayı, renk ve şekil oyunu. A talking counting, colors and shapes game.">
+<meta name="description" content="Sesli, iki dilli sayı, renk ve şekil oyunu. A talking counting, colors and shapes game.">
 <meta name="theme-color" content="#d6efff">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -379,7 +379,7 @@ function renderVoiceNote(){
 
 /* ---------- efektler ---------- */
 let AC=null;
-/* ---------- recorded Turkish voice: natural Turkish without depending on the device voice (female) ---------- */
+/* ---------- recorded Turkish voice: natural Turkish without depending on the device voice (female voice) ---------- */
 const CLIPS={base:'audio/',map:null};
 try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips&&m.voices&&m.voices.length){CLIPS.map=m;renderVoiceNote();renderVoiceSel()}}).catch(()=>{})}catch(e){}
 function curVoice(){const vs=CLIPS.map?CLIPS.map.voices:[];return vs.includes(S.voice)?S.voice:vs[0]}
