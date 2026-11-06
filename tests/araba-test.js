@@ -165,7 +165,7 @@ async function runCase(browser, base, dev) {
   check(rp[2] < 6, `${tag}: "Yola dön" rotaya getirmedi (${rp.map(v => v.toFixed(0))})`);
   await tap(page, dev, '#menuBtn'); await sleep(150);
   check(await page.locator('[data-opt="lang"]').count() === 1 && await page.locator('#startOv .lang').count() === 1, `${tag}: language option missing`);
-  check((await page.title()) === "İpek'in Araba Gezisi", `${tag}: oyun Türkçe değil`);
+  check((await page.title()) === "Ipek's Car Trip", `${tag}: game did not open in English`);
   await tap(page, dev, '#menuClose'); await sleep(150);
   check(!(await G(page, () => __game.paused)), `${tag}: menü kapanınca oyun devam etmiyor`);
 
