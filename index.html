@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -185,6 +185,7 @@ const ART=[ART1,ART2,ART3,ART4,ART5,ART6,ART7,ART8];
 let lang='tr';
 try{const s=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')||'{}');if(s.lang)lang=s.lang;else if((navigator.language||'').toLowerCase().startsWith('en'))lang='en'}catch(e){}
 try{const l=localStorage.getItem('ipek-oyunlar-lang');if(l==='tr'||l==='en')lang=l}catch(e){}
+lang='en'; /* the site always opens in English */
 function render(){
   const l=T[lang];
   document.documentElement.lang=lang;document.title=l.title;

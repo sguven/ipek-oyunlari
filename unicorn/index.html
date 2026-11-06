@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -374,6 +374,7 @@ const fresh=()=>({total:0,bands:0,rainbows:0,best:0,streak:0,stats:{pattern:[0,0
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
 if(!S.lang){const nl=(navigator.language||'').toLowerCase();S.lang=nl.startsWith('en')?'en':'tr'}
+S.lang='en'; /* always opens in English; TR stays one tap away */
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 const level=()=>Math.min(3,1+S.rainbows);

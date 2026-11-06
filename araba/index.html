@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
@@ -100,6 +100,7 @@ button,a{font-family:inherit}
 .lang{display:inline-flex;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card);box-shadow:0 4px 0 var(--ink)}
 .lang button{font:800 14px var(--body);border:0;background:none;color:var(--ink);padding:7px 12px;cursor:pointer;min-height:40px}
 .lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
+#startOv .card{position:relative}#startOv .lang{position:absolute;top:12px;right:14px;box-shadow:0 3px 0 var(--ink);border-width:2px}#startOv .lang button{padding:4px 10px;min-height:32px;font-size:13px}
 .rows{display:flex;flex-direction:column;gap:10px;text-align:left}
 .opt{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--tint);border-radius:16px;padding:8px 10px;font-weight:800}
 .seg{display:inline-flex;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card)}
@@ -153,6 +154,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 
 <div class="ov" id="startOv">
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+    <div class="lang" role="group" aria-label="Language"><button data-lang="en">EN</button><button data-lang="tr">TR</button></div>
     <div class="sub" id="startSub"></div>
     <h2 id="startTitle"></h2>
     <p id="startText"></p>
@@ -172,6 +174,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
       <div class="opt"><span id="oSound"></span><div class="seg" data-opt="sound"><button data-v="1"></button><button data-v="0"></button></div></div>
       <div class="opt"><span id="oMusic"></span><div class="seg" data-opt="music"><button data-v="1"></button><button data-v="0"></button></div></div>
       <div class="opt" id="voiceRow"><span id="oVoice"></span><div class="seg" data-opt="voice"><button data-v="kadin"></button></div></div>
+      <div class="opt"><span id="oLang"></span><div class="seg" data-opt="lang"><button data-v="en"></button><button data-v="tr"></button></div></div>
       <div class="opt"><span id="oSky"></span><div class="seg" data-opt="sky"><button data-v="day"></button><button data-v="sunset"></button></div></div>
     </div>
     <p class="note" id="menuNote"></p>
@@ -208,7 +211,7 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const T={
   tr:{
     name:"İpek'in Araba Gezisi",sub:'Kırıkkale · Köprüköy',
-    start:"Merhaba İpek! Arabanın rengini seç, sonra yıldızları takip ederek Çeşnigir Köprüsü'nden geç ve Köprüköy'ü gez. Sarı ok sana yolu gösterir.",
+    start:"Merhaba İpek! Arabanın rengini seç, sonra yıldızları takip ederek büyük karayolu köprüsünden geç ve Köprüköy'ü gez. Sarı ok sana yolu gösterir.",
     go:'Haydi, sür!',games:'Oyunlar',menu:'Ayarlar',close:'Devam et',
     sound:'Konuşma ve sesler',music:'Müzik',voice:'Ses tonu',sky:'Gökyüzü',lang:'Dil',
     yes:'Açık',no:'Kapalı',day:'Gündüz',sunset:'Gün batımı',voiceNames:{kadin:'Kadın'},
@@ -227,7 +230,7 @@ const T={
   },
   en:{
     name:"Ipek's Car Trip",sub:'Kırıkkale · Köprüköy',
-    start:"Hi Ipek! Pick a color for your car, then follow the stars across the Çeşnigir Bridge and around Köprüköy village. The yellow arrow shows the way.",
+    start:"Hi Ipek! Pick a color for your car, then follow the stars over the big highway bridge and around Köprüköy village. The yellow arrow shows the way.",
     go:"Let's drive!",games:'Games',menu:'Settings',close:'Keep driving',
     sound:'Voices & sounds',music:'Music',voice:'Voice',sky:'Sky',lang:'Language',
     yes:'On',no:'Off',day:'Day',sunset:'Sunset',voiceNames:{kadin:'Female'},
@@ -248,10 +251,11 @@ const T={
 
 /* ---------- durum ---------- */
 const KEY='araba-gezisi-v1';
-const fresh=()=>({lang:null,ride:'car',sound:true,music:true,voice:'kadin',sky:'day',color:0,tours:0,starsAll:0});
+const fresh=()=>({lang:null,ride:'dragon',sound:true,music:true,voice:'kadin',sky:'day',color:0,tours:0,starsAll:0});
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
-S.lang='tr'; /* oyun yalnızca Türkçe */
+S.lang='en'; /* always opens in English (TR in the menu) */
+S.ride='dragon'; /* always starts on the dragon */
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 $('loading').textContent=L().loading;
@@ -514,10 +518,10 @@ const DER_STOP=(()=>{const ry=-Math.PI/2-.35;return[118+Math.sin(ry)*8.5,14+Math
 const hwAt=x=>[x,HW_P1.y+(x-HW_P1.x)*HW_DIR.y/HW_DIR.x];
 const SCHOOL_STOP=[126+8*Math.sin(-.35),96+8*Math.cos(-.35)];
 const STOPS=[[0,0],[-100,12],hwAt(-140),SCHOOL_STOP,DER_STOP];
-/* tur, karayolu köprüsünün karşı yakasında (batı) başlar: önce tarihi Çeşnigir Köprüsü görünür ve üstünden geçilir, köy gezilir, karayolu köprüsünden başlangıca dönülür */
-const ROUTE=[[-152,7],[-125,10],[-100,12,1],[-85,4],[-68,0],[-35,0],[0,0,0],[30,0],[70,0],[83,-17],[98,-11],[107,-3],[111,3],[...DER_STOP,4],[104,30],[106,41],[106,52],[104,60],[108,78],[109,92],[114,104],[...SCHOOL_STOP,3],[118,112],[114,128],[110,145],[102,157],hwAt(90),hwAt(68),hwAt(30),hwAt(-10),hwAt(-47),hwAt(-85),hwAt(-120),[...hwAt(-140),2]];
-const START=[-152,7,1.52];
-const STOP_ORDER=[1,0,4,3,2];
+/* tur, karayolu köprüsünün batı ucunda başlar: önce karayolu köprüsüne çıkılır ve üstünden geçilir, köy gezilir, tarihi Çeşnigir Köprüsü'nden batı tarlalarına dönülür */
+const ROUTE=[hwAt(-176),[...hwAt(-140),2],hwAt(-120),hwAt(-85),hwAt(-47),hwAt(-10),hwAt(30),hwAt(68),hwAt(90),[102,157],[110,145],[114,128],[118,112],[...SCHOOL_STOP,3],[114,104],[109,92],[108,78],[104,60],[106,52],[106,41],[104,30],[...DER_STOP,4],[111,3],[107,-3],[98,-11],[83,-17],[70,0],[30,0],[0,0,0],[-35,0],[-68,0],[-85,4],[-100,12,1]];
+const START=[...hwAt(-176),Math.atan2(HW_DIR.x,HW_DIR.y)];
+const STOP_ORDER=[2,3,4,0,1];
 /* ---------- OBSTACLES: buildings, trees, rocks… the car can't drive into them, the camera doesn't get lost behind them ---------- */
 const OBST=[];
 function addBox(x,z,hx,hz,rot,top){OBST.push({x,z,hx,hz,c:Math.cos(rot),s:Math.sin(rot),top,r:Math.hypot(hx,hz)})}
@@ -1445,7 +1449,7 @@ function renderStatic(){
   $('cGas').innerHTML=ICON.up+`<b>${Dm?l.fly:l.gas}</b>`;$('cGas').setAttribute('aria-label',Dm?l.fly:l.gas);
   $('cBack').innerHTML=Dm?ICON.down:ICON.back;$('cBack').setAttribute('aria-label',Dm?l.down:l.back);
   $('cHorn').innerHTML=Dm?ICON.flame:ICON.horn;$('cHorn').setAttribute('aria-label',Dm?l.fire:l.horn);
-  $('startSub').textContent=l.sub;$('startTitle').textContent=l.name;$('startText').textContent=l.start;$('startGo').textContent=l.go;
+  $('startSub').textContent=l.sub;document.querySelectorAll('#startOv .lang button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===S.lang)));$('startTitle').textContent=l.name;$('startText').textContent=l.start;$('startGo').textContent=l.go;
   $('colors').setAttribute('aria-label',l.car);
   $('colors').innerHTML=CAR_COLORS.map((c,i)=>`<button class="col" data-c="${i}" style="background:#fff" aria-pressed="${S.color===i}" aria-label="${l.car} ${i+1}">${ICON.car(c)}</button>`).join('');
   $('colors').querySelectorAll('.col').forEach(b=>b.onclick=()=>{S.color=+b.dataset.c;save();carMat.color.set(CAR_COLORS[S.color]);dragonMat.color.set(CAR_COLORS[S.color]);tone(660+S.color*60,.15);renderStatic()});
@@ -1454,7 +1458,7 @@ function renderStatic(){
 }
 function renderMenu(){
   const l=L();
-  $('menuTitle').textContent=l.menu;$('oSound').textContent=l.sound;$('oMusic').textContent=l.music;$('oVoice').textContent=l.voice;$('oSky').textContent=l.sky;
+  $('menuTitle').textContent=l.menu;$('oSound').textContent=l.sound;$('oMusic').textContent=l.music;$('oVoice').textContent=l.voice;$('oSky').textContent=l.sky;$('oLang').textContent=l.lang;
   $('menuNote').textContent=l.note;$('rescueBtn').textContent=l.rescue;$('restartBtn').textContent=l.restart;$('carBtn').textContent=l.car;$('menuClose').textContent=l.close;
   const val={sound:S.sound?'1':'0',music:S.music?'1':'0',voice:curVoice()||S.voice,sky:S.sky,lang:S.lang};
   const txt={sound:{1:l.yes,0:l.no},music:{1:l.yes,0:l.no},voice:l.voiceNames,sky:{day:l.day,sunset:l.sunset},lang:{tr:'TR',en:'EN'}};

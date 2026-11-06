@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -397,6 +397,7 @@ const fresh=()=>({hearts:0,helped:{},helps:0,shares:0,cleans:0,sound:true,lang:n
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.parse(raw))}catch(e){}
 if(!S.lang){let l=null;try{l=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')||'{}').lang}catch(e){}S.lang=l||((navigator.language||'').toLowerCase().startsWith('en')?'en':'tr')}
+S.lang='en'; /* always opens in English; TR stays one tap away */
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 const level=()=>S.helps>=5?2:1;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -190,6 +190,7 @@ const fresh=()=>({rounds:0,stars:0,car:0,sound:true,lang:null,voice:'kadin'});
 let S=fresh();
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(fresh(),JSON.parse(r))}catch(e){}
 if(!S.lang){let l=null;try{l=localStorage.getItem('ipek-oyunlar-lang')}catch(e){}S.lang=l==='en'||l==='tr'?l:((navigator.language||'').toLowerCase().startsWith('en')?'en':'tr')}
+S.lang='en'; /* always opens in English; TR stays one tap away */
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 const unlocked=()=>Math.min(CARS.length,1+S.rounds);

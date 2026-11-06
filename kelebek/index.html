@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -486,6 +486,7 @@ try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(fresh(),JSON.pars
 if(!Array.isArray(S.jar))S.jar=[];
 if(S.jars&&!S.released){S.released=S.jars*8;S.stars=S.stars||S.released}
 if(!S.lang){const nl=(navigator.language||'').toLowerCase();S.lang=nl.startsWith('en')?'en':'tr'}
+S.lang='en'; /* always opens in English; TR stays one tap away */
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const L=()=>T[S.lang];
 const level=()=>Math.min(3,1+Math.floor(S.released/16));

@@ -164,7 +164,7 @@ async function runCase(browser, base, dev) {
   const rp = await G(page, () => { const R = __game.ROUTE, x = __game.pos.x, z = __game.pos.z; let d = 1e9; for (let i = 0; i < R.length - 1; i++) { const [ax, az] = R[i], [bx, bz] = R[i + 1], vx = bx - ax, vz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * vx + (z - az) * vz) / (vx * vx + vz * vz || 1))); d = Math.min(d, Math.hypot(x - ax - vx * t, z - az - vz * t)); } return [x, z, d]; });
   check(rp[2] < 6, `${tag}: "Yola dön" rotaya getirmedi (${rp.map(v => v.toFixed(0))})`);
   await tap(page, dev, '#menuBtn'); await sleep(150);
-  check(await page.locator('[data-opt="lang"], #startOv .lang').count() === 0, `${tag}: dil seçeneği hâlâ var`);
+  check(await page.locator('[data-opt="lang"]').count() === 1 && await page.locator('#startOv .lang').count() === 1, `${tag}: language option missing`);
   check((await page.title()) === "İpek'in Araba Gezisi", `${tag}: oyun Türkçe değil`);
   await tap(page, dev, '#menuClose'); await sleep(150);
   check(!(await G(page, () => __game.paused)), `${tag}: menü kapanınca oyun devam etmiyor`);

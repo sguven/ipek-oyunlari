@@ -1,8 +1,8 @@
 # Ipek's Games
 
 Educational web games for Ipek, learning in Turkish and English.
-Every game works on phones, tablets and desktops, is played by touch, and can be switched between
-Turkish (TR) and English (EN) with the toggle at the top.
+Every game works on phones, tablets and desktops, is played by touch, and always open in English and can be switched to Turkish (TR) with the
+EN/TR toggle (Letter Islands is Turkish only).
 
 **Play:** https://sguven.github.io/ipek-games/
 
@@ -13,7 +13,7 @@ Turkish (TR) and English (EN) with the toggle at the top.
 | `minik-kasif/` | Little Explorer Ipek | Counting, colours, shapes |
 | `unicorn/` | Ipek & Sparkle's Rainbow | Patterns, more or less, shadows |
 | `kelebek/` | Ipek's Butterfly Garden | Catching, colour hunt, counting, teaching a robot |
-| `araba/` | Ipek's Car Trip | 3D driving across the Çeşnigir Bridge and around Köprüköy village |
+| `araba/` | Ipek's Car Trip | 3D ride (dragon or car) over the highway bridge, around Köprüköy village and back across the historic Çeşnigir Bridge |
 | `cesnigir/` | Ipek's Çeşnigir Tour | Stand-alone 3D tour of the Çeşnigir Bridge |
 | `yardim/` | Ipek's Helping Village | Helping friends, sharing fairly, tidying up |
 | `harf/` | Ipek's Letter Islands | Reading and writing Turkish letter by letter, the first-grade way (Turkish only) |
