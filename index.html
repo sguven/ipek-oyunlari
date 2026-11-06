@@ -61,6 +61,24 @@ h1{margin:0;font:700 clamp(28px,7vw,48px)/1.05 var(--display);text-wrap:balance}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
 .wl,.wr{transform-box:view-box;transform-origin:50px 50px;animation:flap 1.1s ease-in-out infinite alternate}
 @keyframes flap{to{transform:scaleX(.6)}}
+.archive{background:rgba(255,253,251,.88);border:4px solid var(--ink);border-radius:28px;box-shadow:0 6px 0 var(--ink);overflow:hidden}
+.archive summary{list-style:none;display:flex;align-items:center;gap:14px;padding:12px 18px;cursor:pointer;min-height:56px}
+.archive summary::-webkit-details-marker{display:none}
+.archive summary:focus-visible{outline:4px solid #ff7eb6;outline-offset:-4px}
+.archive .box{flex:none;width:44px;height:38px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 38'%3E%3Crect x='3' y='12' width='38' height='23' rx='4' fill='%23f6c77a' stroke='%233b2a5c' stroke-width='3'/%3E%3Crect x='1.5' y='4' width='41' height='10' rx='3' fill='%23ffcb3d' stroke='%233b2a5c' stroke-width='3'/%3E%3Crect x='15' y='19' width='14' height='5' rx='2.5' fill='%233b2a5c'/%3E%3C/svg%3E") center/contain no-repeat}
+.archive .at{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.archive .at b{font:700 24px/1.1 var(--display)}
+.archive .at small{font:700 14px/1.35 var(--body);color:var(--ink2)}
+.archive .chev{flex:none;width:14px;height:14px;border-right:4px solid var(--ink);border-bottom:4px solid var(--ink);transform:rotate(45deg) translate(-3px,-3px);transition:transform .2s}
+.archive[open] .chev{transform:rotate(-135deg) translate(-3px,-3px)}
+.games.small{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;padding:4px 16px 20px}
+.games.small .game{border-radius:24px;box-shadow:0 6px 0 var(--ink)}
+.games.small .art{height:120px}
+.games.small .body{padding:10px 12px 14px;gap:6px}
+.games.small .body b{font-size:20px}
+.games.small .body p{font-size:14px}
+.games.small .tags{display:none}
+.games.small .play{font-size:14px;padding:6px 14px}
 footer{text-align:center;font:700 13px/1.5 var(--body);color:var(--ink2);background:rgba(255,253,251,.88);border-radius:16px;padding:8px 12px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
@@ -81,6 +99,10 @@ footer{text-align:center;font:700 13px/1.5 var(--body);color:var(--ink2);backgro
     </div>
   </section>
   <nav class="games" id="games" aria-label="Oyunlar"></nav>
+  <details class="archive" id="archive">
+    <summary><span class="box" aria-hidden="true"></span><span class="at"><b id="archT"></b><small id="archS"></small></span><span class="chev" aria-hidden="true"></span></summary>
+    <nav class="games small" id="archGames" aria-label="Arşiv"></nav>
+  </details>
   <footer id="foot"></footer>
 </div>
 <script>
@@ -134,28 +156,28 @@ const ART8=svg(`<g class="bob" style="transform-origin:90px 60px"><path d="M66 8
 <polygon points="${starPts(160,22,10,4.4)}" fill="#ffd93d" ${st(2.5)}/><polygon points="${starPts(22,28,8,3.5)}" fill="#ffd93d" ${st(2.5)}/>`,'0 0 180 125');
 const PLAY=svg(`<polygon points="22,12 88,50 22,88" fill="${INK}"/>`);
 const T={
-  tr:{title:"İpek'in Oyunları",hello:'Merhaba İpek! Hangi oyunu oynamak istersin? Bir karta dokun, oyun açılsın.',play:'Oyna',nw:'Yeni!',
+  tr:{title:"İpek'in Oyunları",arch:'Arşiv',archSub:'Eski oyunlar burada duruyor, istersen yine oynayabilirsin.',hello:'Merhaba İpek! Hangi oyunu oynamak istersin? Bir karta dokun, oyun açılsın.',play:'Oyna',nw:'Yeni!',
     foot:'Her oyunun içindeki “Oyunlar” düğmesi bu sayfaya geri getirir. İlerleme her cihazda ayrı saklanır.',
     games:[
       {href:'minik-kasif/',name:'Minik Kâşif İpek',desc:'Elmaları say, balonların rengini bul, şekilleri tanı.',tags:['Sayılar','Renkler','Şekiller']},
       {href:'unicorn/',name:"İpek ve Pırıl'ın Gökkuşağı",desc:'Tek boynuzlu at Pırıl ile her doğru cevapta gökkuşağına bir renk ekle.',tags:['Örüntüler','Çok mu, az mı?','Gölgeler']},
-      {href:'kelebek/',name:"İpek'in Kelebek Bahçesi",desc:'Uçan kelebeklere dokunup yakala, kavanozu doldur, sonra serbest bırak.',tags:['Kelebek yakala','Renk avı','Say ve yakala','Robota öğret']},
-      {href:'araba/',name:"İpek'in Araba Gezisi",desc:"Çeşnigir Köprüsü'nden geç, Köprüköy'ü gez, yıldızları topla. Sarı ok yolu gösterir.",tags:['3D araba','Yön bulma','Köprüköy']},
-      {href:'yardim/',name:"İpek'in Yardım Köyü",desc:'Arkadaşların derdine çare bul, kurabiyeleri eşit paylaş, parkı temizle.',tags:['Yardım et','Paylaş','Topla']},
-      {href:'harf/',name:"İpek'in Harf Adaları",desc:'Bilge Baykuş ile okuldaki gibi harf harf oku ve yaz: sesler, hece, kelime, cümle.',tags:['29 harf','Yazma','Hece','Okuma']},
-      {href:'boyama/',name:"İpek'in Boyama Kitabı",desc:'Rengini seç, dokun ve boya! Fırça, damgalar, renk ipuçları ve resmini kaydetme.',tags:['13 resim','Renkler','Fırça','Damga']},
+      {href:'kelebek/',name:"İpek'in Kelebek Bahçesi",desc:'Uçan kelebeklere dokunup yakala, kavanozu doldur, sonra serbest bırak.',tags:['Kelebek yakala','Renk avı','Say ve yakala','Robota öğret'],arch:true},
+      {href:'araba/',name:"İpek'in Araba Gezisi",desc:"Çeşnigir Köprüsü'nden geç, Köprüköy'ü gez, yıldızları topla. Sarı ok yolu gösterir.",tags:['3D araba','Yön bulma','Köprüköy'],arch:true},
+      {href:'yardim/',name:"İpek'in Yardım Köyü",desc:'Arkadaşların derdine çare bul, kurabiyeleri eşit paylaş, parkı temizle.',tags:['Yardım et','Paylaş','Topla'],arch:true},
+      {href:'harf/',name:"İpek'in Harf Adaları",desc:'Bilge Baykuş ile okuldaki gibi harf harf oku ve yaz: sesler, hece, kelime, cümle.',tags:['29 harf','Yazma','Hece','Okuma'],arch:true},
+      {href:'boyama/',name:"İpek'in Boyama Kitabı",desc:'Rengini seç, dokun ve boya! Fırça, damgalar, renk ipuçları ve resmini kaydetme.',tags:['13 resim','Renkler','Fırça','Damga'],arch:true},
       {href:'zeka/',name:"İpek'in Zekâ Oyunları",desc:'Bilge Baykuş ile hafıza kartları, yapboz, robot yolu, hangisi farklı ve sıralama.',tags:['Hafıza','Yapboz','Kodlama','Mantık'],isNew:true}
     ]},
-  en:{title:"Ipek's Games",hello:'Hi Ipek! Which game do you want to play? Tap a card to start.',play:'Play',nw:'New!',
+  en:{title:"Ipek's Games",arch:'Archive',archSub:'Older games live here. You can still play them.',hello:'Hi Ipek! Which game do you want to play? Tap a card to start.',play:'Play',nw:'New!',
     foot:'The “Games” button inside each game brings you back here. Progress is saved separately on each device.',
     games:[
       {href:'minik-kasif/',name:'Little Explorer Ipek',desc:'Count apples, find balloon colors and learn shapes.',tags:['Numbers','Colors','Shapes']},
       {href:'unicorn/',name:"Ipek & Sparkle's Rainbow",desc:'Help Sparkle the unicorn add a color to the rainbow with every right answer.',tags:['Patterns','More or less?','Shadows']},
-      {href:'kelebek/',name:"Ipek's Butterfly Garden",desc:'Tap flying butterflies to catch them, fill the jar, then let them fly free.',tags:['Catch them','Color hunt','Count & catch','Teach the robot']},
-      {href:'araba/',name:"Ipek's Car Trip",desc:'Cross the Çeşnigir Bridge, tour Köprüköy village and collect stars. The yellow arrow shows the way.',tags:['3D driving','Finding the way','Köprüköy']},
-      {href:'yardim/',name:"Ipek's Helping Village",desc:'Find what each friend needs, share cookies fairly and clean the park.',tags:['Help a friend','Share','Clean up']},
-      {href:'harf/',name:"Ipek's Letter Islands",desc:'Learn to read and write Turkish letter by letter, the way first grade teaches it (in Turkish).',tags:['29 letters','Writing','Syllables','Reading']},
-      {href:'boyama/',name:"Ipek's Coloring Book",desc:'Pick a color, tap and paint! Brush, stamps, color hints and saving your picture.',tags:['13 pictures','Colors','Brush','Stamps']},
+      {href:'kelebek/',name:"Ipek's Butterfly Garden",desc:'Tap flying butterflies to catch them, fill the jar, then let them fly free.',tags:['Catch them','Color hunt','Count & catch','Teach the robot'],arch:true},
+      {href:'araba/',name:"Ipek's Car Trip",desc:'Cross the Çeşnigir Bridge, tour Köprüköy village and collect stars. The yellow arrow shows the way.',tags:['3D driving','Finding the way','Köprüköy'],arch:true},
+      {href:'yardim/',name:"Ipek's Helping Village",desc:'Find what each friend needs, share cookies fairly and clean the park.',tags:['Help a friend','Share','Clean up'],arch:true},
+      {href:'harf/',name:"Ipek's Letter Islands",desc:'Learn to read and write Turkish letter by letter, the way first grade teaches it (in Turkish).',tags:['29 letters','Writing','Syllables','Reading'],arch:true},
+      {href:'boyama/',name:"Ipek's Coloring Book",desc:'Pick a color, tap and paint! Brush, stamps, color hints and saving your picture.',tags:['13 pictures','Colors','Brush','Stamps'],arch:true},
       {href:'zeka/',name:"Ipek's Brain Games",desc:'Memory cards, jigsaw puzzles, robot paths, odd one out and putting things in order.',tags:['Memory','Puzzle','Coding','Logic'],isNew:true}
     ]}
 };
@@ -169,10 +191,17 @@ function render(){
   document.getElementById('title').textContent=l.title;
   document.getElementById('hello').textContent=l.hello;
   document.getElementById('foot').textContent=l.foot;
-  document.getElementById('games').innerHTML=l.games.map((g,i)=>`<a class="game g${i+1}" href="${g.href}"><div class="art">${ART[i]}${g.isNew?`<span class="new">${l.nw}</span>`:''}</div><div class="body"><b>${g.name}</b><p>${g.desc}</p><div class="tags">${g.tags.map(t=>`<span>${t}</span>`).join('')}</div><span class="play">${PLAY}${l.play}</span></div></a>`).join('');
+  const card=(g,i)=>`<a class="game g${i+1}" href="${g.href}"><div class="art">${ART[i]}${g.isNew?`<span class="new">${l.nw}</span>`:''}</div><div class="body"><b>${g.name}</b><p>${g.desc}</p><div class="tags">${g.tags.map(t=>`<span>${t}</span>`).join('')}</div><span class="play">${PLAY}${l.play}</span></div></a>`;
+  document.getElementById('games').innerHTML=l.games.map((g,i)=>g.arch?'':card(g,i)).join('');
+  document.getElementById('archGames').innerHTML=l.games.map((g,i)=>g.arch?card(g,i):'').join('');
+  document.getElementById('archT').textContent=l.arch+' ('+l.games.filter(g=>g.arch).length+')';
+  document.getElementById('archS').textContent=l.archSub;
   document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===lang)));
 }
 document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{lang=b.dataset.lang;try{localStorage.setItem('ipek-oyunlar-lang',lang)}catch(e){}render()});
+const AR=document.getElementById('archive');
+try{AR.open=localStorage.getItem('ipek-oyunlar-arsiv')==='1'}catch(e){}
+AR.addEventListener('toggle',()=>{try{localStorage.setItem('ipek-oyunlar-arsiv',AR.open?'1':'0')}catch(e){}});
 render();
 </script>
 </body>
