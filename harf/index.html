@@ -539,7 +539,7 @@ function stepHunt(){
     if(b.dataset.ok==='1'){b.classList.add('got');got++;const ci=$('catch').children[got-1];if(ci){ci.classList.add('on');ci.textContent='🐟'}pling(got);
       if(got>=NEED){D.miss+=Math.min(2,Math.floor(wrong/2));harp();confetti(40);say([{t:'Hepsini yakaladın!'},pick(PRAISE)]);later(async()=>{await speechDone(WAIT);nextStep()},550)}
       else say({t:nameOf(l),rate:.8})}
-    else{wrong++;b.classList.remove('no');void b.offsetWidth;b.classList.add('no');boop();const x=b.dataset.t.toLocaleLowerCase('tr-TR');say({t:`Bu ${nameOf(x)}. Biz ${nameOf(l)} arıyoruz.`})}
+    else{wrong++;b.classList.remove('no');void b.offsetWidth;b.classList.add('no');boop();const x=b.dataset.t.toLocaleLowerCase('tr-TR');say([{t:`Bu ${nameOf(x)}.`},{t:`Biz ${nameOf(l)} arıyoruz.`}])}
   });
   say({t:`${nameOf(l)} balıklarını yakala! Büyüğü de küçüğü de olur.`});
 }

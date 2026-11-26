@@ -332,7 +332,7 @@ const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const L=()=>T[S.lang];
 let screen='home',cur=null,busy=false;
 
-/* ---------- sound: device voice for each language; tones from Web Audio ---------- */
+/* ---------- sound: recorded natural Turkish voice (audio/kadin/*.mp3), device voice for English; tones from Web Audio ---------- */
 const VOICE={tr:null,en:null};
 const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
 function scoreVoice(v,l){const n=(v.name||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
@@ -344,16 +344,37 @@ function scoreVoice(v,l){const n=(v.name||'').toLowerCase(),lg=String(v.lang||''
 function loadVoices(){if(!hasTTS)return;let vs=[];try{vs=speechSynthesis.getVoices()||[]}catch(e){}
   ['tr','en'].forEach(l=>{const c=vs.filter(v=>{const lg=String(v.lang||'').toLowerCase().replace('_','-');return lg===l||lg.startsWith(l+'-')});c.sort((a,b)=>scoreVoice(b,l)-scoreVoice(a,l));VOICE[l]=c[0]||null})}
 if(hasTTS){loadVoices();try{speechSynthesis.addEventListener('voiceschanged',loadVoices)}catch(e){}}
-function hush(){try{speechSynthesis.cancel()}catch(e){}}
-function say(t,queue){
-  if(!S.sound||!hasTTS)return;const v=VOICE[S.lang];if(!v)return;
-  const text=(Array.isArray(t)?t:[t]).filter(Boolean).join(' ');if(!text)return;
-  try{if(!queue)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.15;speechSynthesis.speak(u)}catch(e){}
-}
 let AC=null;
 function audioCtx(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC}catch(e){return null}}
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
-['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,()=>{const a=audioCtx();if(a&&a.state!=='running')a.resume().catch(()=>{})},{capture:true,passive:true}));
+let audioUnlocked=false;
+function unlockAudio(){const a=audioCtx();if(!a)return;if(a.state!=='running')a.resume().catch(()=>{});if(!audioUnlocked){try{const b=a.createBuffer(1,1,22050),s=a.createBufferSource();s.buffer=b;s.connect(a.destination);s.start(0);audioUnlocked=true}catch(e){}}}
+['pointerdown','pointerup','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{capture:true,passive:true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&AC&&AC.state!=='running')AC.resume().catch(()=>{})});
+/* every Turkish line is a recorded clip (natural Turkish female voice); audio/manifest.json maps the sentence to its file */
+const CLIPS={base:'audio/',voice:'kadin',map:null};
+try{fetch(CLIPS.base+'manifest.json').then(r=>r.ok?r.json():null).then(m=>{if(m&&m.clips){CLIPS.map=m;if(m.voices&&m.voices.length)CLIPS.voice=m.voices[0]}}).catch(()=>{})}catch(e){}
+const clipBufs={};
+function clipBuf(id){
+  const a=audioCtx(),key=CLIPS.voice+'/'+id;if(!a)return Promise.reject(new Error('no audio'));
+  if(!clipBufs[key]){clipBufs[key]=fetch(CLIPS.base+key+'.mp3').then(r=>{if(!r.ok)throw new Error('missing');return r.arrayBuffer()}).then(b=>new Promise((res,rej)=>a.decodeAudioData(b,res,rej)));clipBufs[key].catch(()=>{delete clipBufs[key]})}
+  return clipBufs[key];
+}
+let clipGen=0,clipSrc=null,clipChain=Promise.resolve();
+function stopClips(){clipGen++;try{clipSrc&&clipSrc.stop()}catch(e){}clipSrc=null}
+function hush(){stopClips();try{speechSynthesis.cancel()}catch(e){}}
+function playBuf(buf,gen){return new Promise(async res=>{const a=audioCtx();if(gen!==clipGen||!a)return res();if(a.state!=='running'){try{await Promise.race([a.resume(),new Promise(r=>setTimeout(r,600))])}catch(e){}}if(gen!==clipGen)return res();const s=a.createBufferSource();s.buffer=buf;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null;res()};clipSrc=s;try{s.start()}catch(e){res()}})}
+function speakTTS(text,gen){return new Promise(res=>{const v=VOICE[S.lang];if(!hasTTS||!v||gen!==clipGen)return res();let done=false;const fin=()=>{if(!done){done=true;res()}};
+  try{const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.15;u.onend=fin;u.onerror=fin;speechSynthesis.speak(u)}catch(e){fin()}setTimeout(fin,2000+text.length*90)})}
+function clipId(p){return S.lang==='tr'&&CLIPS.map&&CLIPS.map.clips[p]}
+function say(t,queue){
+  if(!S.sound)return;const parts=(Array.isArray(t)?t:[t]).filter(Boolean);if(!parts.length)return;
+  if(!queue){hush();clipChain=Promise.resolve()}
+  const gen=clipGen,loads=parts.map(p=>{const id=clipId(p);if(!id)return null;const b=clipBuf(id);b.catch(()=>{});return b});
+  /* Turkish: recorded clips one after another; English (or a line without a clip): the device voice */
+  clipChain=clipChain.then(async()=>{for(let i=0;i<parts.length;i++){if(gen!==clipGen)return;let b=null;if(loads[i]){try{b=await loads[i]}catch(e){}}
+    if(b)await playBuf(b,gen);else await speakTTS(parts[i],gen);if(i<parts.length-1)await new Promise(r=>setTimeout(r,140))}}).catch(()=>{});
+}
 function tone(f,d,t0,type,vol,f2){if(!S.sound)return;const a=audioCtx();if(!a)return;try{const t=a.currentTime+(t0||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.18,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}catch(e){}}
 const SFX={
   ding:()=>[523,659,784].forEach((f,i)=>tone(f,.25,i*.09)),

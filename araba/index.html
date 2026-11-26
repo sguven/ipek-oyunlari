@@ -306,7 +306,7 @@ async function playClip(text){
   const g=++clipGen;try{clipSrc&&clipSrc.stop()}catch(e){}
   let b;try{b=await clipBuf(CLIPS.map.clips[text])}catch(e){return}
   const a=audioCtx();if(!a||g!==clipGen)return;if(a.state!=='running'){try{await a.resume()}catch(e){}}
-  const s=a.createBufferSource();s.buffer=b;s.connect(a.destination);clipSrc=s;try{s.start()}catch(e){}
+  const s=a.createBufferSource();s.buffer=b;s.connect(a.destination);s.onended=()=>{if(clipSrc===s)clipSrc=null};clipSrc=s;try{s.start()}catch(e){}
   musicDuck(b.duration+.3);
 }
 let enVoice=null;
@@ -318,12 +318,14 @@ function say(text){
   if(!enVoice)return;musicDuck(2.5);
   try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=enVoice;u.lang=enVoice.lang;u.rate=.95;u.pitch=1.1;speechSynthesis.speak(u)}catch(e){}
 }
-/* Demet and Yılmaz say their own lines with the device voice (no recorded clips in Turkish) */
+/* Demet and Yılmaz: recorded Turkish clips (Yılmaz has a male voice); English uses the device voice */
 let trVoice=null;
 function pickTr(){try{const vs=(speechSynthesis.getVoices()||[]).filter(v=>/^tr/i.test(v.lang||''));vs.sort((a,b)=>(/premium|enhanced|gelişmiş|natural|google|yelda|emel/i.test(b.name)?1:0)-(/premium|enhanced|gelişmiş|natural|google|yelda|emel/i.test(a.name)?1:0));trVoice=vs[0]||null}catch(e){}}
 if('speechSynthesis' in window){pickTr();try{speechSynthesis.addEventListener('voiceschanged',pickTr)}catch(e){}}
 function sayLine(text){
-  if(!S.sound||!text||!('speechSynthesis' in window))return;musicDuck(2.8);
+  if(!S.sound||!text)return;
+  if(S.lang==='tr'){if(CLIPS.map&&CLIPS.map.clips[text]&&!clipSrc)playClip(text)}return} /* recorded natural Turkish voice */
+  if(!('speechSynthesis' in window))return;musicDuck(2.8);
   try{if(speechSynthesis.speaking)return;const tr=S.lang==='tr',v=tr?trVoice:enVoice;const u=new SpeechSynthesisUtterance(text);if(v)u.voice=v;u.lang=v?v.lang:(tr?'tr-TR':'en-US');u.rate=tr?.95:.97;u.pitch=1.12;speechSynthesis.speak(u)}catch(e){}
 }
 /* MÜZİK: bağlama ve davullu, Hüseyni makamında özgün bir oyun havası (9/8, 2+2+2+3).
