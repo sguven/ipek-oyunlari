@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ipek's Animal Hospital</title>
+<meta name="description" content="İpek'in Hayvan Hastanesi: hasta hayvanları dokunarak iyileştir. Ipek's Animal Hospital: help sick animals feel better by touch.">
+<meta name="theme-color" content="#d9f4ec">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hayvan Hastanesi">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* layout: a waiting room with big animal cards; tapping one opens the treatment room (animal in the middle, big tool tray below).
+   Made for a 3-year-old: no reading needed, every step is shown with pictures, glow, a pointing hand and a voice. Single pastel theme. */
+:root{
+  --wall:#d9f4ec;--wall2:#c3ecdf;--ink:#3b2a5c;--ink2:#6c5a92;--card:#fffdfb;--pink:#ff7eb6;--sun:#ffcb3d;--mint:#5fd3b5;--tint:#f3eefc;
+  --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --body:'Nunito',system-ui,-apple-system,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;color:var(--ink);font-family:var(--body);-webkit-tap-highlight-color:transparent;overflow-x:hidden;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M24 14h8v8h8v8h-8v8h-8v-8h-8v-8h8z' fill='%23ffffff' fill-opacity='.55'/%3E%3Cpath d='M88 84c-8-6-10-12-5-15 3-2 5 0 5 2 0-2 2-4 5-2 5 3 3 9-5 15z' fill='%23ff9ec4' fill-opacity='.45'/%3E%3C/svg%3E") 0 0/120px 120px repeat,linear-gradient(180deg,var(--wall),var(--wall2));
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+[hidden]{display:none!important}
+button{font-family:inherit;color:var(--ink)}
+:focus-visible{outline:4px solid var(--pink);outline-offset:3px}
+.app{min-height:100%;display:flex;flex-direction:column;max-width:1100px;margin:0 auto;padding:10px 16px 16px;gap:12px}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.brand{margin:0;font:700 clamp(22px,5vw,30px)/1.05 var(--display);display:flex;align-items:center;gap:8px}
+.brand svg{width:40px;height:40px;flex:none}
+.hud{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pill{font:800 14px var(--body);background:var(--card);border:3px solid var(--ink);border-radius:999px;padding:6px 12px;min-height:42px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 0 var(--ink);text-decoration:none;color:var(--ink)}
+.pill svg{width:22px;height:22px}
+.pill:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.stars{cursor:default}
+.stars b{font:700 18px var(--display);font-variant-numeric:tabular-nums}
+.lang{display:inline-flex;border:3px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card);box-shadow:0 4px 0 var(--ink)}
+.lang button{font:800 14px var(--body);border:0;background:none;padding:7px 12px;cursor:pointer;letter-spacing:.04em;min-height:40px}
+.lang button[aria-pressed="true"]{background:var(--ink);color:#fff}
+
+/* ---------- waiting room ---------- */
+#home{display:flex;flex-direction:column;gap:14px;flex:1}
+.hello{margin:0;display:flex;align-items:center;gap:12px;background:rgba(255,253,251,.9);border:4px solid var(--ink);border-radius:28px;box-shadow:0 6px 0 var(--ink);padding:10px 14px}
+.hello p{margin:0;flex:1;font:700 clamp(15px,3.6vw,19px)/1.4 var(--body);color:var(--ink2);text-wrap:balance}
+.round{width:58px;height:58px;border-radius:50%;border:4px solid var(--ink);cursor:pointer;flex:none;display:grid;place-items:center;padding:0;box-shadow:0 4px 0 var(--ink);background:var(--sun)}
+.round svg{width:28px;height:28px}
+.round:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.round.white{background:var(--card)}
+.patients{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(44%,190px),1fr));gap:14px}
+.pat{position:relative;background:var(--card);border:4px solid var(--ink);border-radius:30px;box-shadow:0 7px 0 var(--ink);padding:8px 6px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;animation:pop .45s backwards}
+.pat:nth-child(2){animation-delay:.06s}.pat:nth-child(3){animation-delay:.12s}.pat:nth-child(4){animation-delay:.18s}.pat:nth-child(5){animation-delay:.24s}.pat:nth-child(6){animation-delay:.3s}
+.pat:active{transform:translateY(4px);box-shadow:0 3px 0 var(--ink)}
+.pat svg.an{width:100%;max-width:200px;height:auto;display:block}
+.pat .nm{font:700 20px/1 var(--display);padding:2px 0 8px}
+.pat .badge{position:absolute;top:8px;right:8px;width:46px;height:46px;animation:spin-in .6s}
+.pat.sick .an{animation:sway 2.6s ease-in-out infinite}
+.pat.well{background:#fffbe6}
+.pat.well .an{animation:hop 1.6s ease-in-out infinite}
+
+/* ---------- treatment room ---------- */
+#room{flex:1;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;gap:10px;min-height:0}
+body.in-room .app{height:100vh;height:100dvh;min-height:0}
+.top{display:flex;align-items:center;gap:10px}
+.hearts{flex:1;display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.hearts svg{width:clamp(34px,9vw,48px);height:auto;transition:transform .3s}
+.hearts svg.on{animation:bounce .6s}
+.stage{position:relative;min-height:0;display:grid;place-items:center;background:radial-gradient(closest-side,#fff 0 72%,rgba(255,255,255,.6) 86%,rgba(255,255,255,0));border-radius:36px}
+.stage svg.an{position:absolute;left:0;top:4px;width:100%;height:calc(100% - 8px);display:block;overflow:visible;touch-action:none}
+.stage svg.an.jump{animation:jump .7s ease-in-out 3}
+svg.an .head{transform-box:fill-box;transform-origin:50% 60%}
+.stage svg.an.gulp .head{animation:gulp .5s}
+.tray{display:flex;justify-content:center;gap:clamp(6px,2vw,14px);background:rgba(255,253,251,.92);border:4px solid var(--ink);border-radius:30px;box-shadow:0 6px 0 var(--ink);padding:10px;touch-action:none}
+.tool{width:clamp(50px,15vw,104px);aspect-ratio:1;border-radius:24px;border:4px solid var(--ink);background:var(--tint);cursor:grab;padding:6px;display:grid;place-items:center;box-shadow:0 5px 0 var(--ink);touch-action:none;transition:opacity .25s}
+.tool svg{width:100%;height:100%;pointer-events:none}
+.tool.need{background:#fff4c2;animation:glow 1.4s ease-in-out infinite}
+.tool.idle{opacity:.5}
+.tool.held{background:#c9f3e4;transform:translateY(-8px) scale(1.08);box-shadow:0 10px 0 var(--ink);animation:none}
+.tool.nope{animation:shake .45s}
+.tool.dragging{opacity:.35}
+.ghost{position:fixed;left:0;top:0;width:clamp(76px,20vw,120px);height:clamp(76px,20vw,120px);pointer-events:none;z-index:40;transform:translate(-50%,-62%);filter:drop-shadow(0 6px 0 rgba(59,42,92,.25))}
+.ghost svg{width:100%;height:100%}
+.hand{position:fixed;left:0;top:0;width:clamp(56px,13vw,80px);pointer-events:none;z-index:45;opacity:0}
+.hand svg{width:100%;height:auto;display:block}
+
+/* animal layers: problem layers are shown while the problem is still there (class p-xxx on the svg) */
+svg.an .L,svg.an .F,svg.an .beat,svg.an .face-happy{display:none}
+svg.an.p-mud0 .L.mud0,svg.an.p-mud1 .L.mud1,svg.an.p-mud2 .L.mud2,svg.an.p-boo .L.boo,svg.an.p-fever .L.fever,svg.an.p-hungry .L.hungry,svg.an.p-steth .L.steth{display:inline}
+svg.an.f-boo .F.boo{display:inline}
+svg.an.happy .face-happy{display:inline}
+svg.an.happy .face-sad{display:none}
+svg.an.tear .L.tear{display:inline}
+svg.an.beating .beat{display:inline}
+svg.an .beat{transform-box:fill-box;transform-origin:center;animation:beat .55s ease-in-out infinite}
+svg.an .L.steth .ring{transform-box:fill-box;transform-origin:center;animation:breathe 1.6s ease-in-out infinite}
+svg.an .L.tear path{animation:drip 2s ease-in infinite}
+svg.an .L.hungry .bub{transform-box:fill-box;transform-origin:left bottom;animation:bob 2.4s ease-in-out infinite}
+svg.an .L.fever .heat{animation:heat 1.2s ease-in-out infinite alternate}
+svg.an [data-target]{cursor:pointer}
+
+canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+.ov{position:fixed;inset:0;background:rgba(59,42,92,.5);display:grid;place-items:center;padding:16px;z-index:30}
+.card{background:var(--card);border:4px solid var(--ink);border-radius:34px;box-shadow:0 8px 0 var(--ink);padding:20px 16px;max-width:620px;width:100%;max-height:92vh;overflow:auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.card h3{margin:0;font:700 clamp(24px,6vw,32px)/1.1 var(--display);text-wrap:balance}
+.party{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+.party svg{width:clamp(70px,20vw,110px);height:auto;animation:hop 1s ease-in-out infinite}
+.party svg:nth-child(2n){animation-delay:.25s}
+.round.big{width:84px;height:84px;background:var(--mint)}
+.round.big svg{width:42px;height:42px}
+
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes bounce{0%,100%{transform:scale(1)}40%{transform:scale(1.25)}70%{transform:scale(.92)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-9px)}50%{transform:translateX(9px)}75%{transform:translateX(-5px)}}
+@keyframes spin-in{from{transform:scale(.2) rotate(-40deg)}to{transform:scale(1) rotate(0)}}
+@keyframes glow{0%,100%{transform:translateY(0);box-shadow:0 5px 0 var(--ink),0 0 0 0 rgba(255,203,61,.0)}50%{transform:translateY(-5px);box-shadow:0 10px 0 var(--ink),0 0 0 8px rgba(255,203,61,.55)}}
+@keyframes sway{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes jump{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-9%) scale(1.03,.97)}60%{transform:translateY(0) scale(1.04,.95)}}
+@keyframes gulp{0%,100%{transform:scale(1)}50%{transform:scale(1.04,.96)}}
+@keyframes beat{0%,100%{transform:scale(1)}30%{transform:scale(1.3)}}
+@keyframes breathe{0%,100%{opacity:.45;transform:scale(.92)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes drip{0%{transform:translateY(0);opacity:0}15%{opacity:1}80%{transform:translateY(22px);opacity:1}100%{transform:translateY(26px);opacity:0}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes heat{from{opacity:.3}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* short landscape phones: tray goes to the side so the animal stays big */
+@media (orientation:landscape) and (max-height:560px){
+  .app{padding:6px 12px 8px;gap:6px}
+  .brand{font-size:20px}.brand svg{width:30px;height:30px}
+  #room{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr)}
+  .top{grid-column:1/-1}
+  .tray{flex-direction:column;grid-row:2;grid-column:2;padding:6px;gap:5px;border-radius:24px}
+  .tool{width:clamp(40px,12vh,64px);border-radius:16px;padding:3px;box-shadow:0 3px 0 var(--ink)}
+  .round{width:46px;height:46px}.round svg{width:24px;height:24px}
+  .hearts svg{width:32px}
+  .patients{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .pat svg.an{max-width:130px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1 class="brand" id="brand"></h1>
+    <div class="hud">
+      <a class="pill" id="gamesLink" href="../"></a>
+      <span class="pill stars" id="stars"></span>
+      <button class="pill" id="soundBtn"></button>
+      <div class="lang" role="group" aria-label="Dil / Language">
+        <button data-lang="tr">TR</button>
+        <button data-lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <section id="home">
+    <div class="hello"><p id="hello"></p><button class="round" id="helloSpeak"></button></div>
+    <div class="patients" id="patients"></div>
+  </section>
+
+  <section id="room" hidden>
+    <div class="top">
+      <button class="round white" id="backBtn"></button>
+      <div class="hearts" id="hearts"></div>
+      <button class="round" id="speakBtn"></button>
+    </div>
+    <div class="stage" id="stage"></div>
+    <div class="tray" id="tray"></div>
+  </section>
+</div>
+
+<div class="ov" id="doneOv" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="doneTitle">
+    <div class="party" id="party"></div>
+    <h3 id="doneTitle"></h3>
+    <button class="round big" id="againBtn"></button>
+  </div>
+</div>
+<div class="ghost" id="ghost" hidden></div>
+<div class="hand" id="hand"></div>
+<canvas id="fx"></canvas>
+
+<script>
+const $=id=>document.getElementById(id);
+const INK='#3b2a5c';
+const st=(w=5)=>`stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+const svg=(inner,vb='0 0 100 100',cls='')=>`<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"${cls?` class="${cls}"`:''}>${inner}</svg>`;
+const mir=s=>`${s}<g transform="translate(300,0) scale(-1,1)">${s}</g>`;
+function starPts(cx,cy,R,r){const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r:R;p.push((cx+rr*Math.cos(a)).toFixed(1)+','+(cy+rr*Math.sin(a)).toFixed(1))}return p.join(' ')}
+function blob(cx,cy,r,seed){const n=9,pts=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2,k=.72+.38*Math.abs(Math.sin(seed*7.3+i*2.1));pts.push([cx+Math.cos(a)*r*k,cy+Math.sin(a)*r*k*.85])}
+  let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;for(let i=0;i<n;i++){const p=pts[i],q=pts[(i+1)%n],mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2;d+=` Q${p[0].toFixed(1)} ${p[1].toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)}`}return d+'Z'}
+const HEART='M50 88 C14 62 6 38 22 22 C34 10 48 18 50 30 C52 18 66 10 78 22 C94 38 86 62 50 88Z';
+
+/* ---------- tools ---------- */
+const TOOLS={
+  steth:svg(`<path d="M30 14 V40 Q30 62 50 62 Q70 62 70 40 V14" fill="none" stroke="#5b6bd6" stroke-width="8" stroke-linecap="round"/><circle cx="30" cy="12" r="6" fill="${INK}"/><circle cx="70" cy="12" r="6" fill="${INK}"/><path d="M50 62 V72 Q50 86 62 86" fill="none" stroke="#5b6bd6" stroke-width="8" stroke-linecap="round"/><circle cx="72" cy="84" r="13" fill="#cfd6ff" ${st(5)}/><circle cx="72" cy="84" r="5" fill="#8f9cff"/>`),
+  sponge:svg(`<circle cx="30" cy="22" r="10" fill="#e6f6ff" ${st(3)}/><circle cx="52" cy="13" r="7" fill="#e6f6ff" ${st(3)}/><circle cx="70" cy="25" r="9" fill="#e6f6ff" ${st(3)}/><rect x="14" y="38" width="72" height="48" rx="13" fill="#ffd84d" ${st(5)}/><circle cx="32" cy="56" r="5" fill="#eeb81c"/><circle cx="58" cy="68" r="6" fill="#eeb81c"/><circle cx="70" cy="50" r="4" fill="#eeb81c"/><circle cx="44" cy="74" r="3.5" fill="#eeb81c"/>`),
+  bandage:svg(`<g transform="rotate(-35 50 50)"><rect x="6" y="33" width="88" height="34" rx="17" fill="#ffd2a1" ${st(5)}/><rect x="35" y="37" width="30" height="26" rx="6" fill="#ffb877"/><circle cx="18" cy="45" r="2.5" fill="#d99a63"/><circle cx="18" cy="55" r="2.5" fill="#d99a63"/><circle cx="82" cy="45" r="2.5" fill="#d99a63"/><circle cx="82" cy="55" r="2.5" fill="#d99a63"/></g>`),
+  medicine:svg(`<rect x="16" y="36" width="40" height="52" rx="11" fill="#ff7eb6" ${st(5)}/><rect x="22" y="20" width="28" height="18" rx="5" fill="#fff" ${st(5)}/><path d="M36 52 V72 M26 62 H46" stroke="#fff" stroke-width="7" stroke-linecap="round"/><rect x="72" y="50" width="9" height="38" rx="4.5" fill="#e9ecff" ${st(4)}/><ellipse cx="76.5" cy="38" rx="13" ry="16" fill="#e9ecff" ${st(5)}/><ellipse cx="76.5" cy="39" rx="7" ry="9" fill="#ff7eb6"/>`),
+  bottle:svg(`<path d="M40 30 Q41 8 50 8 Q59 8 60 30Z" fill="#ffcf7a" ${st(5)}/><rect x="28" y="28" width="44" height="13" rx="6" fill="#7cc8ff" ${st(5)}/><rect x="31" y="40" width="38" height="52" rx="13" fill="#fff" ${st(5)}/><rect x="36" y="56" width="28" height="31" rx="9" fill="#fff4d9"/><path d="M58 50 H66 M58 62 H66 M58 74 H66" stroke="#7cc8ff" stroke-width="4" stroke-linecap="round"/>`)
+};
+const TOOL_ORDER=['steth','sponge','bandage','medicine','bottle'];
+const PROB_TOOL={steth:'steth',mud0:'sponge',mud1:'sponge',mud2:'sponge',boo:'bandage',fever:'medicine',hungry:'bottle'};
+const KIND=p=>p.startsWith('mud')?'mud':p;
+
+/* ---------- animals (viewBox 0 0 300 320; head centre 150,118; body centre 150,240) ---------- */
+const ANIMALS=[
+  {id:'kedi',body:'#ffc48a',belly:'#fff1de',probs:['steth','mud0','mud1','mud2','boo'],
+    ears:mir(`<path d="M80 86 L88 24 L134 56Z" fill="#ffc48a" ${st()}/><path d="M93 72 L97 42 L119 58Z" fill="#ffb3c7"/>`),
+    extra:`<path d="M138 52 L141 66 M150 48 V64 M162 52 L159 66" stroke="#ef9a4f" stroke-width="6" stroke-linecap="round"/>`,
+    snout:`<path d="M143 145 H157 L150 153Z" fill="#ff8fab" ${st(3)}/>`+mir(`<path d="M96 150 L72 146 M96 158 L74 162" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`),
+    tail:`<path d="M214 280 Q262 270 256 220 Q252 200 240 206" fill="none" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M214 280 Q262 270 256 220 Q252 200 240 206" fill="none" stroke="#ffc48a" stroke-width="13" stroke-linecap="round"/>`},
+  {id:'kopek',body:'#f3d6b0',belly:'#fffaf0',probs:['steth','boo','fever'],
+    ears:'',
+    over:mir(`<path d="M84 74 Q46 82 58 156 Q70 178 92 150 Q102 112 100 80Z" fill="#b07a52" ${st()}/>`),
+    extra:`<ellipse cx="180" cy="120" rx="26" ry="24" fill="#e2b98c"/>`,
+    snout:`<ellipse cx="150" cy="156" rx="32" ry="23" fill="#fffaf0" ${st(4)}/><ellipse cx="150" cy="146" rx="11" ry="8" fill="${INK}"/><circle cx="146" cy="143" r="3" fill="#fff"/>`,
+    mouthY:174,
+    tail:`<path d="M218 262 Q252 250 250 214" fill="none" stroke="${INK}" stroke-width="20" stroke-linecap="round"/><path d="M218 262 Q252 250 250 214" fill="none" stroke="#b07a52" stroke-width="11" stroke-linecap="round"/>`},
+  {id:'tavsan',body:'#fbf4ff',belly:'#ffffff',probs:['steth','mud0','mud1','mud2','hungry'],
+    ears:mir(`<ellipse cx="116" cy="36" rx="21" ry="54" fill="#fbf4ff" ${st()} transform="rotate(-12 116 36)"/><ellipse cx="116" cy="40" rx="10" ry="38" fill="#ffbfd6" transform="rotate(-12 116 40)"/>`),
+    snout:`<ellipse cx="150" cy="148" rx="8" ry="6" fill="#ff8fab" ${st(3)}/><rect x="143" y="168" width="14" height="13" rx="3" fill="#fff" ${st(3)}/><path d="M150 168 V181" stroke="${INK}" stroke-width="2.5"/>`,
+    tail:`<circle cx="226" cy="270" r="20" fill="#ffffff" ${st()}/>`},
+  {id:'ordek',body:'#ffe066',belly:'#fff3a8',feet:'#ff9f40',probs:['steth','boo','hungry'],
+    ears:'',
+    extra:`<path d="M150 40 Q140 14 158 12 M150 40 Q156 18 174 22" fill="none" ${st(5)}/>`,
+    snout:`<path d="M116 154 Q150 136 184 154 Q150 176 116 154Z" fill="#ff9f40" ${st(5)}/><path d="M122 155 Q150 160 178 155" fill="none" ${st(3)}/>`,
+    noMouth:true,
+    tail:`<path d="M220 252 L254 238 L238 270Z" fill="#ffe066" ${st()}/>`},
+  {id:'domuz',body:'#ffc2d4',belly:'#ffe1ea',probs:['steth','mud0','mud1','mud2','fever'],
+    ears:mir(`<path d="M86 76 L92 30 L132 56Z" fill="#ff9fba" ${st()}/>`),
+    snout:`<ellipse cx="150" cy="150" rx="26" ry="18" fill="#ff9fba" ${st(5)}/><ellipse cx="141" cy="150" rx="4.5" ry="6.5" fill="${INK}"/><ellipse cx="159" cy="150" rx="4.5" ry="6.5" fill="${INK}"/>`,
+    mouthY:180,
+    tail:`<path d="M222 262 q22 -4 18 -18 q-4 -12 -14 -4 q-8 8 6 14 q14 4 18 -8" fill="none" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`}
+];
+const AN=Object.fromEntries(ANIMALS.map(a=>[a.id,a]));
+
+function animalSVG(a,cls){
+  const b=a.body,my=a.mouthY||170,feet=a.feet||b;
+  const face=`<g class="face-sad">${mir(`<circle cx="122" cy="122" r="13" fill="${INK}"/><circle cx="126" cy="117" r="4.6" fill="#fff"/><path d="M104 104 L132 96" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`)}
+      ${a.noMouth?'':`<path d="M136 ${my+6} Q150 ${my-6} 164 ${my+6}" fill="none" ${st(5)}/>`}</g>
+    <g class="face-happy">${mir(`<path d="M108 126 Q122 106 136 126" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>`)}
+      ${a.noMouth?'':`<path d="M132 ${my-4} Q150 ${my+24} 168 ${my-4} Z" fill="#ff7a9a" ${st(4)}/>`}</g>`;
+  const mud=(k,cx,cy,r,s)=>`<g class="L ${k}"><path d="${blob(cx,cy,r,s)}" fill="#9b6b43" ${st(3)}/><circle cx="${cx-r*.3}" cy="${cy-r*.15}" r="${r*.22}" fill="#7a5132"/><circle cx="${cx+r*.35}" cy="${cy+r*.25}" r="${r*.15}" fill="#7a5132"/><circle cx="${cx+r*.9}" cy="${cy+r*.9}" r="${r*.16}" fill="#9b6b43" ${st(2.5)}/><circle data-target="${k}" cx="${cx}" cy="${cy}" r="${r+12}" fill="#fff" fill-opacity="0.001"/></g>`;
+  return `<svg class="an ${cls||''}" viewBox="0 0 300 320" xmlns="http://www.w3.org/2000/svg" role="img">
+    <ellipse cx="150" cy="306" rx="96" ry="12" fill="#3b2a5c" opacity=".12"/>
+    ${a.tail||''}
+    <ellipse cx="114" cy="296" rx="28" ry="17" fill="${feet}" ${st()}/><ellipse cx="186" cy="296" rx="28" ry="17" fill="${feet}" ${st()}/>
+    <ellipse cx="150" cy="240" rx="78" ry="64" fill="${b}" ${st()}/>
+    <ellipse cx="150" cy="252" rx="48" ry="42" fill="${a.belly}"/>
+    ${mir(`<ellipse cx="82" cy="236" rx="18" ry="30" transform="rotate(22 82 236)" fill="${b}" ${st()}/>`)}
+    <g class="L steth"><path class="ring" d="M150 268 C124 250 118 234 128 224 C136 216 146 220 150 228 C154 220 164 216 172 224 C182 234 176 250 150 268Z" fill="none" stroke="#ff5a8a" stroke-width="5" stroke-dasharray="8 7" stroke-linecap="round"/><circle data-target="steth" cx="150" cy="240" r="38" fill="#fff" fill-opacity="0.001"/></g>
+    <path class="beat" d="M150 270 C120 250 114 232 126 220 C135 212 146 216 150 226 C154 216 165 212 174 220 C186 232 180 250 150 270Z" fill="#ff5a8a" ${st(4)}/>
+    ${mud('mud0',116,258,20,1)}${mud('mud1',186,218,17,2)}
+    <g class="L boo"><circle cx="222" cy="234" r="15" fill="#ffb3b3" opacity=".8"/><path d="M212 226 L232 238 M210 238 L228 246" stroke="#e8435a" stroke-width="5" stroke-linecap="round"/><circle data-target="boo" cx="222" cy="236" r="34" fill="#fff" fill-opacity="0.001"/></g>
+    <g class="F boo"><g transform="rotate(-28 222 236)"><rect x="194" y="225" width="56" height="22" rx="11" fill="#ffd2a1" ${st(4)}/><rect x="212" y="228" width="20" height="16" rx="4" fill="#ffb877"/></g></g>
+    <g class="head">
+      ${a.ears}
+      <circle cx="150" cy="118" r="82" fill="${b}" ${st()}/>
+      ${a.extra||''}
+      ${mir(`<ellipse cx="100" cy="148" rx="14" ry="9" fill="#ff9ab8" opacity=".75"/>`)}
+      ${a.snout}
+      ${face}
+      ${a.over||''}
+      ${mud('mud2',184,72,16,3)}
+      <g class="L tear"><path d="M108 136 q-7 13 0 17 q7 -4 0 -17z" fill="#7cc8ff" ${st(2.5)}/></g>
+      <g class="L fever">${mir(`<ellipse cx="100" cy="148" rx="20" ry="13" fill="#ff5a5a" opacity=".55"/>`)}
+        <g class="heat">${mir(`<path d="M58 70 q-8 -8 0 -16 q8 -8 0 -16" fill="none" stroke="#ff7a5a" stroke-width="5" stroke-linecap="round"/>`)}</g>
+        <g transform="rotate(-24 186 176)"><rect x="160" y="170" width="52" height="12" rx="6" fill="#fff" ${st(3.5)}/><rect x="190" y="173" width="18" height="6" rx="3" fill="#ff5a5a"/><circle cx="212" cy="176" r="9" fill="#ff5a5a" ${st(3.5)}/></g>
+        <circle data-target="fever" cx="150" cy="${my-6}" r="40" fill="#fff" fill-opacity="0.001"/></g>
+      <g class="L hungry"><g class="bub"><circle cx="222" cy="64" r="6" fill="#fff" ${st(3)}/><circle cx="236" cy="46" r="9" fill="#fff" ${st(3)}/><ellipse cx="266" cy="16" rx="30" ry="26" fill="#fff" ${st(4)}/><g transform="translate(250 -6) scale(.34)">${TOOLS.bottle.replace(/^<svg[^>]*>|<\/svg>$/g,'')}</g></g>
+        <circle data-target="hungry" cx="150" cy="${my-6}" r="40" fill="#fff" fill-opacity="0.001"/></g>
+    </g>
+  </svg>`;
+}
+function probClasses(list){return list.map(p=>'p-'+p).join(' ')}
+
+/* ---------- texts ---------- */
+const T={
+  tr:{title:"İpek'in Hayvan Hastanesi",games:'Oyunlar',soundOn:'Ses açık',soundOff:'Ses kapalı',
+    hello:'Hayvan hastanesine hoş geldin Doktor İpek! Hasta bir hayvana dokun ve onu iyileştir.',
+    helloSay:'Hayvan hastanesine hoş geldin Doktor İpek! Hangi hayvana bakalım? Birine dokun.',
+    names:{kedi:'Kedicik',kopek:'Köpekçik',tavsan:'Tavşancık',ordek:'Ördekçik',domuz:'Domuzcuk'},
+    sick:n=>`${n} hasta. Haydi ona yardım edelim!`,
+    hint:{steth:'Steteskopla kalbini dinle.',sponge:'Süngerle çamurları temizle.',bandage:'Yarasına yara bandı yapıştır.',medicine:'Ateşi var. Şurubunu ver.',bottle:'Karnı aç. Sütünü ver.'},
+    tools:{steth:'Steteskop',sponge:'Sünger',bandage:'Yara bandı',medicine:'Şurup',bottle:'Süt'},
+    heart:'Güm güm! Kalbi güzel atıyor.',
+    good:['Aferin!','Harika!','Çok güzel!','Süpersin!'],
+    healed:n=>`Yaşasın! ${n} iyileşti! Teşekkürler Doktor İpek!`,
+    all:'Bütün hayvanlar iyileşti! Sen harika bir veterinersin!',
+    back:'Bekleme odasına dön',replay:'Tekrar dinle',again:'Yeniden oyna',stars:'İyileşen hayvanlar'},
+  en:{title:"Ipek's Animal Hospital",games:'Games',soundOn:'Sound on',soundOff:'Sound off',
+    hello:'Welcome to the animal hospital, Doctor Ipek! Tap a sick animal and help it feel better.',
+    helloSay:'Welcome to the animal hospital, Doctor Ipek! Who should we help? Tap an animal.',
+    names:{kedi:'Kitty',kopek:'Puppy',tavsan:'Bunny',ordek:'Duckling',domuz:'Piggy'},
+    sick:n=>`${n} is not feeling well. Let's help!`,
+    hint:{steth:'Listen to the heart with the stethoscope.',sponge:'Wash off the mud with the sponge.',bandage:'Put a bandage on the boo-boo.',medicine:'A fever! Give the medicine.',bottle:'So hungry! Give the milk.'},
+    tools:{steth:'Stethoscope',sponge:'Sponge',bandage:'Bandage',medicine:'Medicine',bottle:'Milk'},
+    heart:'Thump thump! A happy heart.',
+    good:['Great job!','Wonderful!','Well done!','Super!'],
+    healed:n=>`Hooray! ${n} feels better! Thank you, Doctor Ipek!`,
+    all:'All the animals are better! You are a wonderful vet!',
+    back:'Back to the waiting room',replay:'Listen again',again:'Play again',stars:'Animals made better'}
+};
+const ICON={
+  logo:svg(`<circle cx="50" cy="50" r="44" fill="#fff" ${st(5)}/><path d="M42 22 H58 V42 H78 V58 H58 V78 H42 V58 H22 V42 H42Z" fill="#ff5a8a" ${st(4)}/>`),
+  home:svg(`<path d="M14 50 L50 18 L86 50" fill="none" ${st(9)}/><path d="M26 46 V84 H74 V46" fill="#fff" ${st(8)}/><rect x="42" y="60" width="16" height="24" fill="${INK}"/>`),
+  back:svg(`<path d="M60 18 L28 50 L60 82" fill="none" stroke="${INK}" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>`),
+  speaker:svg(`<path d="M16 38 H34 L58 18 V82 L34 62 H16 Z" fill="${INK}"/><path d="M70 34 Q80 50 70 66 M78 24 Q94 50 78 76" stroke="${INK}" stroke-width="7" fill="none" stroke-linecap="round"/>`),
+  mute:svg(`<path d="M16 38 H34 L58 18 V82 L34 62 H16 Z" fill="${INK}"/><path d="M70 38 L90 62 M90 38 L70 62" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>`),
+  star:svg(`<polygon points="${starPts(50,52,44,19)}" fill="#ffcb3d" ${st(5)}/>`),
+  again:svg(`<path d="M74 34 A30 30 0 1 0 80 56" fill="none" stroke="${INK}" stroke-width="11" stroke-linecap="round"/><path d="M60 30 L80 32 L78 12" fill="none" stroke="${INK}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>`),
+  hand:svg(`<path d="M42 96 Q20 76 22 58 Q24 48 33 52 L40 60 V16 Q40 7 48 7 Q56 7 56 16 V44 Q64 40 70 46 Q78 43 82 51 Q91 51 91 62 V76 Q91 92 74 98Z" fill="#fff" ${st(5)}/><path d="M56 46 V60 M70 48 V62 M82 54 V66" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/>`,'0 0 100 104'),
+  heartOff:svg(`<path d="${HEART}" fill="#fff" ${st(6)}/>`),
+  heartOn:svg(`<path d="${HEART}" fill="#ff5a8a" ${st(6)}/><path d="M28 34 Q32 26 40 26" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"/>`)
+};
+
+/* ---------- state ---------- */
+const KEY='veteriner-v1';
+const S={lang:'en',sound:true,healed:[],total:0};
+try{Object.assign(S,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+S.lang='en'; /* like all of Ipek's games, it always opens in English */
+if(!Array.isArray(S.healed))S.healed=[];
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const L=()=>T[S.lang];
+let screen='home',cur=null,busy=false;
+
+/* ---------- sound: device voice for each language; tones from Web Audio ---------- */
+const VOICE={tr:null,en:null};
+const hasTTS='speechSynthesis' in window&&'SpeechSynthesisUtterance' in window;
+function scoreVoice(v,l){const n=(v.name||'').toLowerCase(),lg=String(v.lang||'').toLowerCase().replace('_','-');let s=0;
+  if(/premium|enhanced|gelişmiş|natural|neural|online/.test(n))s+=8;if(/google/.test(n))s+=4;
+  if(l==='tr'&&/yelda|emel|filiz|seda/.test(n))s+=3;if(l==='tr'&&/ahmet|tolga|cem|kerem|male/.test(n))s-=4;
+  if(l==='en'&&lg==='en-us')s+=3;if(l==='en'&&/samantha|ava|allison|aria|jenny|zoe|karen|serena/.test(n))s+=2;
+  if(/compact|eloquence|grandpa|grandma|bad news|bells|bubbles|cellos|jester|organ|trinoids|whisper|wobble|zarvox|albert|boing|fred|junior|ralph|bahh|hysterical|superstar|good news/.test(n))s-=8;
+  if(v.default)s+=1;return s}
+function loadVoices(){if(!hasTTS)return;let vs=[];try{vs=speechSynthesis.getVoices()||[]}catch(e){}
+  ['tr','en'].forEach(l=>{const c=vs.filter(v=>{const lg=String(v.lang||'').toLowerCase().replace('_','-');return lg===l||lg.startsWith(l+'-')});c.sort((a,b)=>scoreVoice(b,l)-scoreVoice(a,l));VOICE[l]=c[0]||null})}
+if(hasTTS){loadVoices();try{speechSynthesis.addEventListener('voiceschanged',loadVoices)}catch(e){}}
+function hush(){try{speechSynthesis.cancel()}catch(e){}}
+function say(t,queue){
+  if(!S.sound||!hasTTS)return;const v=VOICE[S.lang];if(!v)return;
+  const text=(Array.isArray(t)?t:[t]).filter(Boolean).join(' ');if(!text)return;
+  try{if(!queue)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=v;u.lang=v.lang;u.rate=S.lang==='tr'?.9:.92;u.pitch=1.15;speechSynthesis.speak(u)}catch(e){}
+}
+let AC=null;
+function audioCtx(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();return AC}catch(e){return null}}
+try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,()=>{const a=audioCtx();if(a&&a.state!=='running')a.resume().catch(()=>{})},{capture:true,passive:true}));
+function tone(f,d,t0,type,vol,f2){if(!S.sound)return;const a=audioCtx();if(!a)return;try{const t=a.currentTime+(t0||0),o=a.createOscillator(),g=a.createGain();o.type=type||'triangle';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||.18,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.05)}catch(e){}}
+const SFX={
+  ding:()=>[523,659,784].forEach((f,i)=>tone(f,.25,i*.09)),
+  pick:()=>tone(660,.12,0,'sine',.15),
+  nope:()=>{tone(300,.14,0,'sine',.14);tone(240,.18,.12,'sine',.14)},
+  squish:()=>{tone(500,.12,0,'sine',.14,900);tone(700,.1,.08,'sine',.1,1300)},
+  beat:()=>{for(let i=0;i<3;i++){tone(80,.14,i*.6,'sine',.5,55);tone(70,.14,i*.6+.2,'sine',.4,50)}},
+  gulp:()=>{tone(320,.12,0,'sine',.18,200);tone(320,.12,.18,'sine',.18,200)},
+  yay:()=>[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,.28,i*.12,'triangle',.16))
+};
+
+/* ---------- effects (sparkles, bubbles, hearts, confetti) ---------- */
+const fx=$('fx'),cx=fx.getContext('2d');let parts=[],fxOn=false;
+function sizeFx(){const d=Math.min(2,window.devicePixelRatio||1);fx.width=innerWidth*d;fx.height=innerHeight*d;cx.setTransform(d,0,0,d,0,0)}
+sizeFx();addEventListener('resize',sizeFx);
+const COLORS=['#ff5a8a','#ffcb3d','#5fd3b5','#7cc8ff','#c79bff','#ff9f40'];
+function burst(x,y,kind,n){
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,sp=kind==='confetti'?4+Math.random()*7:1.5+Math.random()*3.5;
+    parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-(kind==='confetti'?6:kind==='spark'?1:2.2),g:kind==='confetti'?.22:kind==='spark'?.06:-.03,life:kind==='confetti'?110:60+Math.random()*30,age:0,kind,
+      r:kind==='bubble'?6+Math.random()*10:kind==='heart'?10+Math.random()*8:5+Math.random()*6,c:COLORS[i%COLORS.length],rot:Math.random()*6,vr:(Math.random()-.5)*.3})}
+  if(!fxOn){fxOn=true;requestAnimationFrame(tick)}
+}
+function drawStar(x,y,r){cx.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;cx.lineTo(x+rr*Math.cos(a),y+rr*Math.sin(a))}cx.closePath()}
+function drawHeart(x,y,r){cx.beginPath();cx.moveTo(x,y+r*.8);cx.bezierCurveTo(x-r*1.5,y-r*.2,x-r*.6,y-r*1.3,x,y-r*.4);cx.bezierCurveTo(x+r*.6,y-r*1.3,x+r*1.5,y-r*.2,x,y+r*.8);cx.closePath()}
+function tick(){
+  cx.clearRect(0,0,innerWidth,innerHeight);
+  parts=parts.filter(p=>p.age<p.life);
+  for(const p of parts){p.age++;p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.vx*=.985;p.rot+=p.vr;const al=Math.max(0,1-p.age/p.life);cx.globalAlpha=al;cx.lineWidth=2.5;cx.strokeStyle=INK;
+    if(p.kind==='bubble'){cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle='rgba(220,242,255,.85)';cx.fill();cx.stroke();cx.beginPath();cx.arc(p.x-p.r*.35,p.y-p.r*.35,p.r*.25,0,Math.PI*2);cx.fillStyle='#fff';cx.fill()}
+    else if(p.kind==='heart'){drawHeart(p.x,p.y,p.r);cx.fillStyle='#ff5a8a';cx.fill();cx.stroke()}
+    else if(p.kind==='spark'){drawStar(p.x,p.y,p.r+3);cx.fillStyle='#ffcb3d';cx.fill();cx.stroke()}
+    else{cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillStyle=p.c;cx.fillRect(-p.r,-p.r*.5,p.r*2,p.r);cx.restore()}}
+  cx.globalAlpha=1;
+  if(parts.length)requestAnimationFrame(tick);else{fxOn=false;cx.clearRect(0,0,innerWidth,innerHeight)}
+}
+
+/* ---------- waiting room ---------- */
+function renderHome(){
+  const l=L();
+  $('hello').textContent=l.hello;
+  $('patients').innerHTML=ANIMALS.map(a=>{const well=S.healed.includes(a.id);
+    return `<button class="pat ${well?'well':'sick'}" data-id="${a.id}" aria-label="${l.names[a.id]}">${well?`<span class="badge">${ICON.star}</span>`:''}${animalSVG(a,well?'happy'+(a.probs.includes('boo')?' f-boo':''):probClasses(a.probs)+(a.probs.length>3?' tear':''))}<span class="nm">${l.names[a.id]}</span></button>`}).join('');
+  document.querySelectorAll('.pat').forEach(b=>b.onclick=()=>openRoom(b.dataset.id));
+}
+function renderChrome(){
+  const l=L();
+  document.documentElement.lang=S.lang;document.title=l.title;
+  $('brand').innerHTML=ICON.logo+`<span>${l.title}</span>`;
+  $('gamesLink').innerHTML=ICON.home+l.games;
+  $('stars').innerHTML=ICON.star+`<b>${S.total}</b>`;$('stars').setAttribute('aria-label',l.stars+': '+S.total);$('stars').title=l.stars;
+  $('soundBtn').innerHTML=(S.sound?ICON.speaker:ICON.mute)+(S.sound?l.soundOn:l.soundOff);
+  $('helloSpeak').innerHTML=ICON.speaker;$('helloSpeak').setAttribute('aria-label',l.replay);
+  $('speakBtn').innerHTML=ICON.speaker;$('speakBtn').setAttribute('aria-label',l.replay);
+  $('backBtn').innerHTML=ICON.back;$('backBtn').setAttribute('aria-label',l.back);
+  $('againBtn').innerHTML=ICON.again;$('againBtn').setAttribute('aria-label',l.again);
+  $('hand').innerHTML=ICON.hand;
+  document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===S.lang)));
+  document.querySelectorAll('.tool').forEach(b=>b.setAttribute('aria-label',l.tools[b.dataset.tool]));
+}
+
+/* ---------- treatment room ---------- */
+function openRoom(id){
+  const a=AN[id];hush();
+  cur={id,a,left:new Set(a.probs),fixed:new Set(),gen:(cur?cur.gen:0)+1};busy=false;held=null;
+  screen='room';document.body.classList.add('in-room');$('home').hidden=true;$('room').hidden=false;
+  $('stage').innerHTML=animalSVG(a,'');
+  $('tray').innerHTML=TOOL_ORDER.map(t=>`<button class="tool" data-tool="${t}">${TOOLS[t]}</button>`).join('');
+  renderChrome();bindTools();refresh();
+  scrollTo(0,0);
+  say([L().sick(L().names[id]),L().hint[nextTool()]]);
+  armHint();
+}
+function kinds(){return [...new Set(cur.a.probs.map(KIND))]}
+function kindDone(k){return ![...cur.left].some(p=>KIND(p)===k)}
+function nextTool(){const p=[...cur.left][0];return p?PROB_TOOL[p]:null}
+function refresh(){
+  const svgEl=$('stage').querySelector('svg.an');if(!svgEl)return;
+  const keep=[...svgEl.classList].filter(c=>c==='an'||c==='jump'||c==='beating'||c==='gulp');
+  svgEl.setAttribute('class',[...keep,probClasses([...cur.left]),cur.fixed.has('boo')?'f-boo':'',cur.left.size>=3?'tear':'',cur.left.size===0?'happy':''].join(' ').trim());
+  $('hearts').innerHTML=kinds().map(k=>kindDone(k)?ICON.heartOn.replace('<svg','<svg data-k="'+k+'"'):ICON.heartOff).join('');
+  const need=new Set([...cur.left].map(p=>PROB_TOOL[p]));
+  document.querySelectorAll('.tool').forEach(b=>{const t=b.dataset.tool;b.classList.toggle('need',need.has(t)&&held!==t);b.classList.toggle('idle',!need.has(t)&&cur.left.size>0);b.classList.toggle('held',held===t)});
+}
+function goHome(){
+  hush();screen='home';document.body.classList.remove('in-room');cur&&(cur.gen++);held=null;hideHand();clearTimeout(hintT);
+  $('room').hidden=true;$('home').hidden=false;$('ghost').hidden=true;renderChrome();renderHome();scrollTo(0,0);
+}
+
+/* tools: drag a tool onto the animal, or tap a tool and then tap the animal */
+let held=null,drag=null;
+function bindTools(){
+  document.querySelectorAll('.tool').forEach(b=>{
+    b.addEventListener('pointerdown',e=>{
+      if(busy)return;e.preventDefault();poke();
+      const t=b.dataset.tool;SFX.pick();
+      drag={t,b,id:e.pointerId,x0:e.clientX,y0:e.clientY,moved:false};
+      try{b.setPointerCapture(e.pointerId)}catch(_){}
+    });
+    b.addEventListener('pointermove',e=>{
+      if(!drag||drag.id!==e.pointerId)return;
+      if(!drag.moved&&Math.hypot(e.clientX-drag.x0,e.clientY-drag.y0)>12){drag.moved=true;held=null;b.classList.add('dragging');const g=$('ghost');g.innerHTML=TOOLS[drag.t];g.hidden=false;refresh()}
+      if(drag.moved){moveGhost(e.clientX,e.clientY);if(applyAt(drag.t,e.clientX,e.clientY,true))drag.applied=true}
+    });
+    const end=e=>{
+      if(!drag||drag.id!==e.pointerId)return;const d=drag;drag=null;b.classList.remove('dragging');$('ghost').hidden=true;
+      if(d.moved){if(!applyAt(d.t,e.clientX,e.clientY,false)&&!d.applied&&e.type==='pointerup')wrongHint(d.t,e.clientX,e.clientY)}
+      else{held=held===d.t?null:d.t;if(held&&!needs(held))nope(held);refresh()}
+    };
+    b.addEventListener('pointerup',end);b.addEventListener('pointercancel',end);
+  });
+}
+function moveGhost(x,y){$('ghost').style.left=x+'px';$('ghost').style.top=y+'px'}
+const needs=t=>[...cur.left].some(p=>PROB_TOOL[p]===t);
+function targetsAt(x,y){return document.elementsFromPoint(x,y).map(el=>el.closest&&el.closest('[data-target]')).filter(Boolean)}
+/* while dragging, pass=true: fixes whatever matching spot the tool passes over (rubbing mud away). */
+function applyAt(t,x,y,pass){
+  if(!cur||busy)return false;
+  const hit=targetsAt(x,y).find(el=>PROB_TOOL[el.dataset.target]===t&&cur.left.has(el.dataset.target));
+  if(!hit)return false;fix(hit.dataset.target,hit);return true;
+}
+$('stage').addEventListener('pointerdown',e=>{
+  if(!cur||busy)return;poke();
+  const tg=targetsAt(e.clientX,e.clientY).filter(el=>cur.left.has(el.dataset.target));
+  if(held){
+    const ok=tg.find(el=>PROB_TOOL[el.dataset.target]===held);
+    if(ok){fix(ok.dataset.target,ok);return}
+    wrongHint(held,e.clientX,e.clientY);return;
+  }
+  /* no tool in hand: the animal giggles and the needed tool is shown */
+  const s=$('stage').querySelector('svg.an');if(e.target.closest('svg.an')){s.classList.remove('gulp');void s.getBoundingClientRect();s.classList.add('gulp');tone(880,.1,0,'sine',.12,1200)}
+  const t=tg.length?PROB_TOOL[tg[0].dataset.target]:nextTool();if(t){say(L().hint[t]);showHand(t,tg[0])}
+});
+function nope(t){const b=document.querySelector(`.tool[data-tool="${t}"]`);if(!b)return;b.classList.remove('nope');void b.offsetWidth;b.classList.add('nope');SFX.nope();const n=nextTool();if(n)say(L().hint[n])}
+function wrongHint(t,x,y){
+  if(!cur||cur.left.size===0)return;
+  const onAnimal=document.elementsFromPoint(x,y).some(el=>el.closest&&el.closest('#stage svg.an'));
+  if(!onAnimal&&!targetsAt(x,y).length)return;
+  nope(t);const n=nextTool();if(n)showHand(n);
+}
+function centerOf(el){const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
+function fix(p,el){
+  const t=PROB_TOOL[p],c=centerOf(el),gen=cur.gen;hideHand();
+  if(t==='steth'){
+    busy=true;const s=$('stage').querySelector('svg.an');s.classList.add('beating');SFX.beat();say(L().heart);
+    setTimeout(()=>{if(cur.gen!==gen)return;s.classList.remove('beating');busy=false;done(p,c,'heart')},1700);
+    burst(c.x,c.y,'heart',6);return;
+  }
+  if(t==='sponge'){SFX.squish();burst(c.x,c.y,'bubble',14);done(p,c,null);return}
+  if(t==='bandage'){cur.fixed.add('boo');SFX.ding();done(p,c,'spark');return}
+  /* medicine and milk: the animal swallows */
+  const s=$('stage').querySelector('svg.an');s.classList.remove('gulp');void s.getBoundingClientRect();s.classList.add('gulp');SFX.gulp();done(p,c,'spark');
+}
+function done(p,c,kind){
+  cur.left.delete(p);if(held&&!needs(held))held=null;
+  if(kind)burst(c.x,c.y,kind,12);
+  const k=KIND(p);refresh();
+  if(kindDone(k)){const h=$('hearts').querySelector(`[data-k="${k}"]`);if(h)h.classList.add('on');SFX.ding()}
+  if(cur.left.size===0){healed();return}
+  if(kindDone(k)){const l=L(),n=nextTool();say([l.good[Math.floor(Math.random()*l.good.length)],n?l.hint[n]:''])}
+  armHint();
+}
+function healed(){
+  const id=cur.id,gen=cur.gen,l=L();busy=true;held=null;clearTimeout(hintT);refresh();
+  const s=$('stage').querySelector('svg.an');s.classList.add('jump');
+  SFX.yay();say(l.healed(l.names[id]));
+  const c=centerOf(s);burst(c.x,c.y-40,'confetti',70);setTimeout(()=>burst(c.x,c.y,'heart',14),400);
+  if(!S.healed.includes(id))S.healed.push(id);S.total++;save();renderChrome();
+  setTimeout(()=>{if(!cur||cur.gen!==gen||screen!=='room')return;busy=false;
+    if(ANIMALS.every(a=>S.healed.includes(a.id)))allDone();else goHome()},4200);
+}
+function allDone(){
+  goHome();const l=L();
+  $('party').innerHTML=ANIMALS.map(a=>animalSVG(a,'happy'+(a.probs.includes('boo')?' f-boo':''))).join('');
+  $('doneTitle').textContent=l.all;$('doneOv').hidden=false;
+  SFX.yay();say(l.all);
+  const burstAll=()=>{if($('doneOv').hidden)return;burst(innerWidth*Math.random(),innerHeight*.3,'confetti',50)};burstAll();setTimeout(burstAll,700);setTimeout(burstAll,1400);
+}
+$('againBtn').onclick=()=>{S.healed=[];save();$('doneOv').hidden=true;hush();renderHome();say(L().helloSay)};
+
+/* ---------- pointing-hand hint: after a few quiet seconds it shows which tool goes where ---------- */
+let hintT=null,lastPoke=Date.now();
+function poke(){lastPoke=Date.now();armHint()}
+function armHint(){clearTimeout(hintT);if(screen!=='room'||!cur||cur.left.size===0)return;const gen=cur.gen;
+  hintT=setTimeout(()=>{if(!cur||cur.gen!==gen||busy||drag||screen!=='room')return;const t=nextTool();if(!t)return;say(L().hint[t]);showHand(t);armHint()},7000)}
+let handAnim=null;
+function hideHand(){if(handAnim){try{handAnim.cancel()}catch(e){}handAnim=null}$('hand').style.opacity=0}
+function showHand(t,targetEl){
+  if(!cur)return;hideHand();
+  const b=document.querySelector(`.tool[data-tool="${t}"]`);
+  const tgt=targetEl||[...document.querySelectorAll('#stage [data-target]')].find(el=>PROB_TOOL[el.dataset.target]===t&&cur.left.has(el.dataset.target));
+  if(!b||!tgt)return;
+  const h=$('hand'),hw=h.getBoundingClientRect().width||70,a=centerOf(b),z=centerOf(tgt);
+  /* fingertip is at (48%, 7%) of the hand */
+  const off=(p)=>`translate(${p.x-hw*.48}px,${p.y-hw*.07}px)`;
+  if(!h.animate){return}
+  handAnim=h.animate([
+    {transform:off(a),opacity:0},{transform:off(a),opacity:1,offset:.15},{transform:off(z),opacity:1,offset:.65},{transform:off(z)+' scale(.9)',opacity:1,offset:.78},{transform:off(z),opacity:0}
+  ],{duration:2200,iterations:2,easing:'ease-in-out'});
+  handAnim.onfinish=hideHand;
+}
+
+/* ---------- buttons ---------- */
+$('backBtn').onclick=goHome;
+$('speakBtn').onclick=()=>{const t=cur&&nextTool();if(t){say(L().hint[t]);showHand(t)}};
+$('helloSpeak').onclick=()=>say(L().helloSay);
+$('soundBtn').onclick=()=>{S.sound=!S.sound;save();if(!S.sound)hush();renderChrome()};
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{if(S.lang===b.dataset.lang)return;S.lang=b.dataset.lang;save();hush();renderChrome();
+  if(screen==='home')renderHome();else{const t=nextTool();if(t)say(L().hint[t])}});
+addEventListener('resize',hideHand);
+
+renderChrome();renderHome();
+window.__vet={S,T,ANIMALS,PROB_TOOL,get cur(){return cur},get screen(){return screen},openRoom,goHome};
+</script>
+</body>
+</html>
