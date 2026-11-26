@@ -45,15 +45,15 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
         check(await page.evaluate(() => __vet.screen === 'room'), `${tag}: ${id}: tedavi odası açılmadı`);
         check(!(await overflow()), `${tag}: ${id}: tedavi odası yana taşıyor`);
         check(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1), `${tag}: ${id}: tedavi odası aşağı taşıyor`);
-        for (const t of ['steth', 'sponge', 'bandage', 'medicine', 'bottle']) check(await inView(`.tool[data-tool="${t}"]`), `${tag}: ${id}: ${t} aleti ekranda değil`);
+        for (const t of ['steth', 'sponge', 'bandage', 'medicine', 'food']) check(await inView(`.tool[data-tool="${t}"]`), `${tag}: ${id}: ${t} aleti ekranda değil`);
         if (i === 0) await page.screenshot({ path: path.join(OUT, `veteriner-${tag}-2-tedavi.png`) });
 
         // a wrong tool first: it shakes and nothing gets fixed
         if (i === 0) {
           const left0 = await page.evaluate(() => __vet.cur.left.size);
-          await tap('.tool[data-tool="bottle"]'); await sleep(250);
-          check(await page.locator('.tool[data-tool="bottle"]').evaluate(e => e.classList.contains('nope')), `${tag}: yanlış alet sallanmadı`);
-          await tap('.tool[data-tool="bottle"]'); await sleep(100); // put it back down
+          await tap('.tool[data-tool="medicine"]'); await sleep(250);
+          check(await page.locator('.tool[data-tool="medicine"]').evaluate(e => e.classList.contains('nope')), `${tag}: yanlış alet sallanmadı`);
+          await tap('.tool[data-tool="medicine"]'); await sleep(100); // put it back down
           check(await page.evaluate(() => __vet.cur.left.size) === left0, `${tag}: yanlış alet bir şey düzeltti`);
         }
 
@@ -70,17 +70,32 @@ const fails = []; const check = (ok, m) => { if (!ok) fails.push(m); };
             for (let s = 1; s <= 8; s++) await page.mouse.move(tb.x + (tg.x - tb.x) * s / 8, tb.y + (tg.y - tb.y) * s / 8);
             await page.mouse.up();
           }
-          await sleep(p === 'steth' ? 1900 : 250);
+          await sleep(p === 'steth' ? 2100 : 250);
+          if (p === 'boo' || p === 'hungry') {
+            // a choice panel: the animal's favourite food, or the bandage colour that was asked for
+            await page.waitForSelector('#choice .opt', { timeout: 3000 }).catch(() => fails.push(`${tag}: ${id}: ${p} seçim paneli açılmadı`));
+            await sleep(450);
+            const want = await page.evaluate(() => __vet.choice && __vet.choice.want);
+            const opts = await page.locator('#choice .opt').evaluateAll(b => b.map(x => x.dataset.o));
+            check(opts.length === 3 && opts.filter(o => o === want).length === 1, `${tag}: ${id}: seçenekler yanlış ${opts} / ${want}`);
+            if (i === 0) {
+              await page.screenshot({ path: path.join(OUT, `veteriner-${tag}-2b-secim-${p}.png`) });
+              await tap('#choice .opt', opts.findIndex(o => o !== want)); await sleep(250);
+              check(await page.evaluate(p => __vet.cur.left.has(p), p), `${tag}: ${id}: yanlış seçim kabul edildi`);
+            }
+            await tap('#choice .opt', opts.indexOf(want)); await sleep(800);
+            check(await page.locator('#choice').count() === 0, `${tag}: ${id}: seçim paneli kapanmadı`);
+          }
           check(await page.evaluate(p => !__vet.cur.left.has(p), p), `${tag}: ${id}: ${p} düzelmedi`);
         }
         check(await page.evaluate(() => document.querySelector('#stage svg.an').classList.contains('happy')), `${tag}: ${id}: hayvan mutlu olmadı`);
         if (i === 0) await page.screenshot({ path: path.join(OUT, `veteriner-${tag}-3-iyilesti.png`) });
         if (i < ids.length - 1) {
-          await page.waitForFunction(() => __vet.screen === 'home', null, { timeout: 8000 }).catch(() => fails.push(`${tag}: ${id}: bekleme odasına kendiliğinden dönmedi`));
+          await page.waitForFunction(() => __vet.screen === 'home', null, { timeout: 10000 }).catch(() => fails.push(`${tag}: ${id}: bekleme odasına kendiliğinden dönmedi`));
           check(await page.locator(`.pat[data-id="${id}"].well`).count() === 1, `${tag}: ${id}: kartta yıldız yok`);
         }
       }
-      await page.waitForFunction(() => !document.getElementById('doneOv').hidden, null, { timeout: 8000 }).catch(() => fails.push(`${tag}: kutlama penceresi gelmedi`));
+      await page.waitForFunction(() => !document.getElementById('doneOv').hidden, null, { timeout: 10000 }).catch(() => fails.push(`${tag}: kutlama penceresi gelmedi`));
       await sleep(400);
       await page.screenshot({ path: path.join(OUT, `veteriner-${tag}-4-kutlama.png`) });
       check(await inView('#againBtn'), `${tag}: yeniden oyna düğmesi ekranda değil`);

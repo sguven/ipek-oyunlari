@@ -93,7 +93,7 @@ svg.an .head{transform-box:fill-box;transform-origin:50% 60%}
 /* animal layers: problem layers are shown while the problem is still there (class p-xxx on the svg) */
 svg.an .L,svg.an .F,svg.an .beat,svg.an .face-happy{display:none}
 svg.an.p-mud0 .L.mud0,svg.an.p-mud1 .L.mud1,svg.an.p-mud2 .L.mud2,svg.an.p-boo .L.boo,svg.an.p-fever .L.fever,svg.an.p-hungry .L.hungry,svg.an.p-steth .L.steth{display:inline}
-svg.an.f-boo .F.boo{display:inline}
+svg.an.f-boo .F.boo,svg.an.f-fever .F.fever{display:inline}
 svg.an.happy .face-happy{display:inline}
 svg.an.happy .face-sad{display:none}
 svg.an.tear .L.tear{display:inline}
@@ -105,6 +105,19 @@ svg.an .L.hungry .bub{transform-box:fill-box;transform-origin:left bottom;animat
 svg.an .L.fever .heat{animation:heat 1.2s ease-in-out infinite alternate}
 svg.an [data-target]{cursor:pointer}
 
+/* a choice panel over the stage: pick the right food or the asked colour */
+.choice{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);display:flex;gap:clamp(8px,3vw,18px);background:rgba(255,253,251,.96);border:4px solid var(--ink);border-radius:28px;box-shadow:0 6px 0 var(--ink);padding:10px;z-index:5;animation:rise .35s backwards}
+.opt{width:clamp(72px,21vw,120px);aspect-ratio:1;border-radius:22px;border:4px solid var(--ink);background:var(--tint);cursor:pointer;padding:8px;display:grid;place-items:center;box-shadow:0 5px 0 var(--ink);animation:pop .35s backwards}
+.opt:nth-child(2){animation-delay:.08s}.opt:nth-child(3){animation-delay:.16s}
+.opt svg{width:100%;height:100%;pointer-events:none}
+.opt:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink)}
+.opt.nope{animation:shake .45s;opacity:.4}
+.opt.yes{background:#c9f3e4;animation:bounce .6s}
+.num{position:fixed;left:0;top:0;z-index:48;pointer-events:none;font:700 clamp(56px,14vw,96px)/1 var(--display);color:#fff;-webkit-text-stroke:4px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);animation:numup 1.3s ease-out forwards}
+@keyframes numup{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}20%{transform:translate(-50%,-60%) scale(1.15);opacity:1}70%{transform:translate(-50%,-90%) scale(1);opacity:1}100%{transform:translate(-50%,-120%) scale(.9);opacity:0}}
+@keyframes rise{from{transform:translate(-50%,30px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+@keyframes nono{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+.stage svg.an.nono .head{animation:nono .5s 2}
 canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
 .ov{position:fixed;inset:0;background:rgba(59,42,92,.5);display:grid;place-items:center;padding:16px;z-index:30}
 .card{background:var(--card);border:4px solid var(--ink);border-radius:34px;box-shadow:0 8px 0 var(--ink);padding:20px 16px;max-width:620px;width:100%;max-height:92vh;overflow:auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
@@ -140,6 +153,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
   .tool{width:clamp(40px,12vh,64px);border-radius:16px;padding:3px;box-shadow:0 3px 0 var(--ink)}
   .round{width:46px;height:46px}.round svg{width:24px;height:24px}
   .hearts svg{width:32px}
+  .opt{width:clamp(52px,19vh,84px);padding:5px;border-radius:16px}.choice{padding:6px;border-radius:20px;bottom:2px}
   .patients{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
   .pat svg.an{max-width:130px}
 }
@@ -204,37 +218,45 @@ const TOOLS={
   sponge:svg(`<circle cx="30" cy="22" r="10" fill="#e6f6ff" ${st(3)}/><circle cx="52" cy="13" r="7" fill="#e6f6ff" ${st(3)}/><circle cx="70" cy="25" r="9" fill="#e6f6ff" ${st(3)}/><rect x="14" y="38" width="72" height="48" rx="13" fill="#ffd84d" ${st(5)}/><circle cx="32" cy="56" r="5" fill="#eeb81c"/><circle cx="58" cy="68" r="6" fill="#eeb81c"/><circle cx="70" cy="50" r="4" fill="#eeb81c"/><circle cx="44" cy="74" r="3.5" fill="#eeb81c"/>`),
   bandage:svg(`<g transform="rotate(-35 50 50)"><rect x="6" y="33" width="88" height="34" rx="17" fill="#ffd2a1" ${st(5)}/><rect x="35" y="37" width="30" height="26" rx="6" fill="#ffb877"/><circle cx="18" cy="45" r="2.5" fill="#d99a63"/><circle cx="18" cy="55" r="2.5" fill="#d99a63"/><circle cx="82" cy="45" r="2.5" fill="#d99a63"/><circle cx="82" cy="55" r="2.5" fill="#d99a63"/></g>`),
   medicine:svg(`<rect x="16" y="36" width="40" height="52" rx="11" fill="#ff7eb6" ${st(5)}/><rect x="22" y="20" width="28" height="18" rx="5" fill="#fff" ${st(5)}/><path d="M36 52 V72 M26 62 H46" stroke="#fff" stroke-width="7" stroke-linecap="round"/><rect x="72" y="50" width="9" height="38" rx="4.5" fill="#e9ecff" ${st(4)}/><ellipse cx="76.5" cy="38" rx="13" ry="16" fill="#e9ecff" ${st(5)}/><ellipse cx="76.5" cy="39" rx="7" ry="9" fill="#ff7eb6"/>`),
-  bottle:svg(`<path d="M40 30 Q41 8 50 8 Q59 8 60 30Z" fill="#ffcf7a" ${st(5)}/><rect x="28" y="28" width="44" height="13" rx="6" fill="#7cc8ff" ${st(5)}/><rect x="31" y="40" width="38" height="52" rx="13" fill="#fff" ${st(5)}/><rect x="36" y="56" width="28" height="31" rx="9" fill="#fff4d9"/><path d="M58 50 H66 M58 62 H66 M58 74 H66" stroke="#7cc8ff" stroke-width="4" stroke-linecap="round"/>`)
+  food:svg(`<circle cx="34" cy="40" r="9" fill="#c98a4b" ${st(3)}/><circle cx="52" cy="34" r="10" fill="#d99a5b" ${st(3)}/><circle cx="68" cy="42" r="9" fill="#c98a4b" ${st(3)}/><path d="M10 48 H90 Q88 86 50 88 Q12 86 10 48Z" fill="#ff7eb6" ${st(5)}/><ellipse cx="50" cy="68" rx="9" ry="7" fill="#fff"/><circle cx="40" cy="58" r="4" fill="#fff"/><circle cx="50" cy="55" r="4" fill="#fff"/><circle cx="60" cy="58" r="4" fill="#fff"/>`)
 };
-const TOOL_ORDER=['steth','sponge','bandage','medicine','bottle'];
-const PROB_TOOL={steth:'steth',mud0:'sponge',mud1:'sponge',mud2:'sponge',boo:'bandage',fever:'medicine',hungry:'bottle'};
+const TOOL_ORDER=['steth','sponge','bandage','medicine','food'];
+const FOODS={
+  fish:svg(`<path d="M74 50 L94 32 V68Z" fill="#7cc8ff" ${st(5)}/><path d="M12 50 Q42 16 78 50 Q42 84 12 50Z" fill="#7cc8ff" ${st(5)}/><path d="M48 32 Q56 50 48 68" fill="none" ${st(3.5)}/><circle cx="30" cy="46" r="5" fill="${INK}"/>`),
+  bone:svg(`<circle cx="22" cy="38" r="13" fill="#fff7e6" ${st(5)}/><circle cx="22" cy="62" r="13" fill="#fff7e6" ${st(5)}/><circle cx="78" cy="38" r="13" fill="#fff7e6" ${st(5)}/><circle cx="78" cy="62" r="13" fill="#fff7e6" ${st(5)}/><rect x="20" y="38" width="60" height="24" fill="#fff7e6"/><path d="M28 38 H72 M28 62 H72" ${st(5)}/>`),
+  carrot:svg(`<path d="M34 30 Q30 10 40 8 Q44 20 42 28 Q50 8 60 14 Q52 24 46 32" fill="#5fd3b5" ${st(4)}/><path d="M26 38 Q40 24 54 38 L84 88 Q86 93 80 90 Z" fill="#ff9f40" ${st(5)}/><path d="M42 48 L50 46 M50 62 L58 59 M60 74 L66 72" ${st(3.5)}/>`),
+  corn:svg(`<ellipse cx="50" cy="42" rx="19" ry="33" fill="#ffd84d" ${st(5)}/><path d="M38 24 H62 M34 36 H66 M33 48 H67 M36 60 H64 M50 10 V74" stroke="#e8b21c" stroke-width="3"/><path d="M50 92 Q18 84 22 40 Q34 70 50 76 Q66 70 78 40 Q82 84 50 92Z" fill="#7ed37b" ${st(5)}/>`),
+  apple:svg(`<path d="M50 30 Q52 16 58 8" fill="none" ${st(5)}/><path d="M55 20 Q70 6 80 16 Q68 28 55 20Z" fill="#5fd3b5" ${st(4)}/><path d="M50 30 C30 18 10 36 16 60 C22 86 42 92 50 84 C58 92 78 86 84 60 C90 36 70 18 50 30Z" fill="#ff5a5a" ${st(5)}/><path d="M28 46 Q30 38 38 36" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>`)
+};
+const BAND={pink:'#ff9ec4',blue:'#8fc8ff',yellow:'#ffd84d'};
+const PROB_TOOL={steth:'steth',mud0:'sponge',mud1:'sponge',mud2:'sponge',boo:'bandage',fever:'medicine',hungry:'food'};
 const KIND=p=>p.startsWith('mud')?'mud':p;
 
 /* ---------- animals (viewBox 0 0 300 320; head centre 150,118; body centre 150,240) ---------- */
 const ANIMALS=[
-  {id:'kedi',body:'#ffc48a',belly:'#fff1de',probs:['steth','mud0','mud1','mud2','boo'],
+  {id:'kedi',food:'fish',body:'#ffc48a',belly:'#fff1de',probs:['steth','mud0','mud1','mud2','boo','hungry'],
     ears:mir(`<path d="M80 86 L88 24 L134 56Z" fill="#ffc48a" ${st()}/><path d="M93 72 L97 42 L119 58Z" fill="#ffb3c7"/>`),
     extra:`<path d="M138 52 L141 66 M150 48 V64 M162 52 L159 66" stroke="#ef9a4f" stroke-width="6" stroke-linecap="round"/>`,
     snout:`<path d="M143 145 H157 L150 153Z" fill="#ff8fab" ${st(3)}/>`+mir(`<path d="M96 150 L72 146 M96 158 L74 162" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`),
     tail:`<path d="M214 280 Q262 270 256 220 Q252 200 240 206" fill="none" stroke="${INK}" stroke-width="22" stroke-linecap="round"/><path d="M214 280 Q262 270 256 220 Q252 200 240 206" fill="none" stroke="#ffc48a" stroke-width="13" stroke-linecap="round"/>`},
-  {id:'kopek',body:'#f3d6b0',belly:'#fffaf0',probs:['steth','boo','fever'],
+  {id:'kopek',food:'bone',body:'#f3d6b0',belly:'#fffaf0',probs:['steth','boo','fever','hungry'],
     ears:'',
     over:mir(`<path d="M84 74 Q46 82 58 156 Q70 178 92 150 Q102 112 100 80Z" fill="#b07a52" ${st()}/>`),
     extra:`<ellipse cx="180" cy="120" rx="26" ry="24" fill="#e2b98c"/>`,
     snout:`<ellipse cx="150" cy="156" rx="32" ry="23" fill="#fffaf0" ${st(4)}/><ellipse cx="150" cy="146" rx="11" ry="8" fill="${INK}"/><circle cx="146" cy="143" r="3" fill="#fff"/>`,
     mouthY:174,
     tail:`<path d="M218 262 Q252 250 250 214" fill="none" stroke="${INK}" stroke-width="20" stroke-linecap="round"/><path d="M218 262 Q252 250 250 214" fill="none" stroke="#b07a52" stroke-width="11" stroke-linecap="round"/>`},
-  {id:'tavsan',body:'#fbf4ff',belly:'#ffffff',probs:['steth','mud0','mud1','mud2','hungry'],
+  {id:'tavsan',food:'carrot',body:'#fbf4ff',belly:'#ffffff',probs:['steth','mud0','mud1','mud2','boo','hungry'],
     ears:mir(`<ellipse cx="116" cy="36" rx="21" ry="54" fill="#fbf4ff" ${st()} transform="rotate(-12 116 36)"/><ellipse cx="116" cy="40" rx="10" ry="38" fill="#ffbfd6" transform="rotate(-12 116 40)"/>`),
     snout:`<ellipse cx="150" cy="148" rx="8" ry="6" fill="#ff8fab" ${st(3)}/><rect x="143" y="168" width="14" height="13" rx="3" fill="#fff" ${st(3)}/><path d="M150 168 V181" stroke="${INK}" stroke-width="2.5"/>`,
     tail:`<circle cx="226" cy="270" r="20" fill="#ffffff" ${st()}/>`},
-  {id:'ordek',body:'#ffe066',belly:'#fff3a8',feet:'#ff9f40',probs:['steth','boo','hungry'],
+  {id:'ordek',food:'corn',body:'#ffe066',belly:'#fff3a8',feet:'#ff9f40',probs:['steth','mud0','mud1','mud2','fever','hungry'],
     ears:'',
     extra:`<path d="M150 40 Q140 14 158 12 M150 40 Q156 18 174 22" fill="none" ${st(5)}/>`,
     snout:`<path d="M116 154 Q150 136 184 154 Q150 176 116 154Z" fill="#ff9f40" ${st(5)}/><path d="M122 155 Q150 160 178 155" fill="none" ${st(3)}/>`,
     noMouth:true,
     tail:`<path d="M220 252 L254 238 L238 270Z" fill="#ffe066" ${st()}/>`},
-  {id:'domuz',body:'#ffc2d4',belly:'#ffe1ea',probs:['steth','mud0','mud1','mud2','fever'],
+  {id:'domuz',food:'apple',body:'#ffc2d4',belly:'#ffe1ea',probs:['steth','boo','fever','hungry'],
     ears:mir(`<path d="M86 76 L92 30 L132 56Z" fill="#ff9fba" ${st()}/>`),
     snout:`<ellipse cx="150" cy="150" rx="26" ry="18" fill="#ff9fba" ${st(5)}/><ellipse cx="141" cy="150" rx="4.5" ry="6.5" fill="${INK}"/><ellipse cx="159" cy="150" rx="4.5" ry="6.5" fill="${INK}"/>`,
     mouthY:180,
@@ -260,7 +282,7 @@ function animalSVG(a,cls){
     <path class="beat" d="M150 270 C120 250 114 232 126 220 C135 212 146 216 150 226 C154 216 165 212 174 220 C186 232 180 250 150 270Z" fill="#ff5a8a" ${st(4)}/>
     ${mud('mud0',116,258,20,1)}${mud('mud1',186,218,17,2)}
     <g class="L boo"><circle cx="222" cy="234" r="15" fill="#ffb3b3" opacity=".8"/><path d="M212 226 L232 238 M210 238 L228 246" stroke="#e8435a" stroke-width="5" stroke-linecap="round"/><circle data-target="boo" cx="222" cy="236" r="34" fill="#fff" fill-opacity="0.001"/></g>
-    <g class="F boo"><g transform="rotate(-28 222 236)"><rect x="194" y="225" width="56" height="22" rx="11" fill="#ffd2a1" ${st(4)}/><rect x="212" y="228" width="20" height="16" rx="4" fill="#ffb877"/></g></g>
+    <g class="F boo"><g transform="rotate(-28 222 236)"><rect class="bandc" x="194" y="225" width="56" height="22" rx="11" fill="#ffd2a1" ${st(4)}/><rect x="212" y="228" width="20" height="16" rx="4" fill="#fff" fill-opacity=".55"/></g></g>
     <g class="head">
       ${a.ears}
       <circle cx="150" cy="118" r="82" fill="${b}" ${st()}/>
@@ -275,7 +297,8 @@ function animalSVG(a,cls){
         <g class="heat">${mir(`<path d="M58 70 q-8 -8 0 -16 q8 -8 0 -16" fill="none" stroke="#ff7a5a" stroke-width="5" stroke-linecap="round"/>`)}</g>
         <g transform="rotate(-24 186 176)"><rect x="160" y="170" width="52" height="12" rx="6" fill="#fff" ${st(3.5)}/><rect x="190" y="173" width="18" height="6" rx="3" fill="#ff5a5a"/><circle cx="212" cy="176" r="9" fill="#ff5a5a" ${st(3.5)}/></g>
         <circle data-target="fever" cx="150" cy="${my-6}" r="40" fill="#fff" fill-opacity="0.001"/></g>
-      <g class="L hungry"><g class="bub"><circle cx="222" cy="64" r="6" fill="#fff" ${st(3)}/><circle cx="236" cy="46" r="9" fill="#fff" ${st(3)}/><ellipse cx="266" cy="16" rx="30" ry="26" fill="#fff" ${st(4)}/><g transform="translate(250 -6) scale(.34)">${TOOLS.bottle.replace(/^<svg[^>]*>|<\/svg>$/g,'')}</g></g>
+      <g class="F fever"><g transform="rotate(-24 186 176)"><rect x="160" y="170" width="52" height="12" rx="6" fill="#fff" ${st(3.5)}/><rect x="200" y="173" width="8" height="6" rx="3" fill="#4aa8ff"/><circle cx="212" cy="176" r="9" fill="#4aa8ff" ${st(3.5)}/></g></g>
+      <g class="L hungry"><g class="bub"><circle cx="222" cy="64" r="6" fill="#fff" ${st(3)}/><circle cx="236" cy="46" r="9" fill="#fff" ${st(3)}/><ellipse cx="266" cy="16" rx="30" ry="26" fill="#fff" ${st(4)}/><g transform="translate(248 -4) scale(.38)">${FOODS[a.food].replace(/^<svg[^>]*>|<\/svg>$/g,'')}</g></g>
         <circle data-target="hungry" cx="150" cy="${my-6}" r="40" fill="#fff" fill-opacity="0.001"/></g>
     </g>
   </svg>`;
@@ -288,24 +311,52 @@ const T={
     hello:'Hayvan hastanesine hoş geldin Doktor İpek! Hasta bir hayvana dokun ve onu iyileştir.',
     helloSay:'Hayvan hastanesine hoş geldin Doktor İpek! Hangi hayvana bakalım? Birine dokun.',
     names:{kedi:'Kedicik',kopek:'Köpekçik',tavsan:'Tavşancık',ordek:'Ördekçik',domuz:'Domuzcuk'},
-    sick:n=>`${n} hasta. Haydi ona yardım edelim!`,
-    hint:{steth:'Steteskopla kalbini dinle.',sponge:'Süngerle çamurları temizle.',bandage:'Yarasına yara bandı yapıştır.',medicine:'Ateşi var. Şurubunu ver.',bottle:'Karnı aç. Sütünü ver.'},
-    tools:{steth:'Steteskop',sponge:'Sünger',bandage:'Yara bandı',medicine:'Şurup',bottle:'Süt'},
-    heart:'Güm güm! Kalbi güzel atıyor.',
+    sick:n=>`${n} üzgün, çünkü hasta. Haydi ona yardım edelim!`,
+    hint:{steth:'Steteskopla kalbini dinle.',sponge:'Süngerle çamurları temizle.',bandage:'Yarasına yara bandı yapıştır.',medicine:'Ateşi var. Şurubunu ver.',food:'Karnı aç. Mama kabını ver.'},
+    tools:{steth:'Steteskop',sponge:'Sünger',bandage:'Yara bandı',medicine:'Şurup',food:'Mama kabı'},
+    heart:'Güm, güm, güm! Kalbi güzel atıyor.',
+    nums:['Bir','İki','Üç','Dört','Beş'],
+    allClean:'Hepsi tertemiz!',
+    colors:{pink:'pembe',blue:'mavi',yellow:'sarı'},
+    pickColor:c=>`${c[0].toLocaleUpperCase('tr')+c.slice(1)} yara bandını bul.`,
+    colorOk:c=>`Evet, ${c} yara bandı! Çok güzel.`,
+    colorNo:(got,want)=>`Bu ${got}. ${want[0].toLocaleUpperCase('tr')+want.slice(1)} olanı bul.`,
+    feverDown:'Ateşi düştü. Artık serin!',
+    foods:{fish:['balık','balığı'],bone:['kemik','kemiği'],carrot:['havuç','havucu'],corn:['mısır','mısırı'],apple:['elma','elmayı']},
+    foodAsk:n=>`${n} ne yer? Yemeğini seç.`,
+    foodOk:(n,f)=>`Evet! ${n} ${f[1]} çok sever. Nam nam!`,
+    foodNo:(n,f)=>`${n} onu istemiyor. ${f[0][0].toLocaleUpperCase('tr')+f[0].slice(1)} nerede?`,
+    words:{kedi:'Kedi',kopek:'Köpek',tavsan:'Tavşan',ordek:'Ördek',domuz:'Domuz'},
+    sounds:{kedi:'miyav miyav',kopek:'hav hav',tavsan:'hop hop',ordek:'vak vak',domuz:'oink oink'},
+    says:(w,snd)=>`${w} ${snd} der!`,
     good:['Aferin!','Harika!','Çok güzel!','Süpersin!'],
-    healed:n=>`Yaşasın! ${n} iyileşti! Teşekkürler Doktor İpek!`,
+    healed:n=>`Yaşasın! ${n} iyileşti, artık çok mutlu! Teşekkürler Doktor İpek!`,
     all:'Bütün hayvanlar iyileşti! Sen harika bir veterinersin!',
     back:'Bekleme odasına dön',replay:'Tekrar dinle',again:'Yeniden oyna',stars:'İyileşen hayvanlar'},
   en:{title:"Ipek's Animal Hospital",games:'Games',soundOn:'Sound on',soundOff:'Sound off',
     hello:'Welcome to the animal hospital, Doctor Ipek! Tap a sick animal and help it feel better.',
     helloSay:'Welcome to the animal hospital, Doctor Ipek! Who should we help? Tap an animal.',
     names:{kedi:'Kitty',kopek:'Puppy',tavsan:'Bunny',ordek:'Duckling',domuz:'Piggy'},
-    sick:n=>`${n} is not feeling well. Let's help!`,
-    hint:{steth:'Listen to the heart with the stethoscope.',sponge:'Wash off the mud with the sponge.',bandage:'Put a bandage on the boo-boo.',medicine:'A fever! Give the medicine.',bottle:'So hungry! Give the milk.'},
-    tools:{steth:'Stethoscope',sponge:'Sponge',bandage:'Bandage',medicine:'Medicine',bottle:'Milk'},
-    heart:'Thump thump! A happy heart.',
+    sick:n=>`${n} is sad because it is sick. Let's help!`,
+    hint:{steth:'Listen to the heart with the stethoscope.',sponge:'Wash off the mud with the sponge.',bandage:'Put a bandage on the boo-boo.',medicine:'A fever! Give the medicine.',food:'So hungry! Give the food bowl.'},
+    tools:{steth:'Stethoscope',sponge:'Sponge',bandage:'Bandage',medicine:'Medicine',food:'Food bowl'},
+    heart:'Thump, thump, thump! A happy heart.',
+    nums:['One','Two','Three','Four','Five'],
+    allClean:'All clean!',
+    colors:{pink:'pink',blue:'blue',yellow:'yellow'},
+    pickColor:c=>`Find the ${c} bandage.`,
+    colorOk:c=>`Yes, the ${c} bandage! Very nice.`,
+    colorNo:(got,want)=>`That one is ${got}. Find the ${want} one.`,
+    feverDown:'The fever is gone. Nice and cool!',
+    foods:{fish:['fish','fish'],bone:['bone','bones'],carrot:['carrot','carrots'],corn:['corn','corn'],apple:['apple','apples']},
+    foodAsk:n=>`What does ${n} eat? Pick the food.`,
+    foodOk:(n,f)=>`Yes! ${n} loves ${f[1]}. Yum yum!`,
+    foodNo:(n,f)=>`${n} doesn't want that. Where is the ${f[0]}?`,
+    words:{kedi:'The cat',kopek:'The dog',tavsan:'The bunny',ordek:'The duck',domuz:'The pig'},
+    sounds:{kedi:'meow meow',kopek:'woof woof',tavsan:'hop hop',ordek:'quack quack',domuz:'oink oink'},
+    says:(w,snd)=>`${w} says ${snd}!`,
     good:['Great job!','Wonderful!','Well done!','Super!'],
-    healed:n=>`Hooray! ${n} feels better! Thank you, Doctor Ipek!`,
+    healed:n=>`Hooray! ${n} feels better and is happy now! Thank you, Doctor Ipek!`,
     all:'All the animals are better! You are a wonderful vet!',
     back:'Back to the waiting room',replay:'Listen again',again:'Play again',stars:'Animals made better'}
 };
@@ -396,7 +447,11 @@ function renderHome(){
   $('hello').textContent=l.hello;
   $('patients').innerHTML=ANIMALS.map(a=>{const well=S.healed.includes(a.id);
     return `<button class="pat ${well?'well':'sick'}" data-id="${a.id}" aria-label="${l.names[a.id]}">${well?`<span class="badge">${ICON.star}</span>`:''}${animalSVG(a,well?'happy'+(a.probs.includes('boo')?' f-boo':''):probClasses(a.probs)+(a.probs.length>3?' tear':''))}<span class="nm">${l.names[a.id]}</span></button>`}).join('');
-  document.querySelectorAll('.pat').forEach(b=>b.onclick=()=>openRoom(b.dataset.id));
+  document.querySelectorAll('.pat').forEach(b=>b.onclick=()=>{const id=b.dataset.id;
+    if(!S.healed.includes(id)){openRoom(id);return}
+    /* a healed animal just says hello with its own sound */
+    const s=b.querySelector('svg.an');s.style.animation='none';void s.getBoundingClientRect();s.style.animation='jump .7s ease-in-out 2';
+    const c=centerOf(s);burst(c.x,c.y-20,'heart',8);SFX.ding();sayAnimal(id)});
 }
 function renderChrome(){
   const l=L();
@@ -432,12 +487,13 @@ function nextTool(){const p=[...cur.left][0];return p?PROB_TOOL[p]:null}
 function refresh(){
   const svgEl=$('stage').querySelector('svg.an');if(!svgEl)return;
   const keep=[...svgEl.classList].filter(c=>c==='an'||c==='jump'||c==='beating'||c==='gulp');
-  svgEl.setAttribute('class',[...keep,probClasses([...cur.left]),cur.fixed.has('boo')?'f-boo':'',cur.left.size>=3?'tear':'',cur.left.size===0?'happy':''].join(' ').trim());
+  svgEl.setAttribute('class',[...keep,probClasses([...cur.left]),cur.fixed.has('boo')?'f-boo':'',cur.cool?'f-fever':'',cur.left.size>=3?'tear':'',cur.left.size===0?'happy':''].join(' ').trim());
   $('hearts').innerHTML=kinds().map(k=>kindDone(k)?ICON.heartOn.replace('<svg','<svg data-k="'+k+'"'):ICON.heartOff).join('');
   const need=new Set([...cur.left].map(p=>PROB_TOOL[p]));
   document.querySelectorAll('.tool').forEach(b=>{const t=b.dataset.tool;b.classList.toggle('need',need.has(t)&&held!==t);b.classList.toggle('idle',!need.has(t)&&cur.left.size>0);b.classList.toggle('held',held===t)});
 }
 function goHome(){
+  if(choice){clearTimeout(choice.t);choice=null}
   hush();screen='home';document.body.classList.remove('in-room');cur&&(cur.gen++);held=null;hideHand();clearTimeout(hintT);
   $('room').hidden=true;$('home').hidden=false;$('ghost').hidden=true;renderChrome();renderHome();scrollTo(0,0);
 }
@@ -494,35 +550,86 @@ function wrongHint(t,x,y){
   nope(t);const n=nextTool();if(n)showHand(n);
 }
 function centerOf(el){const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
+function sayAnimal(id,pre){const l=L();say([pre||'',l.says(l.words[id],l.sounds[id])])}
+function popNum(n,x,y){const d=document.createElement('div');d.className='num';d.textContent=n;d.style.left=x+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),1400)}
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+/* choice panel: kind 'food' (pick the animal's favourite food) or 'color' (find the asked bandage colour) */
+let choice=null;
+function openChoice(kind,p,c){
+  const l=L(),a=cur.a,gen=cur.gen;busy=true;held=null;clearTimeout(hintT);refresh();
+  let opts,want;
+  if(kind==='food'){want=a.food;opts=shuffle([want,...shuffle(Object.keys(FOODS).filter(f=>f!==want)).slice(0,2)])}
+  else{opts=shuffle(Object.keys(BAND));want=opts[Math.floor(Math.random()*3)]}
+  choice={kind,p,c,want,gen,tries:0};
+  const box=document.createElement('div');box.className='choice';box.id='choice';
+  box.innerHTML=opts.map(o=>`<button class="opt" data-o="${o}" aria-label="${kind==='food'?l.foods[o][0]:l.colors[o]}">${kind==='food'?FOODS[o]:TOOLS.bandage.replace('#ffd2a1',BAND[o])}</button>`).join('');
+  $('stage').appendChild(box);
+  const ask=()=>kind==='food'?l.foodAsk(l.names[a.id]):l.pickColor(l.colors[want]);
+  say(ask());
+  box.querySelectorAll('.opt').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();pickOpt(b)}));
+  const remind=()=>{if(!choice||choice.gen!==gen)return;say(ask());const w=box.querySelector(`[data-o="${want}"]`);if(w)pointAt(w);choice.t=setTimeout(remind,8000)};
+  choice.t=setTimeout(remind,8000);
+}
+function pickOpt(b){
+  if(!choice)return;const l=L(),o=b.dataset.o,ch=choice,a=cur.a;
+  if(o!==ch.want){
+    b.classList.remove('nope');void b.offsetWidth;b.classList.add('nope');SFX.nope();ch.tries++;
+    const s=$('stage').querySelector('svg.an');s.classList.remove('nono');void s.getBoundingClientRect();s.classList.add('nono');
+    say(ch.kind==='food'?l.foodNo(l.names[a.id],l.foods[ch.want]):l.colorNo(l.colors[o],l.colors[ch.want]));
+    if(ch.tries>=2){const w=$('choice').querySelector(`[data-o="${ch.want}"]`);if(w)pointAt(w)}
+    return;
+  }
+  clearTimeout(ch.t);b.classList.add('yes');hideHand();
+  const bc=centerOf(b);burst(bc.x,bc.y,'spark',10);
+  setTimeout(()=>{if(!cur||cur.gen!==ch.gen)return;const box=$('choice');if(box)box.remove();choice=null;busy=false;
+    const s=$('stage').querySelector('svg.an');
+    if(ch.kind==='food'){s.classList.remove('gulp');void s.getBoundingClientRect();s.classList.add('gulp');SFX.gulp();setTimeout(()=>SFX.gulp(),350);
+      say(l.foodOk(l.names[a.id],l.foods[ch.want]));done(ch.p,ch.c,'heart',true)}
+    else{const r=s.querySelector('.bandc');if(r)r.setAttribute('fill',BAND[ch.want]);cur.fixed.add('boo');SFX.ding();say(l.colorOk(l.colors[ch.want]));done(ch.p,ch.c,'spark',true)}
+  },450);
+}
+function pointAt(el){
+  hideHand();const h=$('hand'),hw=h.getBoundingClientRect().width||70,z=centerOf(el);if(!h.animate)return;
+  const off=p=>`translate(${p.x-hw*.48}px,${p.y-hw*.07}px)`;
+  handAnim=h.animate([{transform:off({x:z.x,y:z.y+60}),opacity:0},{transform:off(z),opacity:1,offset:.4},{transform:off(z)+' scale(.9)',opacity:1,offset:.6},{transform:off(z),opacity:0}],{duration:1600,iterations:2});
+  handAnim.onfinish=hideHand;
+}
 function fix(p,el){
   const t=PROB_TOOL[p],c=centerOf(el),gen=cur.gen;hideHand();
   if(t==='steth'){
     busy=true;const s=$('stage').querySelector('svg.an');s.classList.add('beating');SFX.beat();say(L().heart);
-    setTimeout(()=>{if(cur.gen!==gen)return;s.classList.remove('beating');busy=false;done(p,c,'heart')},1700);
+    /* count the three heartbeats */
+    [0,1,2].forEach(i=>setTimeout(()=>{if(cur.gen===gen)popNum(i+1,c.x+(i-1)*50,c.y-30)},i*600));
+    setTimeout(()=>{if(cur.gen!==gen)return;s.classList.remove('beating');busy=false;done(p,c,'heart')},1900);
     burst(c.x,c.y,'heart',6);return;
   }
-  if(t==='sponge'){SFX.squish();burst(c.x,c.y,'bubble',14);done(p,c,null);return}
-  if(t==='bandage'){cur.fixed.add('boo');SFX.ding();done(p,c,'spark');return}
-  /* medicine and milk: the animal swallows */
-  const s=$('stage').querySelector('svg.an');s.classList.remove('gulp');void s.getBoundingClientRect();s.classList.add('gulp');SFX.gulp();done(p,c,'spark');
+  if(t==='sponge'){
+    /* mud spots are counted out loud with a big number */
+    SFX.squish();burst(c.x,c.y,'bubble',14);cur.mud=(cur.mud||0)+1;popNum(cur.mud,c.x,c.y);
+    const l=L(),last=![...cur.left].some(q=>q!==p&&KIND(q)==='mud');
+    say([l.nums[cur.mud-1]+'!',last?l.allClean:''],true);done(p,c,null,true);return}
+  if(t==='bandage'||t==='food'){openChoice(t==='food'?'food':'color',p,c);return}
+  /* medicine: the animal swallows and the thermometer turns from hot red to cool blue */
+  const s=$('stage').querySelector('svg.an');s.classList.remove('gulp');void s.getBoundingClientRect();s.classList.add('gulp');SFX.gulp();
+  cur.cool=true;say(L().feverDown);setTimeout(()=>{if(cur.gen===gen){cur.cool=false;refresh()}},2200);done(p,c,'spark',true);
 }
-function done(p,c,kind){
+function done(p,c,kind,quiet){
   cur.left.delete(p);if(held&&!needs(held))held=null;
   if(kind)burst(c.x,c.y,kind,12);
   const k=KIND(p);refresh();
   if(kindDone(k)){const h=$('hearts').querySelector(`[data-k="${k}"]`);if(h)h.classList.add('on');SFX.ding()}
   if(cur.left.size===0){healed();return}
-  if(kindDone(k)){const l=L(),n=nextTool();say([l.good[Math.floor(Math.random()*l.good.length)],n?l.hint[n]:''])}
+  if(kindDone(k)){const l=L(),n=nextTool();say([quiet?'':l.good[Math.floor(Math.random()*l.good.length)],n?l.hint[n]:''],quiet)}
   armHint();
 }
 function healed(){
   const id=cur.id,gen=cur.gen,l=L();busy=true;held=null;clearTimeout(hintT);refresh();
   const s=$('stage').querySelector('svg.an');s.classList.add('jump');
-  SFX.yay();say(l.healed(l.names[id]));
+  SFX.yay();say([l.healed(l.names[id]),l.says(l.words[id],l.sounds[id])],true);
   const c=centerOf(s);burst(c.x,c.y-40,'confetti',70);setTimeout(()=>burst(c.x,c.y,'heart',14),400);
   if(!S.healed.includes(id))S.healed.push(id);S.total++;save();renderChrome();
   setTimeout(()=>{if(!cur||cur.gen!==gen||screen!=='room')return;busy=false;
-    if(ANIMALS.every(a=>S.healed.includes(a.id)))allDone();else goHome()},4200);
+    if(ANIMALS.every(a=>S.healed.includes(a.id)))allDone();else goHome()},6500);
 }
 function allDone(){
   goHome();const l=L();
@@ -565,7 +672,7 @@ document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{if(S.lang===
 addEventListener('resize',hideHand);
 
 renderChrome();renderHome();
-window.__vet={S,T,ANIMALS,PROB_TOOL,get cur(){return cur},get screen(){return screen},openRoom,goHome};
+window.__vet={S,T,ANIMALS,PROB_TOOL,get choice(){return choice},get cur(){return cur},get screen(){return screen},openRoom,goHome};
 </script>
 </body>
 </html>
