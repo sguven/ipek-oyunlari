@@ -472,7 +472,7 @@ function runOdd(lv){
     $('area').querySelectorAll('.ch').forEach(b=>b.onclick=()=>{
       if(b.dataset.e===odd){b.classList.add('ok');$('area').querySelectorAll('.ch').forEach(x=>{x.disabled=true;if(x!==b)x.classList.add('dim')});pling();
         const c=L().cats[A],why=S.lang==='tr'?`${cap(listTxt(same))} ${c[0]}. ${cap(nm(odd))} ${c[1]}!`:`${cap(listTxt(same))} ${c[0]}. The ${nm(odd)} ${c[1]}!`;
-        say([praise(),why]);later(async()=>{await speechDone(7000);if(round>=ROUNDS)levelDone(starsFor(G.miss,0,2));else one()},600)}
+        say(S.lang==='tr'?[praise(),`Bunlar ${c[0]}.`,`${cap(nm(odd))} ${c[1]}!`]:[praise(),why]);later(async()=>{await speechDone(7000);if(round>=ROUNDS)levelDone(starsFor(G.miss,0,2));else one()},600)}
       else{if(first){G.miss++;first=false}b.classList.add('no');boop();say(L().oddWrong)}
     });
     G.instr=L().oddI;if(round===1)say(L().oddI);
