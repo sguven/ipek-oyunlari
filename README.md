@@ -20,6 +20,7 @@ EN/TR toggle (Letter Islands is Turkish only).
 | `boyama/` | Ipek's Coloring Book | Painting with colours, brush and stamps; saving pictures |
 | `zeka/` | Ipek's Brain Games | Memory cards, jigsaws, robot paths, odd one out, ordering |
 | `veteriner/` | Ipek's Animal Hospital | Pretend vet for the youngest: drag or tap tools to make five sick animals feel better, no reading needed |
+| `direksiyon/` | Ipek at the Wheel | Easy driving for the youngest: pick a car and a place, steer into the stars with big arrows, find the asked balloon colour, stop at the traffic light, honk at animals on the road, no reading needed |
 
 Folder names are Turkish because they are part of each game's web address.
 `index.html` at the root is the home page with a card for each game.
@@ -48,6 +49,7 @@ node run-tests.js --quick # faster pass
 node run-tests.js --game=minik-kasif
 node araba-test.js        # each game also has its own test file
 node veteriner-test.js    # Animal Hospital
+node direksiyon-test.js   # Ipek at the Wheel
 ```
 
 Screenshots from a run are written to `tests/out/` (git-ignored).
