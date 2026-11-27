@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>İpek'in Oyunları</title>
-<meta name="description" content="İpek için eğitici oyunlar: Minik Kâşif, Pırıl'ın Gökkuşağı, Kelebek Bahçesi, Araba Gezisi, Yardım Köyü, Harf Adaları, Boyama Kitabı, Zekâ Oyunları ve Hayvan Hastanesi. Learning games for Ipek.">
+<meta name="description" content="İpek için eğitici oyunlar: Minik Kâşif, Pırıl'ın Gökkuşağı, Kelebek Bahçesi, Araba Gezisi, Yardım Köyü, Harf Adaları, Boyama Kitabı, Zekâ Oyunları, Hayvan Hastanesi ve İpek Direksiyonda. Learning games for Ipek.">
 <meta name="theme-color" content="#fff3e6">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -50,6 +50,7 @@ h1{margin:0;font:700 clamp(28px,7vw,48px)/1.05 var(--display);text-wrap:balance}
 .g7 .art{background:linear-gradient(#fff1dc,#ffd6e8)}
 .g8 .art{background:linear-gradient(#e3ebff,#ffe3f0)}
 .g9 .art{background:linear-gradient(#d9f4ec,#fff1f6)}
+.g10 .art{background:linear-gradient(#9fdcff 0%,#e3f4ff 56%,#9be37a 56%,#86d066 100%)}
 .body{padding:14px 16px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
 .body b{font:700 26px/1.1 var(--display);text-wrap:balance}
 .body p{margin:0;font-weight:700;color:var(--ink2);line-height:1.45}
@@ -164,6 +165,11 @@ const ART9=svg(`<path d="M146 20 H158 V32 H170 V44 H158 V56 H146 V44 H134 V32 H1
 <g transform="rotate(-25 112 98)"><rect x="100" y="92" width="26" height="11" rx="5.5" fill="#ffd2a1" ${st(2.5)}/></g></g>
 <path d="M20 70 V84 Q20 96 30 96 Q40 96 40 84 V70" fill="none" stroke="#5b6bd6" stroke-width="4" stroke-linecap="round"/><path d="M30 96 V104 Q30 112 38 112" fill="none" stroke="#5b6bd6" stroke-width="4" stroke-linecap="round"/><circle cx="42" cy="111" r="6" fill="#cfd6ff" ${st(3)}/>
 <path d="M150 104 C140 96 138 88 144 84 C148 82 150 85 150 87 C150 85 152 82 156 84 C162 88 160 96 150 104Z" fill="#ff5a8a" ${st(2.5)}/>`,'0 0 180 125');
+/* Ipek at the Wheel: a road into the hills with stars on it and the blue car seen from behind */
+const ART10=svg(`<path d="M70 52 H110 L176 125 H4Z" fill="#8d89a8" ${st(3.5)}/><path d="M66 52 L0 125 M114 52 L180 125" stroke="#ff7eb6" stroke-width="5"/><path d="M90 58 V66 M90 76 V88 M90 100 V118" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+<circle cx="150" cy="22" r="12" fill="#ffd93d" ${st(3)}/><g transform="translate(18 34)"><rect x="-3" y="4" width="6" height="12" fill="#a86b3c" ${st(2)}/><circle cx="0" cy="0" r="10" fill="#5cc96b" ${st(2.5)}/></g><g transform="translate(160 40)"><rect x="-3" y="4" width="6" height="12" fill="#a86b3c" ${st(2)}/><circle cx="0" cy="0" r="10" fill="#5cc96b" ${st(2.5)}/></g>
+<polygon points="${starPts(76,62,7,3)}" fill="#ffd93d" ${st(2)}/><polygon points="${starPts(106,72,9,4)}" fill="#ffd93d" ${st(2.5)}/>
+<g class="bob" style="transform-origin:90px 100px"><rect x="58" y="104" width="16" height="16" rx="5" fill="${INK}"/><rect x="106" y="104" width="16" height="16" rx="5" fill="${INK}"/><path d="M70 92 Q72 76 84 76 H96 Q108 76 110 92Z" fill="#4aa8ff" ${st(3.5)}/><rect x="52" y="88" width="76" height="26" rx="11" fill="#4aa8ff" ${st(3.5)}/><path d="M76 90 Q78 80 86 80 H94 Q102 80 104 90Z" fill="#cfe9ff" ${st(2.5)}/><circle cx="90" cy="90" r="7" fill="#6b3f26"/><path d="M84 83 l-5 -3 v6z M96 83 l5 -3 v6z" fill="#ff7eb6" ${st(1.5)}/><rect x="56" y="96" width="12" height="8" rx="3" fill="#ff4d4d" ${st(2)}/><rect x="112" y="96" width="12" height="8" rx="3" fill="#ff4d4d" ${st(2)}/><rect x="82" y="100" width="16" height="8" rx="2" fill="#fff" ${st(2)}/></g>`,'0 0 180 125');
 const PLAY=svg(`<polygon points="22,12 88,50 22,88" fill="${INK}"/>`);
 const T={
   tr:{title:"İpek'in Oyunları",arch:'Arşiv',archSub:'Eski oyunlar burada duruyor, istersen yine oynayabilirsin.',hello:'Merhaba İpek! Hangi oyunu oynamak istersin? Bir karta dokun, oyun açılsın.',play:'Oyna',nw:'Yeni!',
@@ -177,7 +183,8 @@ const T={
       {href:'harf/',name:"İpek'in Harf Adaları",desc:'Bilge Baykuş ile okuldaki gibi harf harf oku ve yaz: sesler, hece, kelime, cümle.',tags:['29 harf','Yazma','Hece','Okuma'],arch:true},
       {href:'boyama/',name:"İpek'in Boyama Kitabı",desc:'Rengini seç, dokun ve boya! Fırça, damgalar, renk ipuçları ve resmini kaydetme.',tags:['13 resim','Renkler','Fırça','Damga'],arch:true},
       {href:'zeka/',name:"İpek'in Zekâ Oyunları",desc:'Bilge Baykuş ile hafıza kartları, yapboz, robot yolu, hangisi farklı ve sıralama.',tags:['Hafıza','Yapboz','Kodlama','Mantık']},
-      {href:'veteriner/',name:"İpek'in Hayvan Hastanesi",desc:'Hasta hayvanlara stetoskop, sünger, yara bandı, şurup ve mama ile bak, en sevdiği yemeği bul.',tags:['Hayvanlar','Doktorculuk','Okuma gerekmez'],isNew:true}
+      {href:'veteriner/',name:"İpek'in Hayvan Hastanesi",desc:'Hasta hayvanlara stetoskop, sünger, yara bandı, şurup ve mama ile bak, en sevdiği yemeği bul.',tags:['Hayvanlar','Doktorculuk','Okuma gerekmez']},
+      {href:'direksiyon/',name:'İpek Direksiyonda',desc:'Arabanı seç; denize, çiftliğe, ormana ya da oyun parkına sür. Yıldız topla, trafik ışığında dur, yoldaki hayvanlara korna çal.',tags:['Araba sürme','Renkler','Trafik ışığı','Okuma gerekmez'],isNew:true}
     ]},
   en:{title:"Ipek's Games",arch:'Archive',archSub:'Older games live here. You can still play them.',hello:'Hi Ipek! Which game do you want to play? Tap a card to start.',play:'Play',nw:'New!',
     foot:'The “Games” button inside each game brings you back here. Progress is saved separately on each device.',
@@ -190,10 +197,11 @@ const T={
       {href:'harf/',name:"Ipek's Letter Islands",desc:'Learn to read and write Turkish letter by letter, the way first grade teaches it (in Turkish).',tags:['29 letters','Writing','Syllables','Reading'],arch:true},
       {href:'boyama/',name:"Ipek's Coloring Book",desc:'Pick a color, tap and paint! Brush, stamps, color hints and saving your picture.',tags:['13 pictures','Colors','Brush','Stamps'],arch:true},
       {href:'zeka/',name:"Ipek's Brain Games",desc:'Memory cards, jigsaw puzzles, robot paths, odd one out and putting things in order.',tags:['Memory','Puzzle','Coding','Logic']},
-      {href:'veteriner/',name:"Ipek's Animal Hospital",desc:'Care for sick animals with a stethoscope, sponge, bandage, medicine and their favourite food until they all feel better.',tags:['Animals','Pretend doctor','No reading needed'],isNew:true}
+      {href:'veteriner/',name:"Ipek's Animal Hospital",desc:'Care for sick animals with a stethoscope, sponge, bandage, medicine and their favourite food until they all feel better.',tags:['Animals','Pretend doctor','No reading needed']},
+      {href:'direksiyon/',name:'Ipek at the Wheel',desc:'Pick a car and drive to the beach, the farm, the forest or the playground. Collect stars, stop at the traffic light and honk at the animals on the road.',tags:['Driving','Colours','Traffic light','No reading needed'],isNew:true}
     ]}
 };
-const ART=[ART1,ART2,ART3,ART4,ART5,ART6,ART7,ART8,ART9];
+const ART=[ART1,ART2,ART3,ART4,ART5,ART6,ART7,ART8,ART9,ART10];
 let lang='tr';
 try{const s=JSON.parse(localStorage.getItem('kelebek-bahcesi-v1')||'{}');if(s.lang)lang=s.lang;else if((navigator.language||'').toLowerCase().startsWith('en'))lang='en'}catch(e){}
 try{const l=localStorage.getItem('ipek-oyunlar-lang');if(l==='tr'||l==='en')lang=l}catch(e){}
